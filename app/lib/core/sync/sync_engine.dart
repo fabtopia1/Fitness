@@ -138,11 +138,13 @@ class SyncEngine {
 
       for (final entry in due) {
         try {
-          final doc = _firestore!
-              .collection('users')
-              .doc(_uid)
-              .collection(entry.collection)
-              .doc(entry.docId);
+          final user = _firestore!.collection('users').doc(_uid);
+
+          // The profile is the one payload that targets the user document
+          // itself; everything else is a sub-collection of it.
+          final doc = entry.collection == Outbox.profileCollection
+              ? user
+              : user.collection(entry.collection).doc(entry.docId);
 
           switch (entry.op) {
             case OutboxOp.upsert:

@@ -93,7 +93,7 @@ class AppBootstrap {
       telemetry: TelemetryService(
         analytics: analytics,
         crashlytics: crashlytics,
-        enabled: Env.analyticsEnabled && firebase.isAvailable,
+        available: firebase.isAvailable,
       ),
       notifications: notifications,
       connectivity: ConnectivityService(),

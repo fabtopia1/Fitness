@@ -30,7 +30,6 @@ linter:
     cancel_subscriptions: true
     close_sinks: true
     avoid_empty_else: true
-    unnecessary_await_in_return: true
     # Off deliberately: a private field fed by a *named* parameter cannot use
     # an initialising formal without leaking the underscore into the public
     # API. Constructor-body assignment is the correct form here.

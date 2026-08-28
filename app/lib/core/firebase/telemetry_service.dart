@@ -12,17 +12,47 @@ import 'package:lifedna/core/error/failure.dart';
 /// throws rather than silently shipping a privacy leak, and is covered by a
 /// unit test.
 class TelemetryService {
-  const TelemetryService({
+  TelemetryService({
     this.analytics,
     this.crashlytics,
-    this.enabled = true,
-  });
+    bool available = true,
+  }) : _available = available;
 
   final FirebaseAnalytics? analytics;
   final FirebaseCrashlytics? crashlytics;
 
-  /// False in local mode, in dev builds, and when the user opts out.
-  final bool enabled;
+  /// Whether telemetry is possible at all in this build — false in local mode,
+  /// where there is no Firebase project to send anything to.
+  final bool _available;
+
+  bool _analyticsConsent = true;
+  bool _crashConsent = true;
+
+  /// Three gates, all of which must be open: the build has Firebase, the
+  /// flavour permits collection, and the user has not opted out.
+  bool get enabled => _available && Env.analyticsEnabled && _analyticsConsent;
+
+  bool get crashReportingEnabled =>
+      _available && Env.crashlyticsEnabled && _crashConsent;
+
+  /// Applies the user's privacy choices to the SDKs themselves.
+  ///
+  /// Gating only at the call site would still leave the Firebase SDKs
+  /// collecting in the background, so consent is pushed down to them as well
+  /// as held here.
+  Future<void> applyConsent({
+    required bool analyticsConsent,
+    required bool crashReportsConsent,
+  }) async {
+    _analyticsConsent = analyticsConsent;
+    _crashConsent = crashReportsConsent;
+    try {
+      await analytics?.setAnalyticsCollectionEnabled(enabled);
+      await crashlytics?.setCrashlyticsCollectionEnabled(crashReportingEnabled);
+    } on Object catch (error) {
+      debugPrint('Telemetry: consent not applied to SDKs — $error');
+    }
+  }
 
   static final RegExp _sensitiveKey = RegExp(
     r'email|name|food|meal|message|content|weight|height|value|note|title|'
@@ -86,7 +116,7 @@ class TelemetryService {
     bool fatal = false,
   }) async {
     final instance = crashlytics;
-    if (!Env.crashlyticsEnabled || instance == null) {
+    if (!crashReportingEnabled || instance == null) {
       debugPrint('Telemetry(local): $context $error');
       return;
     }

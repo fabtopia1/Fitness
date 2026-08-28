@@ -1,6 +1,4 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifedna/core/providers/providers.dart';
@@ -102,9 +100,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           location == Routes.signUp ||
           location == Routes.splash;
 
-      if (!signedIn) return onAuthRoute && location != Routes.splash
-          ? null
-          : Routes.welcome;
+      if (!signedIn) {
+        return onAuthRoute && location != Routes.splash
+            ? null
+            : Routes.welcome;
+      }
 
       final profile = ref.read(profileProvider).valueOrNull;
       final needsOnboarding = profile == null || !profile.isOnboarded;

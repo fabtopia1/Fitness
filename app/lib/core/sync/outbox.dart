@@ -106,6 +106,14 @@ class OutboxEntry {
 class Outbox {
   Outbox(this._store, {this.uuid = const Uuid()});
 
+  /// Sentinel collection for the user's own profile document.
+  ///
+  /// The profile lives AT `users/{uid}`, not in a sub-collection of it, so the
+  /// sync engine has to route it differently. Naming that route here — rather
+  /// than letting a magic string travel between two files — is what stops a
+  /// profile ending up replicated into a phantom sub-collection.
+  static const String profileCollection = '__profile__';
+
   final HiveStore _store;
   final Uuid uuid;
 

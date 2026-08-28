@@ -110,14 +110,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   variant: LdButtonVariant.secondary,
                   icon: Icons.g_mobiledata_rounded,
                   loading: state.isLoading,
-                  onPressed: () async {
-                    final failure = await ref
-                        .read(authControllerProvider.notifier)
-                        .signInWithGoogle();
-                    if (failure != null && mounted) {
-                      showFailureSnack(context, failure);
-                    }
-                  },
+                  onPressed: _google,
                 ),
               ],
             ],
@@ -133,6 +126,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           email: _email.text,
           password: _password.text,
         );
+    if (failure != null && mounted) showFailureSnack(context, failure);
+  }
+
+  Future<void> _google() async {
+    final failure =
+        await ref.read(authControllerProvider.notifier).signInWithGoogle();
     if (failure != null && mounted) showFailureSnack(context, failure);
   }
 

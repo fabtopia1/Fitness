@@ -49,7 +49,7 @@ class ProfileRepository {
 
     await _outbox.enqueue(
       op: OutboxOp.upsert,
-      collection: '__profile__',
+      collection: Outbox.profileCollection,
       docId: profile.id,
       payload: json,
     );
@@ -67,7 +67,7 @@ class ProfileRepository {
           OutboxEntry(
             id: profile.id,
             op: OutboxOp.upsert,
-            collection: '__profile__',
+            collection: Outbox.profileCollection,
             docId: profile.id,
             payload: json,
             createdAt: DateTime.now(),
