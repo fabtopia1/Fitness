@@ -1,57 +1,54 @@
-/// A total result type. The domain layer never throws across a boundary — it
-/// returns a [Result] so the caller is forced by the type system to handle
-/// failure. See docs/02-system-architecture.md §9.
-sealed class Result<T, E> {
+import 'package:lifedna/core/error/failure.dart';
+
+/// A total result type.
+///
+/// The domain layer never throws across a boundary — it returns a [Result], so
+/// the type system forces the caller to handle failure. Presentation maps a
+/// [Failure] to copy through `FailureMapper`; raw exception text never reaches
+/// a user.
+sealed class Result<T> {
   const Result();
 
-  bool get isOk => this is Ok<T, E>;
-  bool get isErr => this is Err<T, E>;
+  bool get isOk => this is Ok<T>;
+  bool get isErr => this is Err<T>;
 
-  /// The value, or null if this is an error.
   T? get valueOrNull => switch (this) {
-        Ok<T, E>(:final value) => value,
-        Err<T, E>() => null,
+        Ok<T>(:final value) => value,
+        Err<T>() => null,
       };
 
-  /// The error, or null if this is a success.
-  E? get errorOrNull => switch (this) {
-        Ok<T, E>() => null,
-        Err<T, E>(:final error) => error,
+  Failure? get failureOrNull => switch (this) {
+        Ok<T>() => null,
+        Err<T>(:final failure) => failure,
       };
 
   R when<R>({
     required R Function(T value) ok,
-    required R Function(E error) err,
+    required R Function(Failure failure) err,
   }) =>
       switch (this) {
-        Ok<T, E>(:final value) => ok(value),
-        Err<T, E>(:final error) => err(error),
+        Ok<T>(:final value) => ok(value),
+        Err<T>(:final failure) => err(failure),
       };
 
-  Result<R, E> map<R>(R Function(T value) transform) => switch (this) {
-        Ok<T, E>(:final value) => Ok<R, E>(transform(value)),
-        Err<T, E>(:final error) => Err<R, E>(error),
+  Result<R> map<R>(R Function(T value) transform) => switch (this) {
+        Ok<T>(:final value) => Ok<R>(transform(value)),
+        Err<T>(:final failure) => Err<R>(failure),
       };
 
-  Result<R, E> flatMap<R>(Result<R, E> Function(T value) transform) =>
-      switch (this) {
-        Ok<T, E>(:final value) => transform(value),
-        Err<T, E>(:final error) => Err<R, E>(error),
-      };
-
-  T getOrElse(T Function(E error) fallback) => switch (this) {
-        Ok<T, E>(:final value) => value,
-        Err<T, E>(:final error) => fallback(error),
+  T getOrElse(T Function(Failure failure) fallback) => switch (this) {
+        Ok<T>(:final value) => value,
+        Err<T>(:final failure) => fallback(failure),
       };
 }
 
-final class Ok<T, E> extends Result<T, E> {
+final class Ok<T> extends Result<T> {
   const Ok(this.value);
   final T value;
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || (other is Ok<T, E> && other.value == value);
+      identical(this, other) || (other is Ok<T> && other.value == value);
 
   @override
   int get hashCode => Object.hash(runtimeType, value);
@@ -60,17 +57,17 @@ final class Ok<T, E> extends Result<T, E> {
   String toString() => 'Ok($value)';
 }
 
-final class Err<T, E> extends Result<T, E> {
-  const Err(this.error);
-  final E error;
+final class Err<T> extends Result<T> {
+  const Err(this.failure);
+  final Failure failure;
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || (other is Err<T, E> && other.error == error);
+      identical(this, other) || (other is Err<T> && other.failure == failure);
 
   @override
-  int get hashCode => Object.hash(runtimeType, error);
+  int get hashCode => Object.hash(runtimeType, failure);
 
   @override
-  String toString() => 'Err($error)';
+  String toString() => 'Err($failure)';
 }

@@ -468,7 +468,7 @@ abstract final class RecoveryEngine {
     required int? sleepScore,
     required double? acwr,
   }) {
-    final ratio = acwr == null ? null : acwr.toStringAsFixed(2);
+    final ratio = acwr?.toStringAsFixed(2);
     return switch (action) {
       TrainingAction.push =>
         'Recovery $recovery with a balanced load ratio'

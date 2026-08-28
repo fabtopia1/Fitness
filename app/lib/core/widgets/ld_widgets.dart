@@ -7,7 +7,6 @@ library;
 export 'ld_card.dart';
 export 'ld_empty_state.dart';
 export 'ld_metric_tile.dart';
-export 'ld_next_action_card.dart';
 export 'ld_primary_button.dart';
 export 'ld_progress_ring.dart';
 export 'ld_section_header.dart';

@@ -3,7 +3,9 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - "**/*.g.dart"
-    - "**/*.freezed.dart"
+    - "build/**"
+    - android/**
+    - ios/**
   language:
     strict-casts: true
     strict-inference: true
@@ -11,7 +13,9 @@ analyzer:
   errors:
     missing_required_param: error
     missing_return: error
-    todo: ignore
+    invalid_annotation_target: ignore
+    # TODOs are banned by the project rules; make one fail the build.
+    todo: error
 
 linter:
   rules:
@@ -23,3 +27,11 @@ linter:
     require_trailing_commas: true
     unawaited_futures: true
     use_super_parameters: true
+    cancel_subscriptions: true
+    close_sinks: true
+    avoid_empty_else: true
+    unnecessary_await_in_return: true
+    # Off deliberately: a private field fed by a *named* parameter cannot use
+    # an initialising formal without leaking the underscore into the public
+    # API. Constructor-body assignment is the correct form here.
+    prefer_initializing_formals: false

@@ -162,7 +162,7 @@ class MacroTargets {
     Macros consumed,
   ) =>
       (
-        kcal: this.kcal <= 0 ? 0 : consumed.kcal / this.kcal,
+        kcal: kcal <= 0 ? 0 : consumed.kcal / kcal,
         protein: proteinG <= 0 ? 0 : consumed.proteinG / proteinG,
         carbs: carbsG <= 0 ? 0 : consumed.carbsG / carbsG,
         fat: fatG <= 0 ? 0 : consumed.fatG / fatG,

@@ -1,4 +1,5 @@
 /// Shared domain enumerations. Pure Dart — no Flutter, no Firebase.
+library;
 
 enum GoalMode {
   cut('cut', -0.18),
