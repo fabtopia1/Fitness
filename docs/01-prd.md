@@ -325,16 +325,52 @@ Priority uses MoSCoW: **M**ust / **S**hould / **C**ould / **W**on't-in-this-rele
 BMR  = Mifflin-St Jeor
        male:   10·kg + 6.25·cm − 5·age + 5
        female: 10·kg + 6.25·cm − 5·age − 161
-TDEE = BMR × activityFactor            (1.2 / 1.375 / 1.55 / 1.725 / 1.9)
-       + trainingDayBonus (kcal)       (session kcal estimate, capped at 500)
+       unspecified: 10·kg + 6.25·cm − 5·age − 78     (midpoint, not a default sex)
 
-Goal deltas:  Cut −18 %   |   Maintain 0 %   |   Bulk +10 %
-              (deficit hard-capped at −25 % of TDEE and at −1 000 kcal)
+TDEE(rest)     = BMR × activityFactor    (1.2 / 1.375 / 1.55 / 1.725 / 1.9)
+TDEE(training) = TDEE(rest) + trainingDayBonus       (capped at 500 kcal)
 
-Protein floor = clamp( 1.8 g/kg bodyweight ,  min 1.6 g/kg lean ,  max 2.6 g/kg )
-Fat           = max( 0.7 g/kg bodyweight , 20 % of kcal )
-Carbohydrate  = remaining kcal / 4
+Goal delta is derived from the REQUESTED RATE, not a fixed percentage:
+   dailyDelta = ∓ (bodyweight × weeklyRatePct/100 × 7700) / 7
+
+Safety ceilings (hard limits, enforced in the engine — not the UI):
+   • weeklyRatePct capped at 1.0 %
+   • deficit capped at 25 % of the WEEKLY AVERAGE TDEE
+       weeklyAvgTDEE = TDEE(rest) + trainingDayBonus × trainingDays/7
+       (measuring against the rest-day figure would spuriously clamp anyone
+        who trains most days — the users for whom the target matters most)
+   • deficit capped at 1 000 kcal/day
+   • absolute floor 1 500 kcal (male) / 1 200 kcal (female)
+   Any clamp sets `clamped: true` and returns a warning the UI MUST display.
+
+Protein floor (goal-aware — requirement rises in a deficit):
+   cut 2.2 g/kg bw · maintain 1.8 g/kg bw · bulk 1.8 g/kg bw
+   bounded below by 2.4 g/kg lean mass (when known)
+   bounded above by 2.6 g/kg bodyweight
+
+Fat          = max( 0.7 g/kg bodyweight , 20 % of kcal )
+Carbohydrate = remaining kcal / 4
+Water        = round_to_250( 35 ml/kg + 500 ml × trainingDays/7 )
 ```
+
+**Worked reference (persona 1, §5):** 21 y male, 174.5 cm, 90.1 kg, 61.9 kg lean,
+moderate activity, cut at 0.75 %/week, 6 training days.
+
+```
+BMR            1892 kcal
+TDEE (rest)    2932 kcal      weekly average 3189 kcal
+daily delta    −743 kcal      (25 % cap is −797 → not clamped)
+Training day   2489 kcal · 198 g P · 282 g C · 63 g F
+Rest day       2189 kcal · 198 g P · 207 g C · 63 g F
+Protein floor  198 g          Water 3 500 ml
+Projected      −0.68 kg/week = 0.75 % of bodyweight ✓
+```
+
+> The persona's own written plan (2 600 / 2 350 kcal, 200 g protein) sits within
+> ~4 % of these figures. That plan is stored as a **user override**
+> (`targets.overriddenByUser = true`) rather than being what the engine derives.
+> The engine and the user's own plan are allowed to differ; the engine must never
+> silently overwrite an override.
 
 ---
 

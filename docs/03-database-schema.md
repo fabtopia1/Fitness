@@ -128,9 +128,10 @@
     "strengthGoalPct": 15               // +10–20 % on key lifts
   },
 
-  "targets": {                          // computed, editable; see PRD §6.2
-    "bmr": 1863,
-    "tdee": 2889,
+  "targets": {                          // see PRD §6.2 for the derivation
+    "bmr": 1892,
+    "tdee": 2932,                       // rest-day TDEE
+    "weeklyAverageTdee": 3189,          // basis for the 25 % deficit cap
     "trainingDay": { "kcal": 2600, "proteinG": 200, "carbsG": 290, "fatG": 70 },
     "restDay":     { "kcal": 2350, "proteinG": 200, "carbsG": 210, "fatG": 70 },
     "proteinFloorG": 200,               // absolute daily minimum
@@ -138,7 +139,14 @@
     "stepsGoal": 12000,
     "sleepGoalMinutes": 480,
     "computedAt": "ts",
-    "overriddenByUser": false
+    // TRUE here: the values above are this user's own written plan, which sits
+    // ~4 % from the engine-derived 2489/2189 kcal at 198 g protein. An override
+    // is never silently overwritten by a recompute.
+    "overriddenByUser": true,
+    "engineDerived": {
+      "trainingDay": { "kcal": 2489, "proteinG": 198, "carbsG": 282, "fatG": 63 },
+      "restDay":     { "kcal": 2189, "proteinG": 198, "carbsG": 207, "fatG": 63 }
+    }
   },
 
   "modules": {                          // progressive disclosure (PRD AUTH-10)

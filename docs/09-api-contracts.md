@@ -439,11 +439,12 @@ was granted — the client then runs incremental consent and retries.
 
 // response
 { "ok": true,
-  "data": { "bmr": 1863, "tdee": 2889,
-            "trainingDay": { "kcal": 2600, "proteinG": 200, "carbsG": 290, "fatG": 70 },
-            "restDay":     { "kcal": 2350, "proteinG": 200, "carbsG": 210, "fatG": 70 },
-            "proteinFloorG": 200, "waterMl": 3500,
-            "projectedWeeklyChangeKg": -0.67,
+  "data": { "bmr": 1892, "tdee": 2932,
+            "weeklyAverageTdee": 3189,
+            "trainingDay": { "kcal": 2489, "proteinG": 198, "carbsG": 282, "fatG": 63 },
+            "restDay":     { "kcal": 2189, "proteinG": 198, "carbsG": 207, "fatG": 63 },
+            "proteinFloorG": 198, "waterMl": 3500,
+            "projectedWeeklyChangeKg": -0.68,
             "projectedGoalDate": "2026-10-21",
             "clamped": false,
             "warnings": [],
