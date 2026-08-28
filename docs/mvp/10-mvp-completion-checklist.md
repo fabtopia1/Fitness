@@ -137,8 +137,8 @@ dependency that could block the release.
 | Dark theme first, Material 3 | ✅ |
 | Large touch targets, one-handed gym use | ✅ (48 / 64 / 72 dp) |
 | Smooth animations, reduce-motion honoured | ✅ |
-| 80 % test coverage | ✅ (82.19 %, gated) |
-| Unit / widget / integration tests | ✅ (380 / 123 / 3 + 39 rules) |
+| 80 % test coverage | ✅ (82.24 %, gated) |
+| Unit / widget / integration tests | ✅ (391 / 123 / 3 + 39 rules) |
 | dev / staging / prod configuration | ✅ (three flavours, separate ids) |
 | GitHub Actions CI | ✅ (six jobs) |
 | Automated build verification | ✅ (a matrix over all three flavours) |

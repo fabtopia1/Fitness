@@ -15,15 +15,46 @@ one question:
 
 | Path | Contents |
 |---|---|
-| `docs/` | The complete product and engineering specification (PRD, architecture, schema, design system, flows, wireframes, API contracts, roadmap, backlog) |
-| `app/` | Flutter application — Material 3, Clean Architecture, Riverpod |
-| `functions/` | Firebase Cloud Functions (TypeScript) — AI router, engines, sync workers, schedulers |
-| `firebase/` | Firestore security rules, composite indexes, Storage rules, project config |
+| `app/` | The Flutter application — **the shipped MVP** |
+| `docs/mvp/` | **What was built**: 16 delivery documents, including the architecture audit and the production-readiness report |
+| `docs/` (01–20) | The full-product specification from the architecture phase — fifteen modules, of which the MVP ships nine |
+| `firebase/` | Firestore rules, index configuration, Storage rules, and a rules test suite that executes them |
+| `functions/` | TypeScript mirror of the engines. **Not deployed by the MVP** — it exists so the parity fixtures bind both implementations |
+| `test/fixtures/` | Golden engine fixtures executed by the Dart *and* TypeScript suites |
+| `tool/` | The coverage gate and the independent fixture generator |
 | `.github/` | CI workflows |
+
+> **Start here:** [`docs/mvp/00-index.md`](docs/mvp/00-index.md) describes the
+> application that exists. The numbered documents in `docs/` describe the
+> product it is a subset of.
 
 ---
 
 ## 2. Documentation index
+
+### The MVP that exists — `docs/mvp/`
+
+| # | Document | Answers |
+|---|---|---|
+| 00 | [Index](docs/mvp/00-index.md) | What shipped, and what is deliberately absent |
+| 01 | [Product architecture](docs/mvp/01-product-architecture.md) | How the app is put together, and why Hive is the source of truth |
+| 02 | [Folder structure](docs/mvp/02-folder-structure.md) | Where every file lives |
+| 03 | [Firestore schema](docs/mvp/03-firestore-schema.md) | What is stored, and the indexing strategy |
+| 04 | [Security rules](docs/mvp/04-security-rules.md) | What stops one user reading another's data |
+| 05 | [UI sitemap](docs/mvp/05-ui-sitemap.md) | Every screen and how it is reached |
+| 06 | [User flows](docs/mvp/06-user-flows.md) | The journeys, as diagrams |
+| 07 | [Sprint plan](docs/mvp/07-sprint-plan.md) | What was done, in order, and what is next |
+| 08 | [CI/CD](docs/mvp/08-cicd.md) | What runs on every push |
+| 09 | [Testing strategy](docs/mvp/09-testing-strategy.md) | What is tested, and what is not |
+| 10 | [Completion checklist](docs/mvp/10-mvp-completion-checklist.md) | Feature-by-feature status |
+| 11 | [Build checklist](docs/mvp/11-build-checklist.md) | Producing an installable artefact |
+| 12 | [Launch checklist](docs/mvp/12-launch-checklist.md) | Store submission and beta rollout |
+| 13 | [Risk assessment](docs/mvp/13-risk-assessment.md) | What could go wrong |
+| 14 | [Technical debt](docs/mvp/14-technical-debt.md) | Everything knowingly left undone |
+| 15 | [Production readiness](docs/mvp/15-production-readiness.md) | Ship / do-not-ship, with evidence |
+| 16 | [Architecture audit](docs/mvp/16-architecture-audit.md) | 26 findings; 18 fixed |
+
+### The full product specification — `docs/`
 
 | # | Document | Purpose |
 |---|---|---|
@@ -53,32 +84,33 @@ one question:
 
 ## 3. Technology stack
 
+What the shipped MVP actually uses.
+
 **Client**
-- Flutter 3.24+ / Dart 3.5+
+- Flutter **3.47.2** / Dart 3.13.2 (pinned; CI enforces the formatter of this SDK)
 - Material 3, dark-theme-first
-- Riverpod 2 (code-generated providers)
-- `go_router` navigation
-- `drift` (SQLite) offline cache + Firestore persistence
-- `freezed` + `json_serializable` models
+- Riverpod 2.6 — hand-written providers, **no code generation**
+- `go_router` 14.6 with a single redirect for every auth decision
+- **Hive** (AES-encrypted) as the source of truth; records stored as JSON strings
+- `flutter_local_notifications` + `timezone` for reminders that need no network
 
 **Backend**
-- Firebase Authentication (Email, Google, Apple, Microsoft)
-- Cloud Firestore (primary datastore, offline-first)
-- Cloud Storage (progress photos, food images, exports)
-- Cloud Functions v2 (TypeScript, Node 20)
-- Cloud Messaging (push), Firebase Analytics, Crashlytics, Remote Config
-- Cloud Scheduler + Cloud Tasks (engines, sync, digests)
+- Firebase Authentication (email/password, Google)
+- Cloud Firestore — a **replication target**, not the read path
+- Firebase Analytics and Crashlytics, both consent-gated
+- Firebase Messaging (instance obtained; no push is sent yet)
+- **No Cloud Functions.** Every engine runs on the device
+- **No Cloud Storage.** Progress photos never leave the phone
 
 **AI**
-- Anthropic Claude (reasoning, coaching, documents, long-context analysis)
-- Microsoft Copilot via Microsoft Graph (work, mail, meetings, productivity)
-- Provider-agnostic `AiRouter` with pluggable adapters (OpenAI, Gemini, DeepSeek, Perplexity ready)
+- An on-device deterministic coach (`LocalCoach`) — rules over the user's own numbers
+- Clipboard + deep-link shortcuts to Claude and Copilot
+- **No AI API key exists anywhere in the app**, because a key inside an APK is a published key
 
 **Integrations**
-- Samsung Health SDK (Android)
-- Galaxy Fit 3 via BLE GATT + Samsung Health passthrough
-- Google Calendar API, Microsoft Graph Calendar API
-- Health Connect (Android system health aggregation)
+- Google Calendar, **read-only** scope
+- Health Connect (the officially supported Android path to Samsung Health data) —
+  Dart layer, permission state machine and UI complete; the native reader is Sprint 6
 
 ---
 
@@ -91,28 +123,54 @@ one question:
 
 ---
 
-## 5. What is built, and what is specified
+## 5. What is built
 
-This repository contains a **complete specification** and a **working
-implementation of its foundation**. The distinction is stated explicitly
-because "production-ready" applied to fifteen modules would not be true, and
-the phase gates in [docs/16](docs/16-roadmap-sprints.md) exist precisely to
-stop that claim being made.
+A **complete, runnable, installable MVP**. Nine modules, no placeholder
+screens, no fake integrations, and no `TODO` in the code — the lint set makes
+one a build error.
 
 | Area | State |
 |---|---|
-| Specification (`docs/`, 21 documents) | **Complete.** Every module has requirements, contracts, schema, screens and acceptance criteria |
-| Deterministic engines (Dart **and** TypeScript) | **Complete and verified.** Macro, recovery, load, e1RM/PR, priority. 262 parity assertions across 31 shared fixtures |
-| Design system | **Complete.** Tokens, both themes, 9 components, widget-tested |
-| Screens | Dashboard · Nutrition · Add Food · Train · **Live Gym Mode** built. Plan and Me are placeholders naming their sprint |
-| Data layer | Reference in-memory implementations of the full repository contracts, modelling the production offline-first write ordering |
-| Firestore rules + 26 indexes | **Complete** |
-| Cloud Functions | Engines, error registry, redacting logger and the nutrition rollup trigger built; the rest have fixed contracts in [docs/09](docs/09-api-contracts.md) |
-| CI | Parity gate, layer boundaries, colour discipline, secret scanning |
+| Authentication | Email, Google, and a first-class **local mode** for a build with no Firebase project |
+| Dashboard | Today's macros, water, supplements, training, body trend, tasks |
+| Nutrition | Food library with ranked search, portion logging, saved meals, water |
+| Supplements | Stack, schedules, reminders, idempotent dose logging, adherence |
+| Workout | Programs, exercise library, **Live Gym Mode** with rest timer and PR detection |
+| Body | Weight and measurements, smoothed trend chart, device-local progress photos |
+| Calendar | Tasks, events, read-only Google Calendar mirror, standalone reminders |
+| Health sync | Architecture, API layer, permission handling, ready-to-enable — **and no invented data** |
+| AI Hub | On-device coach with evidence, prompt templates, Claude/Copilot shortcuts |
+| Offline-first | Every write commits to Hive, queues in a durable outbox, then replicates |
+| Security rules | Written **and executed** — 39 tests against the real rules engine |
+| Tests | 517 Flutter tests + 39 rules tests; **82.24 % coverage**, gated at 80 % |
+| CI/CD | Six jobs: analyze, format, layers, tests, coverage, flavour build matrix, emulator journeys, rules, engine parity, secrets |
 
-**The parts that are hard to get right are real and tested. The parts that are
-mechanical are specified.** Wiring Firestore behind the repository interfaces
-is two provider overrides — see [`app/README.md`](app/README.md) §3.
+**Deliberately absent:** Galaxy Fit 3 Bluetooth, the FitnessDNA prediction
+engine, ML, predictive analytics, voice, social, marketplace, subscriptions,
+gamification. Each is in [`docs/20`](docs/20-future-expansion.md). None has a
+stub or a disabled button in the app.
+
+**One thing blocks public production:** no release binary has been built or run,
+because the Android SDK cannot be installed in the environment this was
+developed in. See
+[`docs/mvp/15-production-readiness.md`](docs/mvp/15-production-readiness.md).
+
+### The audit found 26 issues; 18 are fixed
+
+Five would each have been a production incident, and none is visible by reading
+the code:
+
+1. The security rules demanded Firestore timestamps while the offline path
+   replays ISO strings — **every cloud write would have been rejected**, silently.
+2. Profile writes were routed to a phantom `users/{uid}/__profile__` collection.
+3. Nothing pulled on sign-in, so a second device showed an empty app.
+4. Pull stopped after 500 documents, truncating a restored training log.
+5. Every settings switch threw in debug, because the controller read a provider
+   after awaiting a write that changed it.
+
+Full list: [`docs/mvp/16-architecture-audit.md`](docs/mvp/16-architecture-audit.md).
+
+---
 
 ### Engine parity, and why it matters
 
@@ -135,55 +193,75 @@ in the field. See [`functions/README.md`](functions/README.md) §4.
 ## 6. Getting started
 
 ```bash
-# 1. Flutter app
+# The app runs with no Firebase project at all. That is local mode, and it is
+# a supported path, not a debug hatch.
 cd app
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-flutter run --flavor dev
+flutter analyze --fatal-infos
+flutter test                              # 517 tests
+flutter run --flavor dev --dart-define=FLAVOR=dev
 
-# 2. Cloud Functions
-cd functions
-npm install
-npm run build
-npm run serve          # local emulator
+# Coverage, with the gate CI applies
+flutter test --coverage && dart ../tool/coverage_gate.dart
 
-# 3. Firebase emulator suite (auth + firestore + functions + storage)
-firebase emulators:start --import=./firebase/seed
+# Security rules, executed against the emulator
+cd ../firebase/rules-test && npm ci && npm run emulator   # 39 tests
 ```
 
-Configuration files that are intentionally **not** committed: `google-services.json`,
-`GoogleService-Info.plist`, `firebase_options.dart`, `functions/.env`. See
-`functions/.env.example` and `docs/19-security-privacy.md` for the required keys.
+With a Firebase project, add the configuration at build time — nothing is
+committed:
+
+```bash
+flutter run --flavor dev \
+  --dart-define=FLAVOR=dev \
+  --dart-define=FIREBASE_API_KEY=... \
+  --dart-define=FIREBASE_APP_ID=... \
+  --dart-define=FIREBASE_SENDER_ID=... \
+  --dart-define=FIREBASE_PROJECT_ID=...
+```
+
+Full instructions: [`docs/mvp/11-build-checklist.md`](docs/mvp/11-build-checklist.md).
+
+Intentionally **not** committed: `google-services.json`,
+`GoogleService-Info.plist`, `firebase_options.dart`, `android/key.properties`,
+and any keystore. CI fails if one appears.
 
 ---
 
 ## 7. Module map
 
-| # | Module | Phase | Docs |
+| # | Module | MVP | Where |
 |---|---|---|---|
-| 1 | Personal Dashboard | MVP | [PRD §6.1](docs/01-prd.md) |
-| 2 | Nutrition Center | MVP | [PRD §6.2](docs/01-prd.md) |
-| 3 | Supplement System | MVP | [PRD §6.3](docs/01-prd.md) |
-| 4 | Workout Center | MVP | [PRD §6.4](docs/01-prd.md) |
-| 5 | Live Gym Mode | MVP | [PRD §6.5](docs/01-prd.md) |
-| 6 | Body Composition Center | Phase 2 | [PRD §6.6](docs/01-prd.md) |
-| 7 | Recovery Engine | Phase 2 | [Recovery Engine](docs/12-recovery-engine.md) |
-| 8 | Samsung Health Integration | MVP | [Integrations](docs/10-integrations.md) |
-| 9 | Galaxy Fit 3 Integration | Phase 2 | [Integrations](docs/10-integrations.md) |
-| 10 | Calendar Center | MVP | [Integrations](docs/10-integrations.md) |
-| 11 | Task Manager | MVP | [PRD §6.11](docs/01-prd.md) |
-| 12 | AI Assistant Hub | MVP | [AI Layer](docs/11-ai-layer.md) |
-| 13 | FitnessDNA Engine | Phase 3 | [FitnessDNA](docs/13-fitnessdna-engine.md) |
-| 14 | Notifications Engine | MVP | [Notifications](docs/14-notifications-engine.md) |
-| 15 | Analytics Center | Phase 2 | [Analytics](docs/15-analytics.md) |
+| 1 | Authentication & profile | ✅ shipped | `features/auth` |
+| 2 | Personal dashboard | ✅ shipped | `features/dashboard` |
+| 3 | Nutrition | ✅ shipped | `features/nutrition` |
+| 4 | Supplements | ✅ shipped | `features/supplements` |
+| 5 | Workout + **Live Gym Mode** | ✅ shipped | `features/workout` |
+| 6 | Body tracking | ✅ shipped | `features/body` |
+| 7 | Calendar, tasks, reminders | ✅ shipped | `features/calendar`, `features/reminders` |
+| 8 | Samsung Health (via Health Connect) | ⚠️ ready to enable, no fabricated data | `features/health_sync` |
+| 9 | AI Hub | ✅ shipped (on-device coach) | `features/ai_hub` |
+| 10 | Galaxy Fit 3 (Bluetooth) | ⛔ out of scope | [docs/20](docs/20-future-expansion.md) |
+| 11 | FitnessDNA prediction engine | ⛔ out of scope | [docs/13](docs/13-fitnessdna-engine.md) |
+| 12 | Recovery engine | engine built and tested; not yet surfaced | `core/engines` |
+| 13 | Analytics centre | ⛔ out of scope | [docs/15](docs/15-analytics.md) |
+| 14 | Notifications engine | ✅ local reminders shipped | `core/notifications` |
+| 15 | Social, marketplace, subscriptions | ⛔ out of scope | [docs/20](docs/20-future-expansion.md) |
 
 ---
 
 ## 8. Health & safety position
 
-LifeDNA OS produces **training, nutrition and lifestyle guidance for healthy adults**.
-It is not a medical device, does not diagnose, and does not treat. Every generated
-recommendation carries a provenance record and every AI surface is bounded by the
-safety policy in [`docs/11-ai-layer.md` §8](docs/11-ai-layer.md). Red-flag inputs
-(disordered-eating signals, extreme deficits, cardiac symptoms) route to a
-non-negotiable escalation path rather than to a coaching response.
+LifeDNA OS produces **training and nutrition information for healthy adults**.
+It is not a medical device, does not diagnose, and does not treat. The
+disclaimer appears on the welcome screen and in Settings.
+
+The engines clamp what they will recommend, and every clamp is **surfaced
+rather than hidden**: a requested pace above 1 % of bodyweight per week, a
+deficit past 25 % or 1 000 kcal, and a calorie target below the sex-specific
+floor are all reduced, and the app says so and why. Those limits are constants
+in `MacroCalculator`, covered by golden fixtures, and mirrored in the
+TypeScript implementation.
+
+Every insight the on-device coach produces carries the numbers that produced
+it, so guidance can always be traced back to the user's own data.

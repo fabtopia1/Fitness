@@ -1,6 +1,6 @@
 # 02 — Complete folder structure
 
-96 Dart files, 20 464 lines in `app/lib`. 35 test files, 8 523 lines.
+97 Dart files, 20 648 lines in `app/lib`. 36 test files, 8 693 lines.
 Every directory below exists in the repository; there are no empty
 placeholder folders.
 
@@ -119,6 +119,9 @@ features/
 │   ├── domain/supplement_entities.dart    supplement, log, compliance
 │   ├── data/supplement_repository.dart
 │   └── presentation/ supplements_screen, supplement_editor_sheet, providers
+├── sync/
+│   └── presentation/sync_providers.dart   RemotePull — the one place that
+│                                          knows every collection to download
 └── workout/
     ├── domain/workout_entities.dart       exercise, workout, session, set
     ├── data/workout_repository.dart

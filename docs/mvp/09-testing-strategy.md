@@ -4,13 +4,13 @@
 
 | Suite | Tests | What it proves |
 |---|---|---|
-| `test/unit` | 380 | engines, entities, repositories, sync, storage, failures |
+| `test/unit` | 391 | engines, entities, repositories, sync, storage, failures |
 | `test/widget` | 123 | every screen's states and its primary interactions |
 | `test/integration` | 3 | the end-to-end journeys, headless |
 | `firebase/rules-test` | 39 | the security rules, against the real rules engine |
-| **Total** | **545** | |
+| **Total** | **556** | |
 
-Line coverage **82.19 %** of 7 827 measured lines, enforced at 80 % by
+Line coverage **82.24 %** of 7 918 measured lines, enforced at 80 % by
 `tool/coverage_gate.dart`.
 
 The same three journeys run again on a device from `integration_test/app_test.dart`.
@@ -139,7 +139,7 @@ discarding a workout; and everything surviving a relaunch while offline.
 
 ```bash
 cd app
-flutter test                       # 506 tests
+flutter test                       # 517 tests
 flutter test --coverage
 dart ../tool/coverage_gate.dart    # per-area report + the 80 % gate
 dart ../tool/coverage_gate.dart --report   # the twenty lowest files

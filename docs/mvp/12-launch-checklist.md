@@ -6,7 +6,7 @@ uploaded anywhere.
 ## 1. Before the first upload — blocking
 
 ### Engineering
-- [x] CI green on `main`: analyze, format, layers, 506 tests, coverage ≥ 80 %
+- [x] CI green on `main`: analyze, format, layers, 517 tests, coverage ≥ 80 %
 - [x] 39 security-rules tests green against the emulator
 - [x] Engine parity green (Dart ↔ TypeScript ↔ generated fixtures)
 - [x] No secret, keystore or service-account key in the tree

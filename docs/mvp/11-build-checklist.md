@@ -20,7 +20,7 @@ correctly formatted code.
 git clone <repo> && cd Fitness/app
 flutter pub get
 flutter analyze --fatal-infos      # expect: No issues found!
-flutter test                       # expect: 506 tests passed
+flutter test                       # expect: 517 tests passed
 ```
 
 A fresh clone builds and tests with **no** Firebase configuration. That is

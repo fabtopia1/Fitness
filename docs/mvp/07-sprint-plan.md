@@ -61,8 +61,8 @@ environment.
 ### Sprint 4 — Verification (complete)
 `741d953`, `377d9f8`, `ce403e5`, `76f6543`, `b5c9d45`, `ee03c6e`
 
-545 automated tests: 506 Flutter (unit, widget, headless end-to-end) and 39
-security-rules tests against the real rules engine. Coverage 82.19 %, enforced
+556 automated checks: 517 Flutter (unit, widget, headless end-to-end) and 39
+security-rules tests against the real rules engine. Coverage 82.24 %, enforced
 by a gate. CI pinned, flavoured build matrix, emulator integration job.
 
 **Exit criterion met:** the coverage gate passes at 80 %; every defect the

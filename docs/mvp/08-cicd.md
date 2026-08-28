@@ -12,7 +12,7 @@ FLUTTER_VERSION: '3.47.2'
 The Dart formatter's output changes between SDK releases. An unpinned runner
 would fail the format gate on code that is correctly formatted locally, and
 the usual response to that is to delete the gate. Pinning is what keeps the
-gate credible. The same version is what the 545 tests were verified against.
+gate credible. The same version is what the 517 tests were verified against.
 
 ## 2. Job: `flutter` — the gate that decides whether the app ships
 
@@ -22,7 +22,7 @@ gate credible. The same version is what the 545 tests were verified against.
 | Analyze | `flutter analyze --fatal-infos` | any lint fires — including `todo: error`, so a `TODO` fails the build |
 | Format | `dart format --set-exit-if-changed lib test integration_test` | anything is unformatted |
 | Layers | `python3 tool/check_sources.py` | a domain file imports Flutter or Firebase, or a colour literal appears outside `core/theme` |
-| Test | `flutter test --coverage` | any of 506 tests fails |
+| Test | `flutter test --coverage` | any of 517 tests fails |
 | Coverage | `dart ../tool/coverage_gate.dart --min 80` | coverage drops below 80 % |
 
 `--fatal-infos` is deliberate. A warning that is allowed to accumulate is a

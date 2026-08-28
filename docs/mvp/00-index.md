@@ -3,7 +3,7 @@
 These sixteen documents describe **what was built**, not what was designed.
 `docs/01`–`docs/20` are the full-product design from the architecture phase;
 they describe a fifteen-module system. This folder covers the nine-module MVP
-that exists in `app/`, runs today, and is covered by 545 automated tests.
+that exists in `app/`, runs today, and is covered by 556 automated checks.
 
 Where the two disagree, this folder is authoritative for the MVP.
 
