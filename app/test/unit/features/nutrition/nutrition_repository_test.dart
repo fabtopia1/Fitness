@@ -184,11 +184,11 @@ void main() {
             grams: 150,
             macros: food.macrosForGrams(150),
           ),
-          MealItem(
+          const MealItem(
             foodId: 'rice',
             foodName: 'Rice',
             grams: 200,
-            macros: const Macros(kcal: 260, carbsG: 56),
+            macros: Macros(kcal: 260, carbsG: 56),
           ),
         ],
         updatedAt: now,

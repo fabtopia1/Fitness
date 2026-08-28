@@ -270,8 +270,12 @@ class AuthRepository {
   }
 
   /// Starts a session with no credentials at all, for local mode.
+  ///
+  /// The email is empty rather than a placeholder: inventing `local@device`
+  /// would put a fake address in the profile, on the settings screen, and in
+  /// whatever the user later syncs to a real account.
   Future<Result<AuthSession>> continueWithoutAccount() =>
-      _startLocalSession(email: 'local@device', displayName: 'Athlete');
+      _startLocalSession(email: '', displayName: 'Athlete');
 
   // -------------------------------------------------------------- validation
 

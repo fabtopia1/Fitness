@@ -73,6 +73,11 @@ class HiveStore {
   /// says so in Settings rather than failing to start — a user locked out of
   /// their own training log is a worse outcome than an unencrypted cache on a
   /// device that already cannot keep a secret.
+  ///
+  /// [inMemory] opens Hive's memory backend instead of files. Tests use it so
+  /// that no write touches the disk: a `testWidgets` body runs inside a fake
+  /// async zone where real file I/O never completes, which turns an ordinary
+  /// `clear()` into a test that hangs rather than one that fails.
   static Future<HiveStore> open({
     FlutterSecureStorage secureStorage = const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -105,6 +110,7 @@ class HiveStore {
       store._boxes[name] = await Hive.openBox<String>(
         name,
         encryptionCipher: cipher,
+        bytes: inMemory ? Uint8List(0) : null,
       );
     }
     return store;
@@ -177,6 +183,4 @@ class HiveStore {
       await box(name).clear();
     }
   }
-
-  Future<void> close() => Hive.close();
 }

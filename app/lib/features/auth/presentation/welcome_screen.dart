@@ -83,9 +83,13 @@ class WelcomeScreen extends ConsumerWidget {
                           Icon(Icons.phonelink_lock_rounded,
                               size: 18, color: c.info),
                           const SizedBox(width: LdSpacing.s2),
-                          Text(
-                            'Cloud sync not configured',
-                            style: type.titleM.copyWith(color: c.textPrimary),
+                          // Flexible, not fixed: at a large text scale on a
+                          // narrow phone this heading is wider than the card.
+                          Flexible(
+                            child: Text(
+                              'Cloud sync not configured',
+                              style: type.titleM.copyWith(color: c.textPrimary),
+                            ),
                           ),
                         ],
                       ),

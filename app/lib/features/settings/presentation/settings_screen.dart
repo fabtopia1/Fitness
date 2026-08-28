@@ -304,9 +304,11 @@ class _TargetsCard extends ConsumerWidget {
             children: [
               Icon(Icons.tune_rounded, size: 16, color: c.primary),
               const SizedBox(width: LdSpacing.s2),
-              Text(
-                'Edit goals and measurements',
-                style: type.bodyS.copyWith(color: c.primary),
+              Expanded(
+                child: Text(
+                  'Edit goals and measurements',
+                  style: type.bodyS.copyWith(color: c.primary),
+                ),
               ),
             ],
           ),
@@ -340,17 +342,11 @@ class _RemindersCardState extends ConsumerState<_RemindersCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
+          LdSwitchRow(
+            title: 'Scheduled reminders',
+            subtitle:
+                'Supplement doses, task due times and your own reminders.',
             value: widget.settings.remindersEnabled,
-            title: Text(
-              'Scheduled reminders',
-              style: type.titleM.copyWith(color: c.textPrimary),
-            ),
-            subtitle: Text(
-              'Supplement doses, task due times and your own reminders.',
-              style: type.bodyS.copyWith(color: c.textSecondary),
-            ),
             onChanged: (value) => ref
                 .read(settingsControllerProvider.notifier)
                 .setRemindersEnabled(value),
@@ -527,30 +523,17 @@ class _PrivacyCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
+          LdSwitchRow(
+            title: 'Usage analytics',
+            subtitle: 'Screen names and counts only. Off by default.',
             value: settings.analyticsConsent,
-            title: Text(
-              'Usage analytics',
-              style: type.titleM.copyWith(color: c.textPrimary),
-            ),
-            subtitle: Text(
-              'Screen names and counts only. Off by default.',
-              style: type.bodyS.copyWith(color: c.textSecondary),
-            ),
             onChanged: controller.setAnalyticsConsent,
           ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
+          const SizedBox(height: LdSpacing.s2),
+          LdSwitchRow(
+            title: 'Crash reports',
+            subtitle: 'Stack traces when the app fails.',
             value: settings.crashReportsConsent,
-            title: Text(
-              'Crash reports',
-              style: type.titleM.copyWith(color: c.textPrimary),
-            ),
-            subtitle: Text(
-              'Stack traces when the app fails.',
-              style: type.bodyS.copyWith(color: c.textSecondary),
-            ),
             onChanged: controller.setCrashReportsConsent,
           ),
           const SizedBox(height: LdSpacing.s2),

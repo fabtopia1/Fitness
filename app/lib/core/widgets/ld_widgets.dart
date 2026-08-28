@@ -12,3 +12,4 @@ export 'ld_primary_button.dart';
 export 'ld_progress_ring.dart';
 export 'ld_section_header.dart';
 export 'ld_stat_row.dart';
+export 'ld_switch_row.dart';

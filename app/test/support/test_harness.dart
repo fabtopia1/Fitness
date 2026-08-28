@@ -158,14 +158,23 @@ class TestEnvironment {
 
   HiveStore get store => bootstrap.store;
 
+  /// Hive needs a home path even when every box is in memory, so the whole
+  /// process shares one temp directory. Nothing is ever written into it: the
+  /// boxes use Hive's memory backend, which is what keeps a `testWidgets`
+  /// body — running inside a fake async zone where real file I/O never
+  /// completes — from hanging on an ordinary write.
+  static Directory? _root;
+
   static Future<TestEnvironment> create({
     bool online = true,
     DateTime Function()? clock,
   }) async {
-    final directory = await Directory.systemTemp.createTemp('lifedna_test');
-    Hive.init(directory.path);
+    final root = _root ??= await Directory.systemTemp.createTemp('lifedna_test');
+    Hive.init(root.path);
 
     final store = await HiveStore.open(inMemory: true);
+    await store.clearAll();
+
     final notifications = FakeNotificationService(clock: clock);
     final connectivity = FakeConnectivityService(online: online);
 
@@ -183,7 +192,7 @@ class TestEnvironment {
       ),
       notifications: notifications,
       connectivity: connectivity,
-      directory: directory,
+      directory: root,
     );
   }
 
@@ -203,9 +212,6 @@ class TestEnvironment {
 
   Future<void> dispose() async {
     await connectivity.dispose();
-    await Hive.close();
-    if (directory.existsSync()) {
-      await directory.delete(recursive: true);
-    }
+    await store.clearAll();
   }
 }

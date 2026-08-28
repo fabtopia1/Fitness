@@ -87,6 +87,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<TaskCategory>(
+                             isExpanded: true,
                       initialValue: _category,
                       decoration:
                           const InputDecoration(labelText: 'Category'),
@@ -104,6 +105,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                   const SizedBox(width: LdSpacing.s3),
                   Expanded(
                     child: DropdownButtonFormField<TaskPriority>(
+                             isExpanded: true,
                       initialValue: _priority,
                       decoration:
                           const InputDecoration(labelText: 'Priority'),

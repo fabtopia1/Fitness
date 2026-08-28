@@ -64,6 +64,7 @@ class _CreateExerciseSheetState extends ConsumerState<CreateExerciseSheet> {
                 ),
                 const SizedBox(height: LdSpacing.s4),
                 DropdownButtonFormField<MuscleGroup>(
+                  isExpanded: true,
                   initialValue: _muscle,
                   decoration:
                       const InputDecoration(labelText: 'Muscle group'),
@@ -79,6 +80,7 @@ class _CreateExerciseSheetState extends ConsumerState<CreateExerciseSheet> {
                 ),
                 const SizedBox(height: LdSpacing.s4),
                 DropdownButtonFormField<Equipment>(
+                  isExpanded: true,
                   initialValue: _equipment,
                   decoration: const InputDecoration(labelText: 'Equipment'),
                   items: [

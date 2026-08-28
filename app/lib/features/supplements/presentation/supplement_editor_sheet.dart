@@ -120,6 +120,9 @@ class _SupplementEditorSheetState
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         initialValue: _unit,
+                        // Without this the button sizes to its widest item and
+                        // overflows the row on a narrow phone.
+                        isExpanded: true,
                         decoration:
                             const InputDecoration(labelText: 'Unit'),
                         items: [
@@ -135,6 +138,7 @@ class _SupplementEditorSheetState
                 const SizedBox(height: LdSpacing.s4),
                 DropdownButtonFormField<SupplementFrequency>(
                   initialValue: _frequency,
+                  isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Frequency'),
                   items: [
                     for (final frequency in SupplementFrequency.values)

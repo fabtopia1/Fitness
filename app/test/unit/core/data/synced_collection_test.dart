@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lifedna/core/data/synced_collection.dart';
 import 'package:lifedna/core/data/synced_entity.dart';
 import 'package:lifedna/core/error/failure.dart';
-import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
 import 'package:lifedna/core/sync/outbox.dart';
 

@@ -53,8 +53,8 @@ class _LdCardState extends State<LdCard> {
     final c = context.ldColors;
     final type = context.ldType;
 
-    final isElevated = widget.variant == LdCardVariant.elevated ||
-        (_pressed && _interactive);
+    final isElevated =
+        widget.variant == LdCardVariant.elevated || (_pressed && _interactive);
 
     final accent = widget.accentColor;
 
@@ -84,19 +84,25 @@ class _LdCardState extends State<LdCard> {
     );
 
     if (accent != null) {
-      content = Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: 3,
-            margin: const EdgeInsets.only(right: LdSpacing.s3),
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: BorderRadius.circular(LdRadius.full),
+      // IntrinsicHeight is required, not decorative: a Row with
+      // CrossAxisAlignment.stretch inside an unbounded parent — every list
+      // item in this app — forces its children to an infinite height and the
+      // card fails to lay out at all.
+      content = IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 3,
+              margin: const EdgeInsets.only(right: LdSpacing.s3),
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.circular(LdRadius.full),
+              ),
             ),
-          ),
-          Expanded(child: content),
-        ],
+            Expanded(child: content),
+          ],
+        ),
       );
     }
 
@@ -113,7 +119,11 @@ class _LdCardState extends State<LdCard> {
     );
 
     if (!_interactive) {
-      return Semantics(label: widget.semanticLabel, container: true, child: card);
+      return Semantics(
+        label: widget.semanticLabel,
+        container: true,
+        child: card,
+      );
     }
 
     return Semantics(

@@ -149,7 +149,7 @@ void main() {
     });
 
     testWidgets('a disabled button does not fire', (tester) async {
-      var tapped = false;
+      const tapped = false;
       await tester.pumpWidget(
         host(const LdPrimaryButton(label: 'Save', onPressed: null)),
       );

@@ -186,7 +186,7 @@ void main() {
     });
 
     test('omits fields the user has not recorded', () {
-      final brief = CoachContext(
+      const empty = CoachContext(
         consumed: Macros.zero,
         targets: targets,
         waterMl: 0,
@@ -196,7 +196,8 @@ void main() {
         weeklyVolumeKg: 0,
         supplementsTaken: 0,
         supplementsScheduled: 0,
-      ).toBrief();
+      );
+      final brief = empty.toBrief();
 
       expect(brief, isNot(contains('Bodyweight')));
       expect(brief, isNot(contains('Goal:')));
