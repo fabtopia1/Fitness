@@ -1,0 +1,41 @@
+{
+  "id": "absolute_floor_female",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 45,
+    "heightCm": 155,
+    "age": 55,
+    "sex": "female",
+    "activityLevel": "sedentary",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 0,
+    "weeklyRateTargetPct": 1.0
+  },
+  "expected": {
+    "bmr": 983,
+    "tdee": 1179,
+    "weeklyAverageTdee": 1179,
+    "trainingDay": {
+      "kcal": 1200,
+      "proteinG": 99,
+      "carbsG": 130,
+      "fatG": 31,
+      "proteinFloorG": 99
+    },
+    "restDay": {
+      "kcal": 1200,
+      "proteinG": 99,
+      "carbsG": 130,
+      "fatG": 31,
+      "proteinFloorG": 99
+    },
+    "proteinFloorG": 99,
+    "waterMl": 1500,
+    "projectedWeeklyChangeKg": 0.02,
+    "clamped": true,
+    "warnings": [
+      "DEFICIT_CLAMPED_TO_25_PERCENT",
+      "KCAL_RAISED_TO_ABSOLUTE_FLOOR"
+    ]
+  }
+}

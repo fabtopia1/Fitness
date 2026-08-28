@@ -1,0 +1,55 @@
+{
+  "id": "acwr_danger_forces_rest",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 490,
+      "timeInBedMinutes": 530
+    },
+    "training": {
+      "acwr": 1.9,
+      "yesterdayLoad": 200,
+      "meanDailyLoad28d": 400
+    },
+    "activity": {
+      "steps": 10000,
+      "stepGoal": 10000,
+      "activeMinutes": 45
+    },
+    "plannedSession": {
+      "rpe": 6,
+      "durationMinutes": 60
+    }
+  },
+  "expected": {
+    "recoveryScore": 70,
+    "band": "high",
+    "readinessScore": 72,
+    "sleepScore": 100,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 100,
+        "weight": 0.4,
+        "contribution": 40.0,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 25,
+        "weight": 0.4,
+        "contribution": 10.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 100,
+        "weight": 0.2,
+        "contribution": 20.0,
+        "available": true
+      }
+    ],
+    "missingInputs": [],
+    "action": "rest"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "zero_sleep_boundary",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 0,
+      "timeInBedMinutes": 40
+    },
+    "training": {
+      "acwr": 1.0,
+      "yesterdayLoad": 300,
+      "meanDailyLoad28d": 320
+    },
+    "activity": {
+      "steps": 0,
+      "stepGoal": 10000,
+      "activeMinutes": 0
+    }
+  },
+  "expected": {
+    "recoveryScore": 40,
+    "band": "moderate",
+    "readinessScore": 40,
+    "sleepScore": 0,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 0,
+        "weight": 0.4,
+        "contribution": 0.0,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 100,
+        "weight": 0.4,
+        "contribution": 40.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 0,
+        "weight": 0.2,
+        "contribution": 0.0,
+        "available": true
+      }
+    ],
+    "missingInputs": [],
+    "action": "reduce"
+  }
+}

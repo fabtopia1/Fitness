@@ -1,0 +1,38 @@
+{
+  "id": "ceiling_binds_protein_floor",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 60,
+    "heightCm": 170,
+    "age": 25,
+    "sex": "male",
+    "activityLevel": "active",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 4,
+    "leanMassKg": 66
+  },
+  "expected": {
+    "bmr": 1543,
+    "tdee": 2661,
+    "weeklyAverageTdee": 2832,
+    "trainingDay": {
+      "kcal": 2466,
+      "proteinG": 156,
+      "carbsG": 337,
+      "fatG": 55,
+      "proteinFloorG": 156
+    },
+    "restDay": {
+      "kcal": 2166,
+      "proteinG": 156,
+      "carbsG": 277,
+      "fatG": 48,
+      "proteinFloorG": 156
+    },
+    "proteinFloorG": 156,
+    "waterMl": 2500,
+    "projectedWeeklyChangeKg": -0.45,
+    "clamped": false,
+    "warnings": []
+  }
+}

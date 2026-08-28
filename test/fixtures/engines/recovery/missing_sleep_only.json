@@ -1,0 +1,24 @@
+{
+  "id": "missing_sleep_only",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "training": {
+      "acwr": 1.0,
+      "yesterdayLoad": 300,
+      "meanDailyLoad28d": 320
+    }
+  },
+  "expected": {
+    "recoveryScore": null,
+    "band": "insufficient_data",
+    "readinessScore": null,
+    "sleepScore": null,
+    "components": [],
+    "missingInputs": [
+      "sleep",
+      "activity"
+    ],
+    "action": null,
+    "detail": "Recovery needs sleep data from at least 2 of the last 3 nights."
+  }
+}

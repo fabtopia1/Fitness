@@ -1,0 +1,39 @@
+{
+  "id": "reference_persona_cut",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 90.1,
+    "heightCm": 174.5,
+    "age": 21,
+    "sex": "male",
+    "activityLevel": "moderate",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 6,
+    "leanMassKg": 61.9,
+    "weeklyRateTargetPct": 0.75
+  },
+  "expected": {
+    "bmr": 1892,
+    "tdee": 2932,
+    "weeklyAverageTdee": 3189,
+    "trainingDay": {
+      "kcal": 2489,
+      "proteinG": 198,
+      "carbsG": 282,
+      "fatG": 63,
+      "proteinFloorG": 198
+    },
+    "restDay": {
+      "kcal": 2189,
+      "proteinG": 198,
+      "carbsG": 207,
+      "fatG": 63,
+      "proteinFloorG": 198
+    },
+    "proteinFloorG": 198,
+    "waterMl": 3500,
+    "projectedWeeklyChangeKg": -0.68,
+    "clamped": false,
+    "warnings": []
+  }
+}

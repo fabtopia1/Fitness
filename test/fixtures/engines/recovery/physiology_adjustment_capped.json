@@ -1,0 +1,54 @@
+{
+  "id": "physiology_adjustment_capped",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 450,
+      "timeInBedMinutes": 480
+    },
+    "training": {
+      "acwr": 1.0,
+      "yesterdayLoad": 300,
+      "meanDailyLoad28d": 320
+    },
+    "physiology": {
+      "restingHrBpm": 80,
+      "baselineRestingHrBpm": 55,
+      "hrvMs": 10,
+      "baselineHrvMs": 50
+    }
+  },
+  "expected": {
+    "recoveryScore": 89,
+    "band": "high",
+    "readinessScore": 89,
+    "sleepScore": 98,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 98,
+        "weight": 0.5,
+        "contribution": 49.0,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 100,
+        "weight": 0.5,
+        "contribution": 50.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 0,
+        "weight": 0.0,
+        "contribution": 0,
+        "available": false
+      }
+    ],
+    "missingInputs": [
+      "activity"
+    ],
+    "action": "push"
+  }
+}

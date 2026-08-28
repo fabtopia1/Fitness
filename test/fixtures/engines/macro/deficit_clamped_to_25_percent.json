@@ -1,0 +1,40 @@
+{
+  "id": "deficit_clamped_to_25_percent",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 140,
+    "heightCm": 180,
+    "age": 30,
+    "sex": "male",
+    "activityLevel": "sedentary",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 0,
+    "weeklyRateTargetPct": 1.0
+  },
+  "expected": {
+    "bmr": 2380,
+    "tdee": 2856,
+    "weeklyAverageTdee": 2856,
+    "trainingDay": {
+      "kcal": 2442,
+      "proteinG": 308,
+      "carbsG": 82,
+      "fatG": 98,
+      "proteinFloorG": 308
+    },
+    "restDay": {
+      "kcal": 2142,
+      "proteinG": 308,
+      "carbsG": 7,
+      "fatG": 98,
+      "proteinFloorG": 308
+    },
+    "proteinFloorG": 308,
+    "waterMl": 5000,
+    "projectedWeeklyChangeKg": -0.65,
+    "clamped": true,
+    "warnings": [
+      "DEFICIT_CLAMPED_TO_25_PERCENT"
+    ]
+  }
+}

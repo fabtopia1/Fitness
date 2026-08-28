@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// LifeDNA OS — Cloud Storage rules.
+//
+// Progress photos are among the most sensitive objects the product holds.
+// They are private to the owner, size- and type-constrained, and never
+// publicly readable.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function underSizeLimit(megabytes) {
+      return request.resource.size < megabytes * 1024 * 1024;
+    }
+
+    // Progress photos and user uploads.
+    match /users/{uid}/body_photos/{photoId} {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid) && isImage() && underSizeLimit(8);
+      allow delete: if isOwner(uid);
+    }
+
+    match /users/{uid}/uploads/{fileId} {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid) && underSizeLimit(20);
+      allow delete: if isOwner(uid);
+    }
+
+    // Data exports are written by exportBuilder and fetched via a signed URL
+    // that expires in 24 hours, so no direct client read path is granted.
+    match /users/{uid}/exports/{exportId} {
+      allow read, write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

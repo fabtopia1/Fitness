@@ -1,0 +1,19 @@
+{
+  "id": "no_components_insufficient",
+  "engineVersion": "recovery-1.2.0",
+  "input": {},
+  "expected": {
+    "recoveryScore": null,
+    "band": "insufficient_data",
+    "readinessScore": null,
+    "sleepScore": null,
+    "components": [],
+    "missingInputs": [
+      "sleep",
+      "training",
+      "activity"
+    ],
+    "action": null,
+    "detail": "Recovery needs sleep data from at least 2 of the last 3 nights."
+  }
+}

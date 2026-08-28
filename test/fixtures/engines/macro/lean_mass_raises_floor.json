@@ -1,0 +1,38 @@
+{
+  "id": "lean_mass_raises_floor",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 70,
+    "heightCm": 175,
+    "age": 28,
+    "sex": "male",
+    "activityLevel": "moderate",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 4,
+    "leanMassKg": 68
+  },
+  "expected": {
+    "bmr": 1659,
+    "tdee": 2571,
+    "weeklyAverageTdee": 2742,
+    "trainingDay": {
+      "kcal": 2294,
+      "proteinG": 163,
+      "carbsG": 296,
+      "fatG": 51,
+      "proteinFloorG": 163
+    },
+    "restDay": {
+      "kcal": 1994,
+      "proteinG": 163,
+      "carbsG": 225,
+      "fatG": 49,
+      "proteinFloorG": 163
+    },
+    "proteinFloorG": 163,
+    "waterMl": 2750,
+    "projectedWeeklyChangeKg": -0.53,
+    "clamped": false,
+    "warnings": []
+  }
+}

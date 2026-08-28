@@ -1,0 +1,37 @@
+{
+  "id": "half_boundary_bmr",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 60,
+    "heightCm": 170,
+    "age": 25,
+    "sex": "male",
+    "activityLevel": "moderate",
+    "goalMode": "maintain",
+    "trainingDaysPerWeek": 3
+  },
+  "expected": {
+    "bmr": 1543,
+    "tdee": 2391,
+    "weeklyAverageTdee": 2519,
+    "trainingDay": {
+      "kcal": 2691,
+      "proteinG": 108,
+      "carbsG": 430,
+      "fatG": 60,
+      "proteinFloorG": 108
+    },
+    "restDay": {
+      "kcal": 2391,
+      "proteinG": 108,
+      "carbsG": 370,
+      "fatG": 53,
+      "proteinFloorG": 108
+    },
+    "proteinFloorG": 108,
+    "waterMl": 2250,
+    "projectedWeeklyChangeKg": 0.0,
+    "clamped": false,
+    "warnings": []
+  }
+}

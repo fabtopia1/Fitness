@@ -1,0 +1,23 @@
+{
+  "id": "one_component_insufficient",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 450,
+      "timeInBedMinutes": 480
+    }
+  },
+  "expected": {
+    "recoveryScore": null,
+    "band": "insufficient_data",
+    "readinessScore": null,
+    "sleepScore": 98,
+    "components": [],
+    "missingInputs": [
+      "training",
+      "activity"
+    ],
+    "action": null,
+    "detail": "Recovery needs at least two data sources. Still missing: training history and daily activity."
+  }
+}

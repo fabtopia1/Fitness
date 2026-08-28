@@ -1,0 +1,48 @@
+{
+  "id": "oversleep_boundary",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 900,
+      "timeInBedMinutes": 930
+    },
+    "training": {
+      "acwr": 1.0,
+      "yesterdayLoad": 300,
+      "meanDailyLoad28d": 320
+    }
+  },
+  "expected": {
+    "recoveryScore": 87,
+    "band": "high",
+    "readinessScore": 87,
+    "sleepScore": 73,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 73,
+        "weight": 0.5,
+        "contribution": 36.5,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 100,
+        "weight": 0.5,
+        "contribution": 50.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 0,
+        "weight": 0.0,
+        "contribution": 0,
+        "available": false
+      }
+    ],
+    "missingInputs": [
+      "activity"
+    ],
+    "action": "push"
+  }
+}

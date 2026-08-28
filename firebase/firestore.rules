@@ -1,0 +1,150 @@
+rules_version = '2';
+
+// LifeDNA OS — Firestore security rules.
+//
+// Design (docs/03 §11):
+//   1. Deny by default. The final catch-all is not a formality.
+//   2. Everything lives under users/{uid}, so ownership is one comparison.
+//   3. Server-derived documents are READ-ONLY to the client. If the client
+//      could write daily_stats or recovery_data, the engines would be
+//      advisory rather than authoritative.
+//   4. Global catalogues are readable by any signed-in user, writable by none.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function onlyChanged(allowed) {
+      return changedKeys().hasOnly(allowed);
+    }
+
+    function isValidTimestamp(field) {
+      return field in request.resource.data
+             && request.resource.data[field] is timestamp;
+    }
+
+    // Collections the client owns outright.
+    function isClientWritable(col) {
+      return col in [
+        'settings', 'nutrition_logs', 'meals', 'meal_plans', 'water_logs',
+        'supplements', 'supplement_logs', 'supplement_purchases',
+        'workout_templates', 'workout_programs', 'workout_sessions',
+        'custom_exercises', 'body_metrics', 'body_photos', 'tasks',
+        'ai_conversations', 'devices'
+      ];
+    }
+
+    // Collections written only by Cloud Functions.
+    function isServerDerived(col) {
+      return col in [
+        'daily_stats', 'daily_plans', 'recovery_data', 'sleep_data',
+        'health_records', 'insights', 'reports', 'notifications',
+        'personal_records', 'ai_usage', 'sync_state',
+        'calendar_accounts', 'calendar_events'
+      ];
+    }
+
+    // ------------------------------------------------- global read-only data
+
+    match /exercises/{id}          { allow read: if isSignedIn(); allow write: if false; }
+    match /foods/{id}              { allow read: if isSignedIn(); allow write: if false; }
+    match /supplement_catalog/{id} { allow read: if isSignedIn(); allow write: if false; }
+    match /programs_library/{id}   { allow read: if isSignedIn(); allow write: if false; }
+    match /app_config/{id}         { allow read: if isSignedIn(); allow write: if false; }
+
+    // ------------------------------------------------------------ user subtree
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+                    && request.resource.data.uid == uid
+                    && isValidTimestamp('createdAt');
+
+      // The client may maintain its own profile, but not its entitlements and
+      // not the audit fields the engines stamp.
+      allow update: if isOwner(uid)
+                    && request.resource.data.uid == resource.data.uid
+                    && !changedKeys().hasAny([
+                         'uid', 'subscription', 'deletedAt', 'createdAt'
+                       ]);
+
+      // Deletion runs through the deleteAccount callable so the cascade
+      // (storage, OAuth revocation, FCM) actually happens.
+      allow delete: if false;
+
+      // --------------------------------------------------- client-owned data
+
+      match /{col}/{docId} {
+        allow read: if isOwner(uid) && isClientWritable(col);
+        allow create, update: if isOwner(uid) && isClientWritable(col);
+        allow delete: if isOwner(uid) && isClientWritable(col);
+      }
+
+      // Sets live one level deeper than the generic rule reaches.
+      match /workout_sessions/{sessionId}/sets/{setId} {
+        allow read: if isOwner(uid);
+        // Client-generated ids make a replayed offline write idempotent, so
+        // create and update are both permitted for the owner.
+        allow create, update, delete: if isOwner(uid);
+      }
+
+      // A user may write their own turn. Assistant turns are written by the
+      // server, so a compromised client cannot fabricate advice and attribute
+      // it to Coach.
+      match /ai_conversations/{cid}/messages/{mid} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid) && request.resource.data.role == 'user';
+        allow update: if isOwner(uid) && onlyChanged(['feedback']);
+        allow delete: if isOwner(uid);
+      }
+
+      // ------------------------------------------------- server-derived data
+
+      match /{col}/{docId} {
+        allow read: if isOwner(uid) && isServerDerived(col);
+        allow write: if false;
+      }
+
+      // The one client write on a derived document: acting on an insight.
+      match /insights/{insightId} {
+        allow read: if isOwner(uid);
+        allow update: if isOwner(uid) && onlyChanged(['status', 'feedback']);
+        allow create, delete: if false;
+      }
+
+      // Recording that a notification was acted on.
+      match /notifications/{notificationId} {
+        allow read: if isOwner(uid);
+        allow update: if isOwner(uid)
+                      && onlyChanged(['status', 'actionTaken', 'actionTakenAt']);
+        allow create, delete: if false;
+      }
+    }
+
+    // ------------------------------------------------------------ server only
+
+    match /_admin/{document=**} {
+      allow read, write: if false;
+    }
+
+    // ----------------------------------------------------------- default deny
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

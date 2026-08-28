@@ -1,0 +1,41 @@
+{
+  "id": "rate_above_ceiling_is_clamped",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 90.1,
+    "heightCm": 174.5,
+    "age": 21,
+    "sex": "male",
+    "activityLevel": "moderate",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 6,
+    "weeklyRateTargetPct": 2.0
+  },
+  "expected": {
+    "bmr": 1892,
+    "tdee": 2932,
+    "weeklyAverageTdee": 3189,
+    "trainingDay": {
+      "kcal": 2435,
+      "proteinG": 198,
+      "carbsG": 269,
+      "fatG": 63,
+      "proteinFloorG": 198
+    },
+    "restDay": {
+      "kcal": 2135,
+      "proteinG": 198,
+      "carbsG": 194,
+      "fatG": 63,
+      "proteinFloorG": 198
+    },
+    "proteinFloorG": 198,
+    "waterMl": 3500,
+    "projectedWeeklyChangeKg": -0.72,
+    "clamped": true,
+    "warnings": [
+      "RATE_CLAMPED_TO_SAFE_MAXIMUM",
+      "DEFICIT_CLAMPED_TO_25_PERCENT"
+    ]
+  }
+}

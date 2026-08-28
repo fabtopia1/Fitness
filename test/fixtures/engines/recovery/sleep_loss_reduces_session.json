@@ -1,0 +1,55 @@
+{
+  "id": "sleep_loss_reduces_session",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 240,
+      "timeInBedMinutes": 280
+    },
+    "training": {
+      "acwr": 1.4,
+      "yesterdayLoad": 200,
+      "meanDailyLoad28d": 400
+    },
+    "activity": {
+      "steps": 10000,
+      "stepGoal": 10000,
+      "activeMinutes": 45
+    },
+    "plannedSession": {
+      "rpe": 9,
+      "durationMinutes": 60
+    }
+  },
+  "expected": {
+    "recoveryScore": 62,
+    "band": "moderate",
+    "readinessScore": 56,
+    "sleepScore": 29,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 29,
+        "weight": 0.4,
+        "contribution": 11.6,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 75,
+        "weight": 0.4,
+        "contribution": 30.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 100,
+        "weight": 0.2,
+        "contribution": 20.0,
+        "available": true
+      }
+    ],
+    "missingInputs": [],
+    "action": "reduce"
+  }
+}

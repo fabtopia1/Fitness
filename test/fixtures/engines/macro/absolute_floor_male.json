@@ -1,0 +1,41 @@
+{
+  "id": "absolute_floor_male",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 48,
+    "heightCm": 160,
+    "age": 60,
+    "sex": "male",
+    "activityLevel": "sedentary",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 0,
+    "weeklyRateTargetPct": 1.0
+  },
+  "expected": {
+    "bmr": 1185,
+    "tdee": 1422,
+    "weeklyAverageTdee": 1422,
+    "trainingDay": {
+      "kcal": 1500,
+      "proteinG": 106,
+      "carbsG": 193,
+      "fatG": 34,
+      "proteinFloorG": 106
+    },
+    "restDay": {
+      "kcal": 1500,
+      "proteinG": 106,
+      "carbsG": 193,
+      "fatG": 34,
+      "proteinFloorG": 106
+    },
+    "proteinFloorG": 106,
+    "waterMl": 1750,
+    "projectedWeeklyChangeKg": 0.07,
+    "clamped": true,
+    "warnings": [
+      "DEFICIT_CLAMPED_TO_25_PERCENT",
+      "KCAL_RAISED_TO_ABSOLUTE_FLOOR"
+    ]
+  }
+}

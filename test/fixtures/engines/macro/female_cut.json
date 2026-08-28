@@ -1,0 +1,37 @@
+{
+  "id": "female_cut",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 65,
+    "heightCm": 165,
+    "age": 30,
+    "sex": "female",
+    "activityLevel": "moderate",
+    "goalMode": "cut",
+    "trainingDaysPerWeek": 4
+  },
+  "expected": {
+    "bmr": 1370,
+    "tdee": 2124,
+    "weeklyAverageTdee": 2295,
+    "trainingDay": {
+      "kcal": 1888,
+      "proteinG": 143,
+      "carbsG": 227,
+      "fatG": 46,
+      "proteinFloorG": 143
+    },
+    "restDay": {
+      "kcal": 1588,
+      "proteinG": 143,
+      "carbsG": 152,
+      "fatG": 46,
+      "proteinFloorG": 143
+    },
+    "proteinFloorG": 143,
+    "waterMl": 2500,
+    "projectedWeeklyChangeKg": -0.49,
+    "clamped": false,
+    "warnings": []
+  }
+}

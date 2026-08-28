@@ -1,0 +1,52 @@
+{
+  "id": "elevated_resting_hr_penalty",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 450,
+      "timeInBedMinutes": 480
+    },
+    "training": {
+      "acwr": 1.0,
+      "yesterdayLoad": 300,
+      "meanDailyLoad28d": 320
+    },
+    "physiology": {
+      "restingHrBpm": 68,
+      "baselineRestingHrBpm": 58
+    }
+  },
+  "expected": {
+    "recoveryScore": 91,
+    "band": "high",
+    "readinessScore": 91,
+    "sleepScore": 98,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 98,
+        "weight": 0.5,
+        "contribution": 49.0,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 100,
+        "weight": 0.5,
+        "contribution": 50.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 0,
+        "weight": 0.0,
+        "contribution": 0,
+        "available": false
+      }
+    ],
+    "missingInputs": [
+      "activity"
+    ],
+    "action": "push"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "no_planned_session",
+  "engineVersion": "recovery-1.2.0",
+  "input": {
+    "sleep": {
+      "totalMinutes": 431,
+      "timeInBedMinutes": 468,
+      "deepMinutes": 78,
+      "remMinutes": 96,
+      "bedtimeStdDevMinutes": 24,
+      "wakeStdDevMinutes": 19,
+      "nightsOfHistory": 14
+    },
+    "training": {
+      "acwr": 1.073,
+      "yesterdayLoad": 584,
+      "meanDailyLoad28d": 334,
+      "yesterdaySessionRpe": 8
+    },
+    "activity": {
+      "steps": 8432,
+      "stepGoal": 12000,
+      "activeMinutes": 62,
+      "trainedYesterday": true
+    }
+  },
+  "expected": {
+    "recoveryScore": 88,
+    "band": "high",
+    "readinessScore": 88,
+    "sleepScore": 95,
+    "components": [
+      {
+        "name": "sleep",
+        "score": 95,
+        "weight": 0.4,
+        "contribution": 38.0,
+        "available": true
+      },
+      {
+        "name": "training",
+        "score": 85,
+        "weight": 0.4,
+        "contribution": 34.0,
+        "available": true
+      },
+      {
+        "name": "activity",
+        "score": 82,
+        "weight": 0.2,
+        "contribution": 16.4,
+        "available": true
+      }
+    ],
+    "missingInputs": [],
+    "action": "push"
+  }
+}

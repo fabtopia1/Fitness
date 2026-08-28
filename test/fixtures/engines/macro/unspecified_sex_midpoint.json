@@ -1,0 +1,37 @@
+{
+  "id": "unspecified_sex_midpoint",
+  "engineVersion": "macro-1.0.0",
+  "input": {
+    "weightKg": 65,
+    "heightCm": 165,
+    "age": 30,
+    "sex": "unspecified",
+    "activityLevel": "moderate",
+    "goalMode": "maintain",
+    "trainingDaysPerWeek": 4
+  },
+  "expected": {
+    "bmr": 1453,
+    "tdee": 2253,
+    "weeklyAverageTdee": 2424,
+    "trainingDay": {
+      "kcal": 2553,
+      "proteinG": 117,
+      "carbsG": 394,
+      "fatG": 57,
+      "proteinFloorG": 117
+    },
+    "restDay": {
+      "kcal": 2253,
+      "proteinG": 117,
+      "carbsG": 334,
+      "fatG": 50,
+      "proteinFloorG": 117
+    },
+    "proteinFloorG": 117,
+    "waterMl": 2500,
+    "projectedWeeklyChangeKg": 0.0,
+    "clamped": false,
+    "warnings": []
+  }
+}
