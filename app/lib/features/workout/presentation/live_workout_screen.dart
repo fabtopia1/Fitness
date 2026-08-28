@@ -544,7 +544,11 @@ class _SquareButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(LdRadius.s),
-        child: const SizedBox(width: 56, height: 56),
+        child: SizedBox(
+          width: 56,
+          height: 56,
+          child: Icon(icon, size: 24, color: c.textPrimary),
+        ),
       ),
     );
   }
@@ -589,11 +593,13 @@ class _CompletedSets extends ConsumerWidget {
                 children: [
                   Icon(Icons.check_circle_rounded, size: 16, color: c.success),
                   const SizedBox(width: LdSpacing.s2),
-                  Text(
-                    'Set ${i + 1}   ${_fmt(sets[i].weightKg)} kg × '
-                    '${sets[i].reps}'
-                    '${sets[i].rpe == null ? '' : '   RPE ${sets[i].rpe}'}',
-                    style: type.bodyS.copyWith(color: c.textSecondary),
+                  Expanded(
+                    child: Text(
+                      'Set ${i + 1}   ${_fmt(sets[i].weightKg)} kg × '
+                      '${sets[i].reps}'
+                      '${sets[i].rpe == null ? '' : '   RPE ${sets[i].rpe}'}',
+                      style: type.bodyS.copyWith(color: c.textSecondary),
+                    ),
                   ),
                   if (sets[i].isPr) ...[
                     const SizedBox(width: LdSpacing.s2),

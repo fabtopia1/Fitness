@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,10 +47,15 @@ Future<void> pumpScreen(
   addTearDown(() => tester.binding.setSurfaceSize(null));
   _unmountBeforeTeardown(tester);
 
+  // The screen under test sits on TOP of an empty host page. Editors and
+  // full-screen tasks pop themselves when they finish, and popping the last
+  // page off a GoRouter stack asserts — so a test of a screen that closes
+  // itself needs somewhere to close back to.
   final router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(path: '/', builder: (_, __) => screen),
+      GoRoute(path: '/', builder: (_, __) => const _HostPage()),
+      GoRoute(path: screenRoute, builder: (_, __) => screen),
       GoRoute(
         path: '/:rest(.*)',
         builder: (context, state) => Scaffold(
@@ -70,6 +77,19 @@ Future<void> pumpScreen(
     ),
   );
   await tester.pump();
+
+  unawaited(router.push(screenRoute));
+  await pumpFrames(tester, frames: 4);
+}
+
+/// Where [pumpScreen] mounts the screen under test.
+const String screenRoute = '/screen-under-test';
+
+class _HostPage extends StatelessWidget {
+  const _HostPage();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: SizedBox.shrink());
 }
 
 /// Pumps the whole application, including its real router and redirects.
