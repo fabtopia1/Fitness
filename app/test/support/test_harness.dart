@@ -19,6 +19,15 @@ import 'package:lifedna/core/storage/hive_store.dart';
 /// other way, and "the reminder silently stopped being scheduled" is exactly
 /// the regression worth catching.
 class FakeNotificationService implements NotificationService {
+  FakeNotificationService({DateTime Function()? clock})
+      : _clock = clock ?? DateTime.now;
+
+  /// The real service refuses to schedule a time that has already passed. The
+  /// fake applies the same rule against the test's clock rather than the wall
+  /// clock, so a suite pinned to a fixed date behaves the same in 2026 and in
+  /// 2030.
+  final DateTime Function() _clock;
+
   final List<({int id, String title, int hour, int minute})> scheduledDaily = [];
   final List<({int id, String title, DateTime at})> scheduledOnce = [];
   final List<({int id, String title})> shown = [];
@@ -73,7 +82,7 @@ class FakeNotificationService implements NotificationService {
     String? payload,
   }) async {
     if (!_remindersEnabled) return;
-    if (!at.isAfter(DateTime.now())) return;
+    if (!at.isAfter(_clock())) return;
     scheduledOnce.add((id: id, title: title, at: at));
   }
 
@@ -149,12 +158,15 @@ class TestEnvironment {
 
   HiveStore get store => bootstrap.store;
 
-  static Future<TestEnvironment> create({bool online = true}) async {
+  static Future<TestEnvironment> create({
+    bool online = true,
+    DateTime Function()? clock,
+  }) async {
     final directory = await Directory.systemTemp.createTemp('lifedna_test');
     Hive.init(directory.path);
 
     final store = await HiveStore.open(inMemory: true);
-    final notifications = FakeNotificationService();
+    final notifications = FakeNotificationService(clock: clock);
     final connectivity = FakeConnectivityService(online: online);
 
     return TestEnvironment._(

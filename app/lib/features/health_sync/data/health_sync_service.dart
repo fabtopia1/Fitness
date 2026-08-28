@@ -28,12 +28,17 @@ import 'package:lifedna/features/health_sync/domain/health_entities.dart';
 /// separately; when it is missing, [MissingPluginException] is caught and the
 /// module reports [HealthAvailability.notEnabledInBuild] rather than crashing.
 class HealthSyncService {
-  HealthSyncService({MethodChannel? channel})
-      : _channel = channel ?? const MethodChannel(channelName);
+  HealthSyncService({MethodChannel? channel, bool Function()? isSupported})
+      : _channel = channel ?? const MethodChannel(channelName),
+        _isSupported = isSupported ?? (() => Platform.isAndroid);
 
   static const String channelName = 'os.lifedna/health';
 
   final MethodChannel _channel;
+
+  /// Injected so the platform gate itself is testable. Health Connect is
+  /// Android-only; every other platform reports that plainly.
+  final bool Function() _isSupported;
 
   /// Metrics this build requests. Kept minimal on purpose: every extra
   /// permission is another reason for a user to decline the whole prompt.
@@ -45,7 +50,7 @@ class HealthSyncService {
   ];
 
   Future<HealthAvailability> availability() async {
-    if (!Platform.isAndroid) return HealthAvailability.unsupportedPlatform;
+    if (!_isSupported()) return HealthAvailability.unsupportedPlatform;
     try {
       final raw = await _channel.invokeMethod<String>('availability');
       return switch (raw) {
@@ -64,7 +69,7 @@ class HealthSyncService {
 
   /// Opens the platform permission flow. Returns the resulting availability.
   Future<Result<HealthAvailability>> requestPermissions() async {
-    if (!Platform.isAndroid) {
+    if (!_isSupported()) {
       return const Ok(HealthAvailability.unsupportedPlatform);
     }
     try {
@@ -95,7 +100,7 @@ class HealthSyncService {
     required DateTime to,
     List<HealthMetric>? metrics,
   }) async {
-    if (!Platform.isAndroid) return const Ok([]);
+    if (!_isSupported()) return const Ok([]);
     try {
       final raw = await _channel.invokeListMethod<Map<Object?, Object?>>(
         'read',
@@ -170,8 +175,10 @@ class HealthSyncService {
   static const List<String> enablementSteps = [
     'Install Health Connect on the device (pre-installed on Android 14+).',
     'Open Samsung Health once and allow it to share data with Health Connect.',
-    'Add the Health Connect permissions and the permissions-rationale activity '
-        'to AndroidManifest.xml (see android/app/src/main/AndroidManifest.xml).',
+    'Declare the Health Connect read permissions and the permissions-rationale '
+        'activity in android/app/src/main/AndroidManifest.xml. They are '
+        'deliberately absent today: declaring health permissions an app does '
+        'not use fails the Play health-data review.',
     'Register the native handler for the "os.lifedna/health" MethodChannel.',
     'Complete the Google Play health-data declaration before release.',
   ];
