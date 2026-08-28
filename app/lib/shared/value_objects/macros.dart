@@ -146,16 +146,16 @@ class MacroTargets {
   /// zero — "you are 62 kcal over" is expressed as a separate surplus, not as a
   /// negative remaining value.
   Macros remaining(Macros consumed) => Macros(
-        kcal: math.max(0, kcal - consumed.kcal),
-        proteinG: math.max(0, proteinG - consumed.proteinG),
-        carbsG: math.max(0, carbsG - consumed.carbsG),
-        fatG: math.max(0, fatG - consumed.fatG),
+        kcal: math.max(0.0, kcal - consumed.kcal),
+        proteinG: math.max(0.0, proteinG - consumed.proteinG),
+        carbsG: math.max(0.0, carbsG - consumed.carbsG),
+        fatG: math.max(0.0, fatG - consumed.fatG),
       );
 
   /// Grams of protein still owed against the *floor*. This is the number the
   /// dashboard's Next Action card reports.
   double proteinDebt(Macros consumed) =>
-      math.max(0, proteinFloorG - consumed.proteinG);
+      math.max(0.0, proteinFloorG - consumed.proteinG);
 
   /// Fraction of each target achieved. May exceed 1.0.
   ({double kcal, double protein, double carbs, double fat}) progress(
@@ -173,7 +173,7 @@ class MacroTargets {
   double adherencePct(Macros consumed) {
     if (kcal <= 0) return 0;
     final deviation = (consumed.kcal - kcal).abs() / kcal;
-    return math.max(0, (1 - deviation) * 100);
+    return math.max(0.0, (1 - deviation) * 100);
   }
 
   MacroTargets copyWith({

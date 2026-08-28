@@ -309,7 +309,7 @@ abstract final class RecoveryEngine {
     final wake = s.wakeStdDevMinutes;
     if (bed == null || wake == null) return null;
     final sigma = (bed + wake) / 2;
-    return (100 - (sigma - 20) * 1.6).clamp(0.0, 100.0);
+    return (100 - (sigma - 20) * 1.6).clamp(0.0, 100.0).toDouble();
   }
 
   static double? _sleepEfficiency(SleepInput s) {
@@ -331,7 +331,7 @@ abstract final class RecoveryEngine {
 
     final deepScore = (100 - (deepPct - 18).abs() * 5).clamp(0.0, 100.0);
     final remScore = (100 - (remPct - 22.5).abs() * 5).clamp(0.0, 100.0);
-    return (deepScore + remScore) / 2;
+    return ((deepScore + remScore) / 2).toDouble();
   }
 
   // ------------------------------------------------------------- training ---
@@ -392,7 +392,7 @@ abstract final class RecoveryEngine {
       stepScore = stepRatio * 80;
     }
 
-    final activeScore = (a.activeMinutes / 45 * 100).clamp(0.0, 100.0);
+    final activeScore = (a.activeMinutes / 45 * 100).clamp(0.0, 100.0).toDouble();
     var score = 0.6 * stepScore + 0.4 * activeScore;
 
     // A genuinely sedentary day is a recovery signal in its own right.
@@ -430,7 +430,7 @@ abstract final class RecoveryEngine {
       }
     }
 
-    return adjustment.clamp(-10.0, 10.0);
+    return adjustment.clamp(-10.0, 10.0).toDouble();
   }
 
   // ----------------------------------------------------------- readiness ---

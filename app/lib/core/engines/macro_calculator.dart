@@ -267,7 +267,7 @@ abstract final class MacroCalculator {
     // macronutrient the goal depends on.
     if (carbKcal < 0) {
       fatG = math.max(0.5 * weightKg, (kcal - proteinKcal) / 9 * 0.9);
-      carbKcal = math.max(0, kcal - proteinKcal - fatG * 9);
+      carbKcal = math.max(0.0, kcal - proteinKcal - fatG * 9);
     }
 
     return MacroTargets(
@@ -294,7 +294,7 @@ abstract final class MacroCalculator {
     required double tdeeRest,
     required int trainingDays,
   }) {
-    final t = trainingDays.clamp(0, 7);
+    final t = trainingDays.clamp(0, 7).toInt();
     final r = 7 - t;
     return (trainingKcal - tdeeTraining) * t + (restKcal - tdeeRest) * r;
   }

@@ -479,7 +479,8 @@ abstract final class PriorityEngine {
       );
 
   /// Rounds a protein gap to a realistic snack size.
-  static int _snackSize(double debt) => ((debt / 10).ceil() * 10).clamp(10, 60);
+  static int _snackSize(double debt) =>
+      ((debt / 10).ceil() * 10).clamp(10, 60).toInt();
 
   /// Millilitres with a thousands separator, per the formatting contract in
   /// docs/04 §10.2.
