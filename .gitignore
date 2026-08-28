@@ -1,0 +1,59 @@
+# ---------- Flutter / Dart ----------
+app/.dart_tool/
+app/.packages
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/.pub-cache/
+app/.pub/
+app/coverage/
+**/*.g.dart
+**/*.freezed.dart
+**/*.mocks.dart
+!**/doc_examples/**/*.g.dart
+
+# ---------- Android ----------
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+app/android/app/upload-keystore.jks
+app/android/app/google-services.json
+app/android/.cxx/
+
+# ---------- iOS ----------
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/Flutter/Generated.xcconfig
+app/ios/Flutter/flutter_export_environment.sh
+app/ios/Runner/GoogleService-Info.plist
+
+# ---------- Firebase ----------
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+**/serviceAccountKey.json
+**/firebase_options.dart
+
+# ---------- Cloud Functions ----------
+functions/node_modules/
+functions/lib/
+functions/.env
+functions/.env.*
+!functions/.env.example
+
+# ---------- Secrets ----------
+.env
+.env.local
+*.pem
+*.p12
+secrets/
+
+# ---------- Editors / OS ----------
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
