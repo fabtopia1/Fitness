@@ -1,0 +1,46 @@
+# LifeDNA OS — MVP delivery documents
+
+These sixteen documents describe **what was built**, not what was designed.
+`docs/01`–`docs/20` are the full-product design from the architecture phase;
+they describe a fifteen-module system. This folder covers the nine-module MVP
+that exists in `app/`, runs today, and is covered by 545 automated tests.
+
+Where the two disagree, this folder is authoritative for the MVP.
+
+| # | Document | Answers |
+|---|---|---|
+| 01 | [Product architecture](01-product-architecture.md) | How the app is put together and why |
+| 02 | [Folder structure](02-folder-structure.md) | Where every file lives |
+| 03 | [Firestore schema](03-firestore-schema.md) | What is stored, where, and how it is indexed |
+| 04 | [Security rules](04-security-rules.md) | What stops one user reading another's data |
+| 05 | [UI sitemap](05-ui-sitemap.md) | Every screen and how it is reached |
+| 06 | [User flows](06-user-flows.md) | The journeys, as diagrams |
+| 07 | [Sprint plan](07-sprint-plan.md) | The order the work was done, and what is next |
+| 08 | [CI/CD](08-cicd.md) | What runs on every push and what gates a release |
+| 09 | [Testing strategy](09-testing-strategy.md) | What is tested, how, and what is not |
+| 10 | [MVP completion checklist](10-mvp-completion-checklist.md) | Feature-by-feature status |
+| 11 | [Build checklist](11-build-checklist.md) | Producing an installable artefact |
+| 12 | [Launch checklist](12-launch-checklist.md) | Store submission and beta rollout |
+| 13 | [Risk assessment](13-risk-assessment.md) | What could go wrong, and the mitigation |
+| 14 | [Technical debt log](14-technical-debt.md) | Everything knowingly left undone |
+| 15 | [Production readiness](15-production-readiness.md) | Ship / do-not-ship, with evidence |
+| 16 | [Architecture audit](16-architecture-audit.md) | Every issue found that could stop the app building, deploying, syncing, or scaling to 10 000 users |
+
+## The MVP in one paragraph
+
+A Flutter application with an **offline-first architecture**: every write
+commits to an encrypted local Hive database first, is queued in a durable
+outbox, and only then replicates to Firestore. Reads never touch the network.
+The app is fully usable with **no Firebase project configured at all** — that
+is a supported mode, not a debug hatch. Nine modules ship: authentication,
+dashboard, nutrition, supplements, workouts (including Live Gym Mode),
+body tracking, calendar/tasks/reminders, health sync, and an on-device AI
+coach.
+
+## What is deliberately absent
+
+Galaxy Fit 3 Bluetooth, the FitnessDNA prediction engine, machine learning,
+predictive analytics, voice assistants, social features, a marketplace,
+subscriptions, and gamification. Each is in `docs/20-future-expansion.md`.
+None has a stub, a placeholder screen, or a disabled button in the shipped
+app — a feature is either complete or absent.

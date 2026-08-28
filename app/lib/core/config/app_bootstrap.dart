@@ -75,10 +75,13 @@ class AppBootstrap {
       }
 
       try {
+        // The instance is obtained, but permission is NOT requested here.
+        // `requestPermission` raises the Android 13+ system dialog, and doing
+        // that during bootstrap asks a user who has not yet seen a single
+        // frame — which is how an app gets its notifications declined for
+        // good. The ask happens where a reminder would first help, from the
+        // reminder card in Settings.
         messaging = FirebaseMessaging.instance;
-        // Requested here rather than silently: a notification permission the
-        // user never agreed to is a permission they will revoke.
-        await messaging.requestPermission();
       } on Object catch (error) {
         debugPrint('Bootstrap: Messaging unavailable — $error');
         messaging = null;

@@ -11,6 +11,7 @@ import 'package:lifedna/features/ai_hub/presentation/ai_providers.dart';
 import 'package:lifedna/features/calendar/presentation/calendar_providers.dart';
 import 'package:lifedna/features/nutrition/presentation/nutrition_providers.dart';
 import 'package:lifedna/features/supplements/presentation/supplement_providers.dart';
+import 'package:lifedna/features/sync/presentation/sync_providers.dart';
 import 'package:lifedna/features/workout/presentation/workout_providers.dart';
 
 /// The dashboard.
@@ -137,16 +138,9 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   static Future<void> _refresh(WidgetRef ref) async {
-    // Pull-to-refresh drains the outbox and pulls remote changes. It never
-    // blocks the UI on the result — local data is already correct.
-    await ref.read(syncEngineProvider).drain();
-    await Future.wait([
-      ref.read(nutritionRepositoryProvider).pullAll(),
-      ref.read(workoutRepositoryProvider).pullAll(),
-      ref.read(supplementRepositoryProvider).pullAll(),
-      ref.read(bodyRepositoryProvider).pullAll(),
-      ref.read(calendarRepositoryProvider).pullAll(),
-    ]);
+    // Pull-to-refresh pushes what is queued, then pulls every collection.
+    // It never blocks the UI on the result — local data is already correct.
+    await ref.read(remotePullProvider).refresh();
   }
 
   static String _greeting(DateTime now) {

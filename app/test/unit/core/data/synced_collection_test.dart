@@ -228,6 +228,52 @@ void main() {
       expect(collection.readOne('a')?.text, 'typed 30 seconds ago');
     });
 
+    test('pull pages through a collection larger than one page', () async {
+      // A user restoring onto a new device has years of history. A single
+      // page would hand them a silently truncated training log.
+      final remote = firestore
+          .collection('users')
+          .doc('u1')
+          .collection('notes');
+      for (var i = 0; i < 25; i++) {
+        await remote
+            .doc('n$i')
+            .set(
+              note(
+                'n$i',
+                text: 'note $i',
+                at: DateTime.utc(2026, 1, 1).add(Duration(minutes: i)),
+              ).toJson(),
+            );
+      }
+
+      final collection = build(firestore: firestore, uid: 'u1');
+      final result = await collection.pull(pageSize: 10);
+
+      expect(result.valueOrNull, 25);
+      expect(collection.readAll(), hasLength(25));
+    });
+
+    test('pull with a cursor takes only what changed since', () async {
+      final remote = firestore
+          .collection('users')
+          .doc('u1')
+          .collection('notes');
+      await remote
+          .doc('old')
+          .set(note('old', at: DateTime.utc(2026, 1, 1)).toJson());
+      await remote
+          .doc('new')
+          .set(note('new', at: DateTime.utc(2026, 6, 1)).toJson());
+
+      final collection = build(firestore: firestore, uid: 'u1');
+      final result = await collection.pull(since: DateTime.utc(2026, 3, 1));
+
+      expect(result.valueOrNull, 1);
+      expect(collection.readOne('new'), isNotNull);
+      expect(collection.readOne('old'), isNull);
+    });
+
     test('pull applies a strictly newer remote record', () async {
       final collection = build(firestore: firestore, uid: 'u1');
       await collection.put(

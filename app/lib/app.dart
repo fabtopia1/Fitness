@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,8 +7,10 @@ import 'package:lifedna/core/config/env.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/router/app_router.dart';
 import 'package:lifedna/core/theme/app_theme.dart';
+import 'package:lifedna/features/reminders/presentation/reminder_providers.dart';
 import 'package:lifedna/features/settings/domain/app_settings.dart';
 import 'package:lifedna/features/settings/presentation/settings_providers.dart';
+import 'package:lifedna/features/sync/presentation/sync_providers.dart';
 
 /// The application widget.
 ///
@@ -14,11 +18,46 @@ import 'package:lifedna/features/settings/presentation/settings_providers.dart';
 /// only while a particular screen is mounted: the sync engine, the settings
 /// controller (which applies privacy consent to the Firebase SDKs), and the
 /// telemetry user binding.
-class LifeDnaApp extends ConsumerWidget {
+class LifeDnaApp extends ConsumerStatefulWidget {
   const LifeDnaApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LifeDnaApp> createState() => _LifeDnaAppState();
+}
+
+class _LifeDnaAppState extends ConsumerState<LifeDnaApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Android clears scheduled alarms after a force-stop, and a device that was
+  /// offline for a day has a full outbox. Both are repaired on the way back in
+  /// rather than waiting for the next five-minute tick or the next edit.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+
+    unawaited(ref.read(remotePullProvider).refresh());
+
+    final settings = ref.read(currentSettingsProvider);
+    if (settings.remindersEnabled) {
+      unawaited(ref.read(supplementRepositoryProvider).rescheduleAll());
+      unawaited(ref.read(calendarRepositoryProvider).rescheduleAllReminders());
+      unawaited(ref.read(reminderRepositoryProvider).rescheduleAll());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Keeps the outbox draining for as long as the app is running. Without a
     // watch here it would only exist while the shell is on screen.
     ref.watch(syncEngineProvider);

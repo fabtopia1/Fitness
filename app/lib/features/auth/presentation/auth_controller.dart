@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/features/auth/data/auth_repository.dart';
 import 'package:lifedna/features/auth/domain/user_profile.dart';
+import 'package:lifedna/features/sync/presentation/sync_providers.dart';
 
 /// Drives the auth screens.
 ///
@@ -58,7 +61,13 @@ class AuthController extends AsyncNotifier<void> {
         state = AsyncValue.error(failure, StackTrace.current);
         return failure;
       case Ok(:final value):
-        if (value is AuthSession) await _ensureProfile(value);
+        if (value is AuthSession) {
+          await _ensureProfile(value);
+          // Download whatever this account already owns. Without this a user
+          // signing in on a second device would see an empty app until they
+          // happened to pull-to-refresh the dashboard.
+          unawaited(ref.read(remotePullProvider).everything());
+        }
         state = const AsyncValue.data(null);
         return null;
     }

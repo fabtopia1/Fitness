@@ -171,46 +171,69 @@ class SyncedCollection<T extends SyncedEntity> {
 
   // ------------------------------------------------------------------ pull --
 
-  /// Pulls remote changes into Hive.
+  /// Pulls remote changes into Hive, paging until the collection is drained.
   ///
   /// Last-write-wins on `updatedAt`, and a local record that is strictly newer
   /// is never overwritten — otherwise a slow pull could undo something the
   /// user typed thirty seconds ago.
-  Future<Result<int>> pull({DateTime? since, int limit = 500}) async {
+  ///
+  /// Paging matters: a user restoring onto a new device has years of history,
+  /// and a single 500-document page would silently hand them a truncated
+  /// training log. [maxPages] bounds the work so one call cannot run forever
+  /// on a very large account.
+  Future<Result<int>> pull({
+    DateTime? since,
+    int pageSize = 500,
+    int maxPages = 40,
+  }) async {
     final remote = _remote;
     if (remote == null) {
       return const Err(ServerFailure('firebase_unavailable'));
     }
 
     try {
-      Query<Map<String, dynamic>> query = remote
-          .orderBy('updatedAt', descending: true)
-          .limit(limit);
-      if (since != null) {
-        query = remote
-            .where('updatedAt', isGreaterThan: since.toUtc().toIso8601String())
-            .orderBy('updatedAt', descending: true)
-            .limit(limit);
-      }
-
-      final snapshot = await query.get().timeout(Env.networkTimeout);
-
       var applied = 0;
-      final updates = <String, Map<String, dynamic>>{};
-      for (final doc in snapshot.docs) {
-        final remoteJson = doc.data();
-        final localJson = store.read(boxName, doc.id);
+      DocumentSnapshot<Map<String, dynamic>>? cursor;
 
-        if (localJson != null) {
-          final localAt = Json.date(localJson['updatedAt']);
-          final remoteAt = Json.date(remoteJson['updatedAt']);
-          if (!remoteAt.isAfter(localAt)) continue;
+      for (var page = 0; page < maxPages; page++) {
+        // Ascending by updatedAt so the cursor walks forward through history
+        // rather than stopping at the newest page.
+        Query<Map<String, dynamic>> query = remote.orderBy('updatedAt');
+        if (since != null) {
+          query = query.where(
+            'updatedAt',
+            isGreaterThan: since.toUtc().toIso8601String(),
+          );
         }
-        updates[doc.id] = remoteJson;
-        applied++;
+        if (cursor != null) query = query.startAfterDocument(cursor);
+
+        final snapshot = await query
+            .limit(pageSize)
+            .get()
+            .timeout(Env.networkTimeout);
+
+        if (snapshot.docs.isEmpty) break;
+
+        final updates = <String, Map<String, dynamic>>{};
+        for (final doc in snapshot.docs) {
+          final remoteJson = doc.data();
+          final localJson = store.read(boxName, doc.id);
+
+          if (localJson != null) {
+            final localAt = Json.date(localJson['updatedAt']);
+            final remoteAt = Json.date(remoteJson['updatedAt']);
+            if (!remoteAt.isAfter(localAt)) continue;
+          }
+          updates[doc.id] = remoteJson;
+          applied++;
+        }
+
+        if (updates.isNotEmpty) await store.writeAll(boxName, updates);
+
+        cursor = snapshot.docs.last;
+        if (snapshot.docs.length < pageSize) break;
       }
 
-      if (updates.isNotEmpty) await store.writeAll(boxName, updates);
       return Ok(applied);
     } on Object catch (error, stackTrace) {
       return Err(FailureMapper.from(error, stackTrace));
