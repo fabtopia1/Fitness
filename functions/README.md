@@ -132,3 +132,17 @@ production outage on whichever screen runs the query.
 
 Rollback: `firebase functions:rollback`. Client-side, every Phase 2/3 module
 has a Remote Config kill switch.
+
+## Status in the MVP
+
+This codebase is **not deployed by the MVP** and is deliberately absent from
+`firebase.json`. The MVP computes every engine result on the device: the
+calculations are pure functions over a single user's own data, they must work
+in a basement gym with no signal, and a server round-trip would make them
+slower and less available without making them more correct.
+
+The TypeScript here is the server-side mirror of `app/lib/core/engines/`, kept
+so that the parity fixtures in `test/fixtures/engines/` continue to bind both
+implementations. It ships when there is a job only a server can do — a
+cross-user aggregate, a scheduled push, or a shared food catalogue — and
+`firebase.json` gains its `functions` entry at that point, not before.

@@ -1,14 +1,26 @@
 rules_version = '2';
 
-// LifeDNA OS — Firestore security rules.
+// LifeDNA OS — Firestore security rules (MVP).
 //
-// Design (docs/03 §11):
+// Design:
 //   1. Deny by default. The final catch-all is not a formality.
-//   2. Everything lives under users/{uid}, so ownership is one comparison.
-//   3. Server-derived documents are READ-ONLY to the client. If the client
-//      could write daily_stats or recovery_data, the engines would be
-//      advisory rather than authoritative.
-//   4. Global catalogues are readable by any signed-in user, writable by none.
+//   2. Every document lives under users/{uid}, so ownership is one comparison
+//      and there is no path where one user's query can reach another's data.
+//   3. The collection name is an allow-list, not a wildcard. A client bug (or
+//      a tampered build) that invents a collection is rejected rather than
+//      silently creating an unbudgeted, unindexed, unowned tree.
+//   4. Deletes are refused everywhere. The client soft-deletes by writing a
+//      `deletedAt` tombstone, which is what makes a second device converge
+//      instead of resurrecting the record on its next pull.
+//   5. Dates are ISO-8601 STRINGS, not Firestore timestamps. The offline
+//      write path serialises to JSON for Hive and replays the identical
+//      payload to Firestore, so the two stores never disagree about a type.
+//      Rules that demanded `is timestamp` would reject every write this
+//      client makes.
+//
+// Validation here is a backstop, not the primary check: the client validates
+// at entry (see the form validators and the domain constructors). These rules
+// exist for the case where the client is not ours.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -23,126 +35,145 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    function changedKeys() {
-      return request.resource.data.diff(resource.data).affectedKeys();
+    function data() {
+      return request.resource.data;
     }
 
-    function onlyChanged(allowed) {
-      return changedKeys().hasOnly(allowed);
-    }
-
-    function isValidTimestamp(field) {
-      return field in request.resource.data
-             && request.resource.data[field] is timestamp;
-    }
-
-    // Collections the client owns outright.
-    function isClientWritable(col) {
-      return col in [
-        'settings', 'nutrition_logs', 'meals', 'meal_plans', 'water_logs',
-        'supplements', 'supplement_logs', 'supplement_purchases',
-        'workout_templates', 'workout_programs', 'workout_sessions',
-        'custom_exercises', 'body_metrics', 'body_photos', 'tasks',
-        'ai_conversations', 'devices'
+    // Every collection the MVP client writes. Adding a feature means adding a
+    // line here — deliberately, so schema growth is reviewed.
+    function isMvpCollection(name) {
+      return name in [
+        'foods',
+        'meals',
+        'nutrition_logs',
+        'supplements',
+        'supplement_logs',
+        'exercises',
+        'workouts',
+        'workout_sessions',
+        'body_measurements',
+        'tasks',
+        'calendar_events',
+        'notifications',
+        'settings'
       ];
     }
 
-    // Collections written only by Cloud Functions.
-    function isServerDerived(col) {
-      return col in [
-        'daily_stats', 'daily_plans', 'recovery_data', 'sleep_data',
-        'health_records', 'insights', 'reports', 'notifications',
-        'personal_records', 'ai_usage', 'sync_state',
-        'calendar_accounts', 'calendar_events'
-      ];
+    // ISO-8601 UTC, e.g. 2026-08-28T09:15:00.000Z. Bounded so a rogue client
+    // cannot smuggle a megabyte into a date field.
+    function isIsoDate(value) {
+      return value is string
+             && value.size() >= 20
+             && value.size() <= 32;
     }
 
-    // ------------------------------------------------- global read-only data
+    function hasSyncFields() {
+      return isIsoDate(data().updatedAt)
+             && (!('deletedAt' in data()) || data().deletedAt == null
+                 || isIsoDate(data().deletedAt));
+    }
 
-    match /exercises/{id}          { allow read: if isSignedIn(); allow write: if false; }
-    match /foods/{id}              { allow read: if isSignedIn(); allow write: if false; }
-    match /supplement_catalog/{id} { allow read: if isSignedIn(); allow write: if false; }
-    match /programs_library/{id}   { allow read: if isSignedIn(); allow write: if false; }
-    match /app_config/{id}         { allow read: if isSignedIn(); allow write: if false; }
+    // The client owns document ids (UUID v4, or a deterministic id derived
+    // from a date). A payload whose `id` disagrees with its path would make
+    // the local and remote copies diverge on the next pull.
+    function idMatchesPath(docId) {
+      return !('id' in data()) || data().id == docId;
+    }
 
-    // ------------------------------------------------------------ user subtree
+    // A single record is a handful of fields. Anything far past that is either
+    // a bug or an attempt to use the database as free storage.
+    function isReasonableSize() {
+      return data().keys().size() <= 64;
+    }
+
+    function isBoundedString(field, maxLength) {
+      return !(field in data())
+             || data()[field] == null
+             || (data()[field] is string && data()[field].size() <= maxLength);
+    }
+
+    function isBoundedNumber(field, minValue, maxValue) {
+      return !(field in data())
+             || data()[field] == null
+             || (data()[field] is number
+                 && data()[field] >= minValue
+                 && data()[field] <= maxValue);
+    }
+
+    // ------------------------------------------------------- the user record
 
     match /users/{uid} {
-      allow read: if isOwner(uid);
 
-      allow create: if isOwner(uid)
-                    && request.resource.data.uid == uid
-                    && isValidTimestamp('createdAt');
+      function isValidProfile() {
+        return isIsoDate(data().updatedAt)
+               && data().id == uid
+               && isBoundedString('email', 320)
+               && isBoundedString('displayName', 120)
+               && isBoundedString('photoUrl', 2048)
+               // Physiological bounds. These are the same limits the
+               // onboarding form enforces; a value outside them would make
+               // every derived target meaningless.
+               && isBoundedNumber('heightCm', 0, 300)
+               && isBoundedNumber('weightKg', 0, 500)
+               && isBoundedNumber('targetWeightKg', 0, 500)
+               && isBoundedNumber('leanMassKg', 0, 500)
+               && isBoundedNumber('weeklyRateTargetPct', 0, 5)
+               && isBoundedNumber('trainingDaysPerWeek', 0, 14)
+               && isBoundedNumber('overrideKcal', 0, 20000)
+               && isBoundedNumber('overrideProteinG', 0, 2000)
+               && isBoundedNumber('overrideCarbsG', 0, 2000)
+               && isBoundedNumber('overrideFatG', 0, 2000)
+               && isBoundedNumber('overrideWaterMl', 0, 30000);
+      }
 
-      // The client may maintain its own profile, but not its entitlements and
-      // not the audit fields the engines stamp.
-      allow update: if isOwner(uid)
-                    && request.resource.data.uid == resource.data.uid
-                    && !changedKeys().hasAny([
-                         'uid', 'subscription', 'deletedAt', 'createdAt'
-                       ]);
+      allow get, list: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidProfile();
 
-      // Deletion runs through the deleteAccount callable so the cascade
-      // (storage, OAuth revocation, FCM) actually happens.
+      // Account deletion removes auth, storage and every sub-collection at
+      // once. That is a privileged, audited operation, not a client write.
       allow delete: if false;
 
-      // --------------------------------------------------- client-owned data
+      // ------------------------------------------------ owned sub-collections
 
-      match /{col}/{docId} {
-        allow read: if isOwner(uid) && isClientWritable(col);
-        allow create, update: if isOwner(uid) && isClientWritable(col);
-        allow delete: if isOwner(uid) && isClientWritable(col);
-      }
+      match /{collection}/{docId} {
 
-      // Sets live one level deeper than the generic rule reaches.
-      match /workout_sessions/{sessionId}/sets/{setId} {
-        allow read: if isOwner(uid);
-        // Client-generated ids make a replayed offline write idempotent, so
-        // create and update are both permitted for the owner.
-        allow create, update, delete: if isOwner(uid);
-      }
+        function isValidDocument() {
+          return isMvpCollection(collection)
+                 && hasSyncFields()
+                 && idMatchesPath(docId)
+                 && isReasonableSize()
+                 // Free text is bounded everywhere it appears.
+                 && isBoundedString('title', 500)
+                 && isBoundedString('name', 300)
+                 && isBoundedString('note', 4000)
+                 && isBoundedString('notes', 4000)
+                 && isBoundedString('description', 4000)
+                 && isBoundedString('location', 500)
+                 // Measurement and nutrition magnitudes.
+                 && isBoundedNumber('kcal', 0, 100000)
+                 && isBoundedNumber('proteinG', 0, 10000)
+                 && isBoundedNumber('carbsG', 0, 10000)
+                 && isBoundedNumber('fatG', 0, 10000)
+                 && isBoundedNumber('weightKg', 0, 500)
+                 && isBoundedNumber('quantityG', 0, 100000)
+                 && isBoundedNumber('millilitres', 0, 30000)
+                 && isBoundedNumber('hour', 0, 23)
+                 && isBoundedNumber('minute', 0, 59);
+        }
 
-      // A user may write their own turn. Assistant turns are written by the
-      // server, so a compromised client cannot fabricate advice and attribute
-      // it to Coach.
-      match /ai_conversations/{cid}/messages/{mid} {
-        allow read: if isOwner(uid);
-        allow create: if isOwner(uid) && request.resource.data.role == 'user';
-        allow update: if isOwner(uid) && onlyChanged(['feedback']);
-        allow delete: if isOwner(uid);
-      }
+        allow get, list: if isOwner(uid) && isMvpCollection(collection);
+        allow create, update: if isOwner(uid) && isValidDocument();
 
-      // ------------------------------------------------- server-derived data
-
-      match /{col}/{docId} {
-        allow read: if isOwner(uid) && isServerDerived(col);
-        allow write: if false;
-      }
-
-      // The one client write on a derived document: acting on an insight.
-      match /insights/{insightId} {
-        allow read: if isOwner(uid);
-        allow update: if isOwner(uid) && onlyChanged(['status', 'feedback']);
-        allow create, delete: if false;
-      }
-
-      // Recording that a notification was acted on.
-      match /notifications/{notificationId} {
-        allow read: if isOwner(uid);
-        allow update: if isOwner(uid)
-                      && onlyChanged(['status', 'actionTaken', 'actionTakenAt']);
-        allow create, delete: if false;
+        // Soft delete only: the client writes a tombstone so other devices
+        // converge. A hard delete would come back on their next pull.
+        allow delete: if false;
       }
     }
 
-    // ------------------------------------------------------------ server only
+    // ------------------------------------------------------------- catch-all
 
-    match /_admin/{document=**} {
-      allow read, write: if false;
-    }
-
-    // ----------------------------------------------------------- default deny
-
+    // Anything not matched above — including any future collection added to
+    // the console by hand — is unreachable from a client.
     match /{document=**} {
       allow read, write: if false;
     }

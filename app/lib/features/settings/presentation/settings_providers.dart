@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/features/settings/data/settings_repository.dart';
+import 'package:lifedna/features/reminders/presentation/reminder_providers.dart';
 import 'package:lifedna/features/settings/domain/app_settings.dart';
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
@@ -41,6 +42,12 @@ class SettingsController extends AsyncNotifier<AppSettings> {
   Future<AppSettings> build() async {
     final settings = ref.watch(currentSettingsProvider);
     await _applyConsent(settings);
+    // The gate lives in memory, so it has to be restored on every launch —
+    // otherwise a user who turned reminders off would be notified again after
+    // the next cold start.
+    await ref
+        .read(notificationServiceProvider)
+        .setRemindersEnabled(enabled: settings.remindersEnabled);
     return settings;
   }
 
@@ -88,13 +95,14 @@ class SettingsController extends AsyncNotifier<AppSettings> {
   /// Turning reminders off cancels what is already in the OS scheduler;
   /// turning them back on rebuilds the schedule from the saved records.
   Future<void> _applyReminderSwitch({required bool enabled}) async {
-    final notifications = ref.read(notificationServiceProvider);
-    if (!enabled) {
-      await notifications.cancelAll();
-      return;
-    }
+    await ref
+        .read(notificationServiceProvider)
+        .setRemindersEnabled(enabled: enabled);
+    if (!enabled) return;
+
     await ref.read(supplementRepositoryProvider).rescheduleAll();
     await ref.read(calendarRepositoryProvider).rescheduleAllReminders();
+    await ref.read(reminderRepositoryProvider).rescheduleAll();
   }
 }
 

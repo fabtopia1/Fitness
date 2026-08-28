@@ -1,0 +1,14 @@
+<!--
+    Monochrome notification icon. Android draws only the alpha channel of this
+    drawable and tints it with notification_accent, so any colour here would be
+    discarded and a filled shape would render as a white square.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13,2L4.5,13.5H11L10,22L19,10H12.5L13,2Z" />
+</vector>

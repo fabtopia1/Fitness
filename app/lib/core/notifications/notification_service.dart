@@ -12,7 +12,8 @@ enum NotificationChannelId {
   meal('meal', 'Meals', 'Reminders to log a meal'),
   workout('workout', 'Workouts', 'Reminders about a scheduled workout'),
   task('task', 'Tasks', 'Reminders about a due task'),
-  restTimer('rest_timer', 'Rest timer', 'Rest period finished');
+  restTimer('rest_timer', 'Rest timer', 'Rest period finished'),
+  reminder('reminder', 'Reminders', 'Reminders you created yourself');
 
   const NotificationChannelId(this.id, this.title, this.description);
   final String id;
@@ -37,8 +38,24 @@ class NotificationService {
   bool _ready = false;
   bool _permissionGranted = false;
 
+  bool _remindersEnabled = true;
+
   bool get isReady => _ready;
   bool get hasPermission => _permissionGranted;
+
+  /// The user's master switch for scheduled reminders.
+  bool get remindersEnabled => _remindersEnabled;
+
+  /// Turns every *scheduled* notification on or off in one place.
+  ///
+  /// Gating here rather than at each call site means a reminder created while
+  /// the switch is off cannot slip through, whichever feature creates it.
+  /// [showNow] is deliberately not gated: the rest-timer alert is a response
+  /// to something the user started seconds ago, not a scheduled interruption.
+  Future<void> setRemindersEnabled({required bool enabled}) async {
+    _remindersEnabled = enabled;
+    if (!enabled) await cancelAll();
+  }
 
   /// Initialises the plugin and the timezone database.
   ///
@@ -51,7 +68,10 @@ class NotificationService {
     try {
       tzdata.initializeTimeZones();
 
-      const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+      // A monochrome drawable, not the launcher icon: Android masks the
+      // status-bar icon to its alpha channel, so a full-colour launcher icon
+      // renders as a white square.
+      const android = AndroidInitializationSettings('@drawable/ic_notification');
       const darwin = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -76,6 +96,11 @@ class NotificationService {
           ),
         );
       }
+      // Read the real permission state rather than assuming denial: on a
+      // restart the user has usually already granted it, and asking again
+      // would be the app forgetting something it was told.
+      _permissionGranted = await android_?.areNotificationsEnabled() ?? true;
+
       _ready = true;
     } on Object catch (error) {
       // A device that cannot schedule notifications must still run the app.
@@ -114,7 +139,7 @@ class NotificationService {
     required int minute,
     String? payload,
   }) async {
-    if (!_ready) return;
+    if (!_ready || !_remindersEnabled) return;
     try {
       await _plugin.zonedSchedule(
         id,
@@ -143,7 +168,7 @@ class NotificationService {
     required DateTime at,
     String? payload,
   }) async {
-    if (!_ready) return;
+    if (!_ready || !_remindersEnabled) return;
     if (!at.isAfter(DateTime.now())) return;
     try {
       await _plugin.zonedSchedule(

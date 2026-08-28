@@ -1,45 +1,20 @@
 rules_version = '2';
 
-// LifeDNA OS — Cloud Storage rules.
+// LifeDNA OS — Cloud Storage rules (MVP).
 //
-// Progress photos are among the most sensitive objects the product holds.
-// They are private to the owner, size- and type-constrained, and never
-// publicly readable.
+// The MVP uploads NOTHING. Progress photos are the only binary the app
+// handles and they stay in the app's private directory on the device: they are
+// the most sensitive data in the product, and not uploading them is a stronger
+// guarantee than any rule written here.
+//
+// These rules therefore deny everything. They exist so that the bucket is
+// closed by default if it is ever provisioned, rather than inheriting a
+// permissive template. When photo backup ships, this file gains a
+// `/users/{uid}/photos/{photoId}` match with an owner check, a content-type
+// check and a size cap — and not before.
 
 service firebase.storage {
   match /b/{bucket}/o {
-
-    function isOwner(uid) {
-      return request.auth != null && request.auth.uid == uid;
-    }
-
-    function isImage() {
-      return request.resource.contentType.matches('image/.*');
-    }
-
-    function underSizeLimit(megabytes) {
-      return request.resource.size < megabytes * 1024 * 1024;
-    }
-
-    // Progress photos and user uploads.
-    match /users/{uid}/body_photos/{photoId} {
-      allow read: if isOwner(uid);
-      allow write: if isOwner(uid) && isImage() && underSizeLimit(8);
-      allow delete: if isOwner(uid);
-    }
-
-    match /users/{uid}/uploads/{fileId} {
-      allow read: if isOwner(uid);
-      allow write: if isOwner(uid) && underSizeLimit(20);
-      allow delete: if isOwner(uid);
-    }
-
-    // Data exports are written by exportBuilder and fetched via a signed URL
-    // that expires in 24 hours, so no direct client read path is granted.
-    match /users/{uid}/exports/{exportId} {
-      allow read, write: if false;
-    }
-
     match /{allPaths=**} {
       allow read, write: if false;
     }

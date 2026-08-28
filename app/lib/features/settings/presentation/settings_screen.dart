@@ -10,6 +10,7 @@ import 'package:lifedna/core/theme/ld_spacing.dart';
 import 'package:lifedna/core/widgets/ld_widgets.dart';
 import 'package:lifedna/features/auth/domain/user_profile.dart';
 import 'package:lifedna/features/auth/presentation/auth_controller.dart';
+import 'package:lifedna/features/reminders/presentation/reminder_providers.dart';
 import 'package:lifedna/features/settings/domain/app_settings.dart';
 import 'package:lifedna/features/settings/presentation/goals_editor_sheet.dart';
 import 'package:lifedna/features/settings/presentation/settings_providers.dart';
@@ -347,7 +348,7 @@ class _RemindersCardState extends ConsumerState<_RemindersCard> {
               style: type.titleM.copyWith(color: c.textPrimary),
             ),
             subtitle: Text(
-              'Supplement doses, task due times and rest-timer alerts.',
+              'Supplement doses, task due times and your own reminders.',
               style: type.bodyS.copyWith(color: c.textSecondary),
             ),
             onChanged: (value) => ref
@@ -386,6 +387,7 @@ class _RemindersCardState extends ConsumerState<_RemindersCard> {
     if (granted) {
       await ref.read(supplementRepositoryProvider).rescheduleAll();
       await ref.read(calendarRepositoryProvider).rescheduleAllReminders();
+      await ref.read(reminderRepositoryProvider).rescheduleAll();
       if (mounted) showSuccessSnack(context, 'Reminders scheduled.');
     } else if (mounted) {
       showSuccessSnack(

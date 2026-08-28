@@ -9,6 +9,9 @@ import 'package:lifedna/features/calendar/domain/calendar_entities.dart';
 import 'package:lifedna/features/calendar/presentation/calendar_providers.dart';
 import 'package:lifedna/features/calendar/presentation/event_editor_sheet.dart';
 import 'package:lifedna/features/calendar/presentation/task_editor_sheet.dart';
+import 'package:lifedna/features/reminders/domain/reminder.dart';
+import 'package:lifedna/features/reminders/presentation/reminder_editor_sheet.dart';
+import 'package:lifedna/features/reminders/presentation/reminder_providers.dart';
 
 class PlanScreen extends ConsumerStatefulWidget {
   const PlanScreen({super.key});
@@ -55,6 +58,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               segments: const [
                 ButtonSegment(value: 0, label: Text('Tasks')),
                 ButtonSegment(value: 1, label: Text('Calendar')),
+                ButtonSegment(value: 2, label: Text('Reminders')),
               ],
               selected: {_tab},
               onSelectionChanged: (value) =>
@@ -63,11 +67,23 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           ),
         ),
       ),
-      body: _tab == 0 ? const _TasksTab() : const _CalendarTab(),
+      body: switch (_tab) {
+        0 => const _TasksTab(),
+        1 => const _CalendarTab(),
+        _ => const _RemindersTab(),
+      },
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _tab == 0 ? _newTask() : _newEvent(),
+        onPressed: switch (_tab) {
+          0 => _newTask,
+          1 => _newEvent,
+          _ => _newReminder,
+        },
         icon: const Icon(Icons.add_rounded),
-        label: Text(_tab == 0 ? 'Task' : 'Event'),
+        label: Text(switch (_tab) {
+          0 => 'Task',
+          1 => 'Event',
+          _ => 'Reminder',
+        }),
       ),
     );
   }
@@ -82,6 +98,11 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         context: context,
         isScrollControlled: true,
         builder: (_) => const EventEditorSheet(),
+      );
+
+  Future<void> _newReminder() => ReminderEditorSheet.show(
+        context,
+        ref.read(reminderRepositoryProvider).draft(),
       );
 
   Future<void> _syncGoogle() async {
@@ -367,6 +388,101 @@ class _EventTile extends ConsumerWidget {
                 child: Icon(Icons.lock_outline_rounded,
                     size: 16, color: c.textTertiary),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Reminders the user wrote themselves, as opposed to the ones attached to a
+/// supplement or a task.
+class _RemindersTab extends ConsumerWidget {
+  const _RemindersTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reminders = ref.watch(remindersProvider);
+
+    return LdAsyncView<List<Reminder>>(
+      value: reminders,
+      onRetry: () => ref.invalidate(remindersProvider),
+      errorContext: 'reminders',
+      isEmpty: (items) => items.isEmpty,
+      empty: LdEmptyState(
+        icon: Icons.alarm_rounded,
+        headline: 'No reminders yet',
+        body: 'Set one for anything the app does not already track — weigh in, '
+            'stretch, book a session.',
+        actionLabel: 'Add a reminder',
+        onAction: () => ReminderEditorSheet.show(
+          context,
+          ref.read(reminderRepositoryProvider).draft(),
+        ),
+      ),
+      data: (items) => ListView.builder(
+        padding: const EdgeInsets.fromLTRB(
+          LdSpacing.screenH,
+          LdSpacing.s4,
+          LdSpacing.screenH,
+          LdSpacing.scrollBottom,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) => _ReminderTile(reminder: items[index]),
+      ),
+    );
+  }
+}
+
+class _ReminderTile extends ConsumerWidget {
+  const _ReminderTile({required this.reminder});
+  final Reminder reminder;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.ldColors;
+    final type = context.ldType;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: LdSpacing.cardGap),
+      child: LdCard(
+        onTap: () => ReminderEditorSheet.show(context, reminder),
+        child: Row(
+          children: [
+            Text(
+              reminder.timeLabel,
+              style: type.titleL.copyWith(
+                color: reminder.enabled ? c.primary : c.textDisabled,
+              ),
+            ),
+            const SizedBox(width: LdSpacing.s4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    reminder.title,
+                    style: type.titleM.copyWith(
+                      color: reminder.enabled ? c.textPrimary : c.textTertiary,
+                    ),
+                  ),
+                  if (reminder.note != null)
+                    Text(
+                      reminder.note!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.bodyS.copyWith(color: c.textTertiary),
+                    ),
+                ],
+              ),
+            ),
+            Switch(
+              value: reminder.enabled,
+              onChanged: (value) => ref
+                  .read(reminderRepositoryProvider)
+                  .setEnabled(reminder, on: value),
+            ),
           ],
         ),
       ),

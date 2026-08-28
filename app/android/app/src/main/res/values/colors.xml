@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LdColors.primary. Tints the notification accent. -->
+    <color name="notification_accent">#0066FF</color>
+</resources>

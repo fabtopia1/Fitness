@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Overridden per flavour in src/dev and src/staging. -->
+    <string name="app_name">LifeDNA OS</string>
+</resources>

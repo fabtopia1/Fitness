@@ -1,242 +1,196 @@
 {
-  "//": "LifeDNA OS composite indexes. Rationale for each is in docs/03 §10.",
-  "//deploy": "Deploy indexes BEFORE the client release that queries them — an index takes minutes to build, and shipping both together causes an outage on that screen.",
-  "indexes": [
-    {
-      "//": "Nutrition day view, ordered",
-      "collectionGroup": "nutrition_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "localDate", "order": "ASCENDING" },
-        { "fieldPath": "loggedAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "//": "Recent foods and per-food frequency",
-      "collectionGroup": "nutrition_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "foodId", "order": "ASCENDING" },
-        { "fieldPath": "loggedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "nutrition_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "mealSlot", "order": "ASCENDING" },
-        { "fieldPath": "localDate", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "water_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "localDate", "order": "ASCENDING" },
-        { "fieldPath": "loggedAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "//": "Favourites, most recently used first",
-      "collectionGroup": "meals",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "isFavorite", "order": "DESCENDING" },
-        { "fieldPath": "lastUsedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "meals",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "useCount", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "supplement_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "localDate", "order": "ASCENDING" },
-        { "fieldPath": "takenAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "//": "Per-supplement compliance over a rolling window",
-      "collectionGroup": "supplement_logs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "supplementId", "order": "ASCENDING" },
-        { "fieldPath": "localDate", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "//": "Resume an in-progress session after process death",
-      "collectionGroup": "workout_sessions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "startedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "workout_sessions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "templateId", "order": "ASCENDING" },
-        { "fieldPath": "startedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "//": "COLLECTION GROUP — the 'last time' prefill that Live Gym depends on",
-      "collectionGroup": "sets",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "exerciseId", "order": "ASCENDING" },
-        { "fieldPath": "performedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "//": "COLLECTION GROUP — PR detection by best estimated 1RM",
-      "collectionGroup": "sets",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "exerciseId", "order": "ASCENDING" },
-        { "fieldPath": "e1rm", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "personal_records",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "exerciseId", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "achievedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "health_records",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "startAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "//": "Daily aggregation pass in the rollup trigger",
-      "collectionGroup": "health_records",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "localDate", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "calendar_events",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "localDate", "order": "ASCENDING" },
-        { "fieldPath": "startAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "calendar_events",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "calendarId", "order": "ASCENDING" },
-        { "fieldPath": "startAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "//": "Today / Upcoming task views",
-      "collectionGroup": "tasks",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "dueAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "tasks",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "category", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "dueAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "tasks",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "priority", "order": "ASCENDING" },
-        { "fieldPath": "dueAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "//": "Dashboard insight ranking",
-      "collectionGroup": "insights",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "rank", "order": "ASCENDING" },
-        { "fieldPath": "generatedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "insights",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "category", "order": "ASCENDING" },
-        { "fieldPath": "generatedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "ai_conversations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "archived", "order": "ASCENDING" },
-        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "body_metrics",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "localDate", "order": "DESCENDING" },
-        { "fieldPath": "measuredAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "//": "Remote food search fallback",
-      "collectionGroup": "foods",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "searchTokens", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "popularity", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "//": "Faceted exercise browse",
-      "collectionGroup": "exercises",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "muscleGroup", "order": "ASCENDING" },
-        { "fieldPath": "popularity", "order": "DESCENDING" }
-      ]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": [
     {
-      "//": "Raw health records are only ever queried by the composites above; single-field indexes on every field would triple write cost for no benefit.",
-      "collectionGroup": "health_records",
-      "fieldPath": "metadata",
+      "collectionGroup": "body_measurements",
+      "fieldPath": "notes",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "body_measurements",
+      "fieldPath": "photoPath",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "calendar_events",
+      "fieldPath": "title",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "calendar_events",
+      "fieldPath": "description",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "calendar_events",
+      "fieldPath": "location",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "calendar_events",
+      "fieldPath": "providerEventId",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "exercises",
+      "fieldPath": "name",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "exercises",
+      "fieldPath": "notes",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "foods",
+      "fieldPath": "name",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "foods",
+      "fieldPath": "brand",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "foods",
+      "fieldPath": "servingLabel",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "meals",
+      "fieldPath": "name",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "meals",
+      "fieldPath": "items",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "notifications",
+      "fieldPath": "title",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "notifications",
+      "fieldPath": "note",
+      "ttl": false,
       "indexes": []
     },
     {
       "collectionGroup": "nutrition_logs",
-      "fieldPath": "micros",
+      "fieldPath": "foodName",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "nutrition_logs",
+      "fieldPath": "macros",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "nutrition_logs",
+      "fieldPath": "slot",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "settings",
+      "fieldPath": "theme",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "supplement_logs",
+      "fieldPath": "supplementName",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "supplements",
+      "fieldPath": "name",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "supplements",
+      "fieldPath": "notes",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "supplements",
+      "fieldPath": "dose",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "supplements",
+      "fieldPath": "weekdays",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "tasks",
+      "fieldPath": "title",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "tasks",
+      "fieldPath": "notes",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "workout_sessions",
+      "fieldPath": "name",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "workout_sessions",
+      "fieldPath": "notes",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "workout_sessions",
+      "fieldPath": "exercises",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "workouts",
+      "fieldPath": "name",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "workouts",
+      "fieldPath": "notes",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "workouts",
+      "fieldPath": "plan",
+      "ttl": false,
       "indexes": []
     }
   ]
