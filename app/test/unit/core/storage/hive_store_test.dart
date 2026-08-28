@@ -81,6 +81,76 @@ void main() {
     expect(env.store.readAll(HiveStore.boxFoods), isEmpty);
   });
 
+  group('the decode cache', () {
+    test('a repeated read returns the same content', () async {
+      await env.store.write(HiveStore.boxFoods, 'f1', {'id': 'f1', 'n': 1});
+
+      final first = env.store.readAll(HiveStore.boxFoods);
+      final second = env.store.readAll(HiveStore.boxFoods);
+
+      expect(second, equals(first));
+    });
+
+    test('a write is visible immediately, not on the next frame', () async {
+      // The cache is validated against the raw string rather than written
+      // through, so it cannot serve a stale record after an update.
+      await env.store.write(HiveStore.boxFoods, 'f1', {'id': 'f1', 'n': 1});
+      expect(env.store.read(HiveStore.boxFoods, 'f1'), {'id': 'f1', 'n': 1});
+
+      await env.store.write(HiveStore.boxFoods, 'f1', {'id': 'f1', 'n': 2});
+      expect(env.store.read(HiveStore.boxFoods, 'f1'), {'id': 'f1', 'n': 2});
+    });
+
+    test('a delete is visible immediately', () async {
+      await env.store.write(HiveStore.boxFoods, 'f1', {'id': 'f1'});
+      env.store.readAll(HiveStore.boxFoods);
+
+      await env.store.delete(HiveStore.boxFoods, 'f1');
+
+      expect(env.store.read(HiveStore.boxFoods, 'f1'), isNull);
+      expect(env.store.readAll(HiveStore.boxFoods), isEmpty);
+    });
+
+    test('a write made straight through the box is still seen', () async {
+      // Nothing in the app does this, but a cache that could go stale under a
+      // direct write would be a trap for whoever tries.
+      await env.store.write(HiveStore.boxFoods, 'f1', {'id': 'f1', 'n': 1});
+      env.store.readAll(HiveStore.boxFoods);
+
+      await env.store.box(HiveStore.boxFoods).put('f1', '{"id":"f1","n":9}');
+
+      expect(env.store.read(HiveStore.boxFoods, 'f1'), {'id': 'f1', 'n': 9});
+    });
+
+    test('clearing a box empties its cache too', () async {
+      await env.store.write(HiveStore.boxFoods, 'f1', {'id': 'f1'});
+      env.store.readAll(HiveStore.boxFoods);
+
+      await env.store.clearBox(HiveStore.boxFoods);
+
+      expect(env.store.readAll(HiveStore.boxFoods), isEmpty);
+      expect(env.store.read(HiveStore.boxFoods, 'f1'), isNull);
+    });
+
+    test('a large box reads consistently across repeated passes', () async {
+      final batch = <String, Map<String, dynamic>>{
+        for (var i = 0; i < 2000; i++) 'id$i': {'id': 'id$i', 'v': i},
+      };
+      await env.store.writeAll(HiveStore.boxNutritionLogs, batch);
+
+      final first = env.store.readAll(HiveStore.boxNutritionLogs);
+      await env.store.write(HiveStore.boxNutritionLogs, 'id0', {
+        'id': 'id0',
+        'v': -1,
+      });
+      final second = env.store.readAll(HiveStore.boxNutritionLogs);
+
+      expect(first, hasLength(2000));
+      expect(second, hasLength(2000));
+      expect(second.firstWhere((row) => row['id'] == 'id0')['v'], -1);
+    });
+  });
+
   test('clearAll empties every box — the erase-data path', () async {
     await env.store.write(HiveStore.boxTasks, 'a', {'id': 'a'});
     await env.store.write(HiveStore.boxWorkouts, 'w', {'id': 'w'});
