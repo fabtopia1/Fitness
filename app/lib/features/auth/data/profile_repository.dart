@@ -17,10 +17,10 @@ class ProfileRepository {
     required Outbox outbox,
     FirebaseFirestore? firestore,
     String? uid,
-  })  : _store = store,
-        _outbox = outbox,
-        _firestore = firestore,
-        _uid = uid;
+  }) : _store = store,
+       _outbox = outbox,
+       _firestore = firestore,
+       _uid = uid;
 
   final HiveStore _store;
   final Outbox _outbox;
@@ -29,10 +29,9 @@ class ProfileRepository {
 
   static const _key = 'me';
 
-  Stream<UserProfile?> watch() =>
-      _store.watchOne(HiveStore.boxProfile, _key).map(
-            (json) => json == null ? null : UserProfile.fromJson(json),
-          );
+  Stream<UserProfile?> watch() => _store
+      .watchOne(HiveStore.boxProfile, _key)
+      .map((json) => json == null ? null : UserProfile.fromJson(json));
 
   UserProfile? read() {
     final json = _store.read(HiveStore.boxProfile, _key);

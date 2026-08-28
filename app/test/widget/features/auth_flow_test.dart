@@ -30,8 +30,9 @@ void main() {
       ProfileRepository(store: env.store, outbox: Outbox(env.store));
 
   group('WelcomeScreen', () {
-    testWidgets('offers local mode when the build has no Firebase',
-        (tester) async {
+    testWidgets('offers local mode when the build has no Firebase', (
+      tester,
+    ) async {
       // Local mode is a real supported path, so it is offered plainly rather
       // than hidden behind a debug gesture.
       await pumpScreen(tester, env, const WelcomeScreen());
@@ -50,8 +51,9 @@ void main() {
       expect(auth().currentSession, isNotNull);
     });
 
-    testWidgets('the account buttons navigate rather than sign in',
-        (tester) async {
+    testWidgets('the account buttons navigate rather than sign in', (
+      tester,
+    ) async {
       await pumpScreen(tester, env, const WelcomeScreen());
 
       await tester.tap(find.text('Create account'));
@@ -67,8 +69,9 @@ void main() {
   });
 
   group('SignUpScreen', () {
-    testWidgets('refuses an empty name, a bad email and a short password',
-        (tester) async {
+    testWidgets('refuses an empty name, a bad email and a short password', (
+      tester,
+    ) async {
       await pumpScreen(tester, env, const SignUpScreen());
 
       await tester.tap(find.widgetWithText(LdPrimaryButton, 'Create account'));
@@ -108,8 +111,9 @@ void main() {
   });
 
   group('SignInScreen', () {
-    testWidgets('hides Google sign-in when there is no Firebase to use it',
-        (tester) async {
+    testWidgets('hides Google sign-in when there is no Firebase to use it', (
+      tester,
+    ) async {
       // A button that cannot work is worse than no button.
       await pumpScreen(tester, env, const SignInScreen());
       expect(find.text('Continue with Google'), findsNothing);
@@ -128,13 +132,13 @@ void main() {
   group('OnboardingScreen', () {
     Future<void> signIn() async {
       final repository = auth();
-      final session =
-          (await repository.continueWithoutAccount()).valueOrNull!;
+      final session = (await repository.continueWithoutAccount()).valueOrNull!;
       await profiles().save(repository.initialProfile(session));
     }
 
-    testWidgets('cannot advance past step one without a date of birth',
-        (tester) async {
+    testWidgets('cannot advance past step one without a date of birth', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const OnboardingScreen());
       await pumpFrames(tester);
@@ -149,8 +153,9 @@ void main() {
       expect(button.onPressed, isNull);
     });
 
-    testWidgets('a missing profile offers sign-out rather than a dead screen',
-        (tester) async {
+    testWidgets('a missing profile offers sign-out rather than a dead screen', (
+      tester,
+    ) async {
       await pumpScreen(tester, env, const OnboardingScreen());
       await pumpFrames(tester);
 
@@ -204,8 +209,9 @@ void main() {
       expect(profile.weightKg, 82);
     });
 
-    testWidgets('measurements outside the plausible range are refused',
-        (tester) async {
+    testWidgets('measurements outside the plausible range are refused', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const OnboardingScreen());
       await pumpFrames(tester);

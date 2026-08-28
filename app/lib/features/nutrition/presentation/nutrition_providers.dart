@@ -55,8 +55,7 @@ final waterTargetProvider = Provider<int>((ref) {
 final todayNutritionProvider = Provider<DailyNutrition>((ref) {
   ref.watch(nutritionLogsProvider);
   final localDate = ref.watch(todayLocalDateProvider);
-  final entries =
-      ref.watch(nutritionRepositoryProvider).logsForDate(localDate);
+  final entries = ref.watch(nutritionRepositoryProvider).logsForDate(localDate);
   return DailyNutrition(
     localDate: localDate,
     entries: entries,
@@ -67,23 +66,29 @@ final todayNutritionProvider = Provider<DailyNutrition>((ref) {
 /// Days with any logged entry, newest first — the meal history list.
 final nutritionHistoryProvider =
     Provider<List<({String localDate, Macros totals, int entries})>>((ref) {
-  final logs = ref.watch(nutritionLogsProvider).valueOrNull ?? const [];
-  final byDate = <String, ({Macros totals, int entries})>{};
+      final logs = ref.watch(nutritionLogsProvider).valueOrNull ?? const [];
+      final byDate = <String, ({Macros totals, int entries})>{};
 
-  for (final log in logs) {
-    if (!log.isFood) continue;
-    final current = byDate[log.localDate] ??
-        (totals: Macros.zero, entries: 0);
-    byDate[log.localDate] = (
-      totals: current.totals + log.macros,
-      entries: current.entries + 1,
-    );
-  }
+      for (final log in logs) {
+        if (!log.isFood) continue;
+        final current =
+            byDate[log.localDate] ?? (totals: Macros.zero, entries: 0);
+        byDate[log.localDate] = (
+          totals: current.totals + log.macros,
+          entries: current.entries + 1,
+        );
+      }
 
-  final out = byDate.entries
-      .map((e) =>
-          (localDate: e.key, totals: e.value.totals, entries: e.value.entries))
-      .toList()
-    ..sort((a, b) => b.localDate.compareTo(a.localDate));
-  return out;
-});
+      final out =
+          byDate.entries
+              .map(
+                (e) => (
+                  localDate: e.key,
+                  totals: e.value.totals,
+                  entries: e.value.entries,
+                ),
+              )
+              .toList()
+            ..sort((a, b) => b.localDate.compareTo(a.localDate));
+      return out;
+    });

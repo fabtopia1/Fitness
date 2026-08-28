@@ -43,15 +43,17 @@ void main() {
     expect(scheduled.minute, 15);
   });
 
-  test('editing replaces the schedule rather than stacking a second alarm',
-      () async {
-    final reminder = repository.draft().copyWith(title: 'Weigh in', hour: 7);
-    await repository.save(reminder);
-    await repository.save(reminder.copyWith(hour: 9));
+  test(
+    'editing replaces the schedule rather than stacking a second alarm',
+    () async {
+      final reminder = repository.draft().copyWith(title: 'Weigh in', hour: 7);
+      await repository.save(reminder);
+      await repository.save(reminder.copyWith(hour: 9));
 
-    expect(env.notifications.scheduledDaily, hasLength(1));
-    expect(env.notifications.scheduledDaily.single.hour, 9);
-  });
+      expect(env.notifications.scheduledDaily, hasLength(1));
+      expect(env.notifications.scheduledDaily.single.hour, 9);
+    },
+  );
 
   test('disabling cancels the notification but keeps the record', () async {
     final reminder = repository.draft().copyWith(title: 'Stretch');
@@ -69,10 +71,7 @@ void main() {
     await repository.save(reminder);
     await repository.setEnabled(reminder, on: false);
 
-    await repository.setEnabled(
-      repository.readAll().single,
-      on: true,
-    );
+    await repository.setEnabled(repository.readAll().single, on: true);
 
     expect(env.notifications.scheduledDaily, hasLength(1));
   });
@@ -92,23 +91,18 @@ void main() {
     await repository.save(
       repository.draft().copyWith(title: 'Evening', hour: 21),
     );
-    await repository.save(
-      repository.draft().copyWith(title: 'Beta', hour: 7),
-    );
-    await repository.save(
-      repository.draft().copyWith(title: 'Alpha', hour: 7),
-    );
+    await repository.save(repository.draft().copyWith(title: 'Beta', hour: 7));
+    await repository.save(repository.draft().copyWith(title: 'Alpha', hour: 7));
 
-    expect(
-      repository.readAll().map((r) => r.title),
-      ['Alpha', 'Beta', 'Evening'],
-    );
+    expect(repository.readAll().map((r) => r.title), [
+      'Alpha',
+      'Beta',
+      'Evening',
+    ]);
   });
 
   test('rescheduleAll rebuilds only the enabled reminders', () async {
-    await repository.save(
-      repository.draft().copyWith(title: 'On', hour: 7),
-    );
+    await repository.save(repository.draft().copyWith(title: 'On', hour: 7));
     final off = repository.draft().copyWith(title: 'Off', hour: 8);
     await repository.save(off);
     await repository.setEnabled(off, on: false);
@@ -122,9 +116,7 @@ void main() {
   test('the master switch stops a new reminder scheduling', () async {
     await env.notifications.setRemindersEnabled(enabled: false);
 
-    await repository.save(
-      repository.draft().copyWith(title: 'Weigh in'),
-    );
+    await repository.save(repository.draft().copyWith(title: 'Weigh in'));
 
     expect(repository.readAll(), hasLength(1));
     expect(env.notifications.scheduledDaily, isEmpty);
@@ -133,11 +125,11 @@ void main() {
   test('a reminder survives a JSON round-trip', () async {
     await repository.save(
       repository.draft().copyWith(
-            title: 'Weigh in',
-            note: 'Before breakfast',
-            hour: 7,
-            minute: 5,
-          ),
+        title: 'Weigh in',
+        note: 'Before breakfast',
+        hour: 7,
+        minute: 5,
+      ),
     );
 
     final restored = repository.readAll().single;

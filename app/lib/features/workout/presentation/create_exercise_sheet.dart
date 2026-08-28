@@ -58,22 +58,17 @@ class _CreateExerciseSheetState extends ConsumerState<CreateExerciseSheet> {
                   autofocus: true,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Enter a name'
-                      : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
                 ),
                 const SizedBox(height: LdSpacing.s4),
                 DropdownButtonFormField<MuscleGroup>(
                   isExpanded: true,
                   initialValue: _muscle,
-                  decoration:
-                      const InputDecoration(labelText: 'Muscle group'),
+                  decoration: const InputDecoration(labelText: 'Muscle group'),
                   items: [
                     for (final group in MuscleGroup.values)
-                      DropdownMenuItem(
-                        value: group,
-                        child: Text(group.label),
-                      ),
+                      DropdownMenuItem(value: group, child: Text(group.label)),
                   ],
                   onChanged: (value) =>
                       setState(() => _muscle = value ?? _muscle),

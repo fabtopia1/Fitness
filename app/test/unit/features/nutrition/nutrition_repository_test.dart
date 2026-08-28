@@ -27,12 +27,12 @@ void main() {
   tearDown(() async => env.dispose());
 
   FoodItem chicken() => repository.createFood(
-        name: 'Chicken breast',
-        per100g: const Macros(kcal: 165, proteinG: 31, carbsG: 0, fatG: 3.6),
-        brand: 'Tesco',
-        servingLabel: 'fillet',
-        servingGrams: 150,
-      );
+    name: 'Chicken breast',
+    per100g: const Macros(kcal: 165, proteinG: 31, carbsG: 0, fatG: 3.6),
+    brand: 'Tesco',
+    servingLabel: 'fillet',
+    servingGrams: 150,
+  );
 
   group('foods', () {
     test('createFood trims input and derives a display name', () {
@@ -73,24 +73,29 @@ void main() {
       expect(repository.searchFoods('zzz'), isEmpty);
     });
 
-    test('an empty query returns favourites and frequently used first',
-        () async {
-      final rare = repository.createFood(name: 'Rare', per100g: const Macros());
-      final often = repository
-          .createFood(name: 'Often', per100g: const Macros())
-          .copyWith(useCount: 20);
-      final starred = repository
-          .createFood(name: 'Starred', per100g: const Macros())
-          .copyWith(isFavorite: true);
+    test(
+      'an empty query returns favourites and frequently used first',
+      () async {
+        final rare = repository.createFood(
+          name: 'Rare',
+          per100g: const Macros(),
+        );
+        final often = repository
+            .createFood(name: 'Often', per100g: const Macros())
+            .copyWith(useCount: 20);
+        final starred = repository
+            .createFood(name: 'Starred', per100g: const Macros())
+            .copyWith(isFavorite: true);
 
-      await repository.saveFood(rare);
-      await repository.saveFood(often);
-      await repository.saveFood(starred);
+        await repository.saveFood(rare);
+        await repository.saveFood(often);
+        await repository.saveFood(starred);
 
-      final results = repository.searchFoods('');
-      expect(results.first.name, 'Starred');
-      expect(results[1].name, 'Often');
-    });
+        final results = repository.searchFoods('');
+        expect(results.first.name, 'Starred');
+        expect(results[1].name, 'Often');
+      },
+    );
 
     test('a deleted food disappears from search', () async {
       final food = chicken();
@@ -101,25 +106,27 @@ void main() {
   });
 
   group('logging food', () {
-    test('a logged portion carries the computed macros and the local date',
-        () async {
-      final food = chicken();
-      await repository.saveFood(food);
+    test(
+      'a logged portion carries the computed macros and the local date',
+      () async {
+        final food = chicken();
+        await repository.saveFood(food);
 
-      final result = await repository.logFood(
-        food: food,
-        quantity: 200,
-        unit: PortionUnit.grams,
-        slot: MealSlot.lunch,
-      );
+        final result = await repository.logFood(
+          food: food,
+          quantity: 200,
+          unit: PortionUnit.grams,
+          slot: MealSlot.lunch,
+        );
 
-      final log = result.valueOrNull!;
-      expect(log.grams, 200);
-      expect(log.macros.kcal, closeTo(330, 0.001));
-      expect(log.localDate, today);
-      expect(log.type, NutritionEntryType.food);
-      expect(repository.logsForDate(today), hasLength(1));
-    });
+        final log = result.valueOrNull!;
+        expect(log.grams, 200);
+        expect(log.macros.kcal, closeTo(330, 0.001));
+        expect(log.localDate, today);
+        expect(log.type, NutritionEntryType.food);
+        expect(repository.logsForDate(today), hasLength(1));
+      },
+    );
 
     test('logging a food raises its use count so search learns', () async {
       final food = chicken();
@@ -135,40 +142,50 @@ void main() {
       expect(repository.foods.readOne(food.id)?.useCount, 1);
     });
 
-    test('a non-positive quantity is rejected before it reaches storage',
-        () async {
-      final result = await repository.logFood(
-        food: chicken(),
-        quantity: 0,
-        unit: PortionUnit.grams,
-        slot: MealSlot.lunch,
-      );
+    test(
+      'a non-positive quantity is rejected before it reaches storage',
+      () async {
+        final result = await repository.logFood(
+          food: chicken(),
+          quantity: 0,
+          unit: PortionUnit.grams,
+          slot: MealSlot.lunch,
+        );
 
-      expect(
-        result.failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'quantity_must_be_positive'),
-      );
-      expect(repository.logsForDate(today), isEmpty);
-    });
+        expect(
+          result.failureOrNull,
+          isA<ValidationFailure>().having(
+            (f) => f.code,
+            'code',
+            'quantity_must_be_positive',
+          ),
+        );
+        expect(repository.logsForDate(today), isEmpty);
+      },
+    );
 
-    test('an implausible portion is rejected rather than skewing the day',
-        () async {
-      // 50 servings of a 150 g fillet is 7.5 kg of chicken. A mistyped
-      // quantity that reached storage would poison every derived total.
-      final result = await repository.logFood(
-        food: chicken(),
-        quantity: 50,
-        unit: PortionUnit.serving,
-        slot: MealSlot.dinner,
-      );
+    test(
+      'an implausible portion is rejected rather than skewing the day',
+      () async {
+        // 50 servings of a 150 g fillet is 7.5 kg of chicken. A mistyped
+        // quantity that reached storage would poison every derived total.
+        final result = await repository.logFood(
+          food: chicken(),
+          quantity: 50,
+          unit: PortionUnit.serving,
+          slot: MealSlot.dinner,
+        );
 
-      expect(
-        result.failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'quantity_implausible'),
-      );
-    });
+        expect(
+          result.failureOrNull,
+          isA<ValidationFailure>().having(
+            (f) => f.code,
+            'code',
+            'quantity_implausible',
+          ),
+        );
+      },
+    );
   });
 
   group('logging a saved meal', () {
@@ -206,7 +223,12 @@ void main() {
     });
 
     test('an empty meal is a validation failure, not a silent no-op', () async {
-      final meal = Meal(id: 'm2', name: 'Empty', items: const [], updatedAt: now);
+      final meal = Meal(
+        id: 'm2',
+        name: 'Empty',
+        items: const [],
+        updatedAt: now,
+      );
       final result = await repository.logMeal(meal: meal, slot: MealSlot.snack);
       expect(result.failureOrNull, isA<ValidationFailure>());
     });
@@ -231,23 +253,27 @@ void main() {
   });
 
   group('deleting a log', () {
-    test('removes it from the day and leaves a replicating tombstone',
-        () async {
-      final food = chicken();
-      await repository.saveFood(food);
-      final log = (await repository.logFood(
-        food: food,
-        quantity: 100,
-        unit: PortionUnit.grams,
-        slot: MealSlot.lunch,
-      ))
-          .valueOrNull!;
+    test(
+      'removes it from the day and leaves a replicating tombstone',
+      () async {
+        final food = chicken();
+        await repository.saveFood(food);
+        final log = (await repository.logFood(
+          food: food,
+          quantity: 100,
+          unit: PortionUnit.grams,
+          slot: MealSlot.lunch,
+        )).valueOrNull!;
 
-      await repository.deleteLog(log.id);
+        await repository.deleteLog(log.id);
 
-      expect(repository.logsForDate(today), isEmpty);
-      expect(env.store.read('nutrition_logs', log.id)?['deletedAt'], isNotNull);
-    });
+        expect(repository.logsForDate(today), isEmpty);
+        expect(
+          env.store.read('nutrition_logs', log.id)?['deletedAt'],
+          isNotNull,
+        );
+      },
+    );
   });
 
   test('logs for a date are ordered by the time they were logged', () async {

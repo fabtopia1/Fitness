@@ -39,7 +39,7 @@ final coachInsightsProvider = Provider<List<CoachInsight>>(
 );
 
 String _goalLabel(String mode) => switch (mode) {
-      'cut' => 'Lose fat',
-      'bulk' => 'Build muscle',
-      _ => 'Maintain',
-    };
+  'cut' => 'Lose fat',
+  'bulk' => 'Build muscle',
+  _ => 'Maintain',
+};

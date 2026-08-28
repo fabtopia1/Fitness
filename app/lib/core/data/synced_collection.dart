@@ -72,10 +72,10 @@ class SyncedCollection<T extends SyncedEntity> {
   }
 
   Stream<T?> watchOne(String id) => store.watchOne(boxName, id).map((json) {
-        if (json == null) return null;
-        final entity = fromJson(json);
-        return entity.deletedAt == null ? entity : null;
-      });
+    if (json == null) return null;
+    final entity = fromJson(json);
+    return entity.deletedAt == null ? entity : null;
+  });
 
   List<T> _decodeAll(List<Map<String, dynamic>> rows) {
     final items = <T>[];
@@ -121,7 +121,10 @@ class SyncedCollection<T extends SyncedEntity> {
 
   /// Soft-deletes. The tombstone replicates so the record does not come back
   /// on another device's next pull.
-  Future<Result<void>> remove(String id, {required T Function(T) tombstone}) async {
+  Future<Result<void>> remove(
+    String id, {
+    required T Function(T) tombstone,
+  }) async {
     final existing = store.read(boxName, id);
     if (existing == null) return const Err(NotFoundFailure());
 
@@ -180,8 +183,9 @@ class SyncedCollection<T extends SyncedEntity> {
     }
 
     try {
-      Query<Map<String, dynamic>> query =
-          remote.orderBy('updatedAt', descending: true).limit(limit);
+      Query<Map<String, dynamic>> query = remote
+          .orderBy('updatedAt', descending: true)
+          .limit(limit);
       if (since != null) {
         query = remote
             .where('updatedAt', isGreaterThan: since.toUtc().toIso8601String())

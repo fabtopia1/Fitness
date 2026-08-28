@@ -100,7 +100,10 @@ void main() {
       expect(r.clamped, isTrue);
       expect(r.warnings, contains('RATE_CLAMPED_TO_SAFE_MAXIMUM'));
       // Clamped to 1 %/week, then the 25 % ceiling binds on top of that.
-      expect(r.projectedWeeklyChangeKg.abs() / 90.1 * 100, lessThanOrEqualTo(1.0));
+      expect(
+        r.projectedWeeklyChangeKg.abs() / 90.1 * 100,
+        lessThanOrEqualTo(1.0),
+      );
     });
 
     test('the deficit never exceeds 25 % of weekly-average expenditure', () {
@@ -170,14 +173,14 @@ void main() {
 
   group('MacroCalculator — goal modes', () {
     MacroInput of(GoalMode mode) => MacroInput(
-          weightKg: 80,
-          heightCm: 178,
-          age: 30,
-          sex: Sex.male,
-          activityLevel: ActivityLevel.moderate,
-          goalMode: mode,
-          trainingDaysPerWeek: 4,
-        );
+      weightKg: 80,
+      heightCm: 178,
+      age: 30,
+      sex: Sex.male,
+      activityLevel: ActivityLevel.moderate,
+      goalMode: mode,
+      trainingDaysPerWeek: 4,
+    );
 
     test('maintain produces no energy delta', () {
       final r = MacroCalculator.compute(of(GoalMode.maintain));
@@ -345,7 +348,11 @@ void main() {
           r.proteinFloorG,
         ]) {
           expect(v.isFinite, isTrue, reason: 'value must be finite');
-          expect(v, greaterThanOrEqualTo(0), reason: 'value must not be negative');
+          expect(
+            v,
+            greaterThanOrEqualTo(0),
+            reason: 'value must not be negative',
+          );
         }
         expect(r.waterMl, greaterThan(0));
       }

@@ -90,7 +90,8 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: LdSpacing.s4),
                   LdStatRow(
                     label: 'carbs',
-                    value: '${_int(nutrition.totals.carbsG)} / '
+                    value:
+                        '${_int(nutrition.totals.carbsG)} / '
                         '${_int(targets.carbsG)} g',
                     progress: targets.carbsG <= 0
                         ? 0
@@ -99,7 +100,8 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   LdStatRow(
                     label: 'fat',
-                    value: '${_int(nutrition.totals.fatG)} / '
+                    value:
+                        '${_int(nutrition.totals.fatG)} / '
                         '${_int(targets.fatG)} g',
                     progress: targets.fatG <= 0
                         ? 0
@@ -178,10 +180,7 @@ class _CoachCard extends ConsumerWidget {
         children: [
           Text(top.headline, style: type.titleL.copyWith(color: c.textPrimary)),
           const SizedBox(height: LdSpacing.s2),
-          Text(
-            top.detail,
-            style: type.bodyS.copyWith(color: c.textSecondary),
-          ),
+          Text(top.detail, style: type.bodyS.copyWith(color: c.textSecondary)),
           if (top.evidence.isNotEmpty) ...[
             const SizedBox(height: LdSpacing.s3),
             Wrap(
@@ -272,24 +271,20 @@ class _WorkoutCard extends ConsumerWidget {
     final sessionsThisWeek = ref.watch(sessionsThisWeekProvider);
 
     final (title, subtitle, action) = active != null
-        ? (
-            'Workout in progress',
-            active.name,
-            'Resume workout',
-          )
+        ? ('Workout in progress', active.name, 'Resume workout')
         : trainedToday
-            ? (
-                'Trained today',
-                '$sessionsThisWeek session${sessionsThisWeek == 1 ? '' : 's'} '
-                    'this week',
-                'Start another',
-              )
-            : (
-                'No workout logged today',
-                '$sessionsThisWeek session${sessionsThisWeek == 1 ? '' : 's'} '
-                    'this week',
-                'Start workout',
-              );
+        ? (
+            'Trained today',
+            '$sessionsThisWeek session${sessionsThisWeek == 1 ? '' : 's'} '
+                'this week',
+            'Start another',
+          )
+        : (
+            'No workout logged today',
+            '$sessionsThisWeek session${sessionsThisWeek == 1 ? '' : 's'} '
+                'this week',
+            'Start workout',
+          );
 
     return LdCard(
       eyebrow: 'Training',
@@ -329,8 +324,9 @@ class _RecoveryCard extends ConsumerWidget {
     final sessions = ref.watch(sessionsThisWeekProvider);
     final volume = ref.watch(weeklyVolumeProvider);
     final thisWeek = volume.isEmpty ? 0.0 : volume.last.volumeKg;
-    final lastWeek =
-        volume.length < 2 ? null : volume[volume.length - 2].volumeKg;
+    final lastWeek = volume.length < 2
+        ? null
+        : volume[volume.length - 2].volumeKg;
 
     final change = (lastWeek == null || lastWeek == 0)
         ? null
@@ -346,10 +342,7 @@ class _RecoveryCard extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: _Stat(
-                  label: 'Sessions this week',
-                  value: '$sessions',
-                ),
+                child: _Stat(label: 'Sessions this week', value: '$sessions'),
               ),
               Expanded(
                 child: _Stat(
@@ -555,10 +548,8 @@ class _EventsCard extends ConsumerWidget {
                         SizedBox(
                           width: 52,
                           child: Text(
-                            DateFormat('HH:mm')
-                                .format(event.startAt.toLocal()),
-                            style:
-                                type.bodyS.copyWith(color: c.textSecondary),
+                            DateFormat('HH:mm').format(event.startAt.toLocal()),
+                            style: type.bodyS.copyWith(color: c.textSecondary),
                           ),
                         ),
                         Expanded(
@@ -570,8 +561,11 @@ class _EventsCard extends ConsumerWidget {
                           ),
                         ),
                         if (event.isReadOnly)
-                          Icon(Icons.event_rounded,
-                              size: 14, color: c.textTertiary),
+                          Icon(
+                            Icons.event_rounded,
+                            size: 14,
+                            color: c.textTertiary,
+                          ),
                       ],
                     ),
                   ),

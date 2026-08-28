@@ -46,12 +46,12 @@ class HealthSample {
       '${end.millisecondsSinceEpoch}';
 
   Map<String, dynamic> toJson() => {
-        'metric': metric.wire,
-        'value': value,
-        'start': start.toIso8601String(),
-        'end': end.toIso8601String(),
-        'source': source,
-      };
+    'metric': metric.wire,
+    'value': value,
+    'start': start.toIso8601String(),
+    'end': end.toIso8601String(),
+    'source': source,
+  };
 
   static HealthSample? fromPlatform(Map<Object?, Object?> raw) {
     final metric = HealthMetric.fromWire(raw['metric'] as String? ?? '');
@@ -92,28 +92,28 @@ enum HealthAvailability {
   bool get isUsable => this == HealthAvailability.ready;
 
   String get title => switch (this) {
-        HealthAvailability.ready => 'Connected',
-        HealthAvailability.needsPermission => 'Permission needed',
-        HealthAvailability.providerNotInstalled => 'Health Connect not installed',
-        HealthAvailability.unsupportedPlatform => 'Not available on this device',
-        HealthAvailability.notEnabledInBuild => 'Not enabled in this build',
-      };
+    HealthAvailability.ready => 'Connected',
+    HealthAvailability.needsPermission => 'Permission needed',
+    HealthAvailability.providerNotInstalled => 'Health Connect not installed',
+    HealthAvailability.unsupportedPlatform => 'Not available on this device',
+    HealthAvailability.notEnabledInBuild => 'Not enabled in this build',
+  };
 
   String get detail => switch (this) {
-        HealthAvailability.ready =>
-          'Steps, sleep and heart rate are being read from Health Connect.',
-        HealthAvailability.needsPermission =>
-          'Grant access to steps, sleep and heart rate to see them here.',
-        HealthAvailability.providerNotInstalled =>
-          'Samsung Health syncs through Health Connect. Install Health Connect '
-              'from the Play Store, then open Samsung Health once to let it '
-              'share data.',
-        HealthAvailability.unsupportedPlatform =>
-          'Health sync is Android-only in this release.',
-        HealthAvailability.notEnabledInBuild =>
-          'This build was compiled without the native health integration. '
-              'Everything else works; nothing is being read.',
-      };
+    HealthAvailability.ready =>
+      'Steps, sleep and heart rate are being read from Health Connect.',
+    HealthAvailability.needsPermission =>
+      'Grant access to steps, sleep and heart rate to see them here.',
+    HealthAvailability.providerNotInstalled =>
+      'Samsung Health syncs through Health Connect. Install Health Connect '
+          'from the Play Store, then open Samsung Health once to let it '
+          'share data.',
+    HealthAvailability.unsupportedPlatform =>
+      'Health sync is Android-only in this release.',
+    HealthAvailability.notEnabledInBuild =>
+      'This build was compiled without the native health integration. '
+          'Everything else works; nothing is being read.',
+  };
 }
 
 /// A day's health totals, as LifeDNA consumes them.

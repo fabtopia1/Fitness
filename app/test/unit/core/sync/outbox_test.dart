@@ -59,19 +59,21 @@ void main() {
     expect(outbox.length, 0);
   });
 
-  test('a failure backs the entry off instead of retrying immediately',
-      () async {
-    final now = DateTime(2026, 1, 1, 12);
-    await enqueue('tasks', 'a', now: now);
+  test(
+    'a failure backs the entry off instead of retrying immediately',
+    () async {
+      final now = DateTime(2026, 1, 1, 12);
+      await enqueue('tasks', 'a', now: now);
 
-    await outbox.recordFailure(outbox.pending().single, 'boom', now);
+      await outbox.recordFailure(outbox.pending().single, 'boom', now);
 
-    final entry = outbox.pending().single;
-    expect(entry.attempts, 1);
-    expect(entry.lastError, 'boom');
-    expect(entry.isDue(now), isFalse);
-    expect(entry.isDue(now.add(const Duration(minutes: 20))), isTrue);
-  });
+      final entry = outbox.pending().single;
+      expect(entry.attempts, 1);
+      expect(entry.lastError, 'boom');
+      expect(entry.isDue(now), isFalse);
+      expect(entry.isDue(now.add(const Duration(minutes: 20))), isTrue);
+    },
+  );
 
   test('backoff grows with each attempt and is capped', () async {
     final now = DateTime(2026, 1, 1, 12);

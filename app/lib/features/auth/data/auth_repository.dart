@@ -47,10 +47,10 @@ class AuthRepository {
     fb.FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
     Uuid uuid = const Uuid(),
-  })  : _store = store,
-        _auth = firebaseAuth,
-        _googleSignIn = googleSignIn,
-        _uuid = uuid;
+  }) : _store = store,
+       _auth = firebaseAuth,
+       _googleSignIn = googleSignIn,
+       _uuid = uuid;
 
   final HiveStore _store;
   final fb.FirebaseAuth? _auth;
@@ -71,8 +71,8 @@ class AuthRepository {
           .map((json) => json == null ? null : _sessionFromJson(json));
     }
     return auth.authStateChanges().map(
-          (user) => user == null ? null : _sessionFromFirebase(user),
-        );
+      (user) => user == null ? null : _sessionFromFirebase(user),
+    );
   }
 
   AuthSession? get currentSession {
@@ -102,7 +102,10 @@ class AuthRepository {
 
     try {
       final credential = await auth
-          .createUserWithEmailAndPassword(email: email.trim(), password: password)
+          .createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password,
+          )
           .timeout(Env.networkTimeout);
 
       await credential.user?.updateDisplayName(displayName.trim());
@@ -194,8 +197,9 @@ class AuthRepository {
         idToken: tokens.idToken,
       );
 
-      final result =
-          await auth.signInWithCredential(credential).timeout(Env.networkTimeout);
+      final result = await auth
+          .signInWithCredential(credential)
+          .timeout(Env.networkTimeout);
       final user = result.user;
       if (user == null) return const Err(AuthFailure('sign_in_failed'));
       return Ok(_sessionFromFirebase(user));
@@ -311,17 +315,17 @@ class AuthRepository {
       );
 
   AuthSession _sessionFromJson(Map<String, dynamic> json) => AuthSession(
-        uid: Json.string(json['uid']),
-        email: Json.string(json['email']),
-        displayName: Json.string(json['displayName'], 'Athlete'),
-        isLocalOnly: Json.boolean(json['isLocalOnly'], true),
-      );
+    uid: Json.string(json['uid']),
+    email: Json.string(json['email']),
+    displayName: Json.string(json['displayName'], 'Athlete'),
+    isLocalOnly: Json.boolean(json['isLocalOnly'], true),
+  );
 
   /// Builds the initial profile written on first sign-in.
   UserProfile initialProfile(AuthSession session) => UserProfile.initial(
-        uid: session.uid,
-        email: session.email,
-        displayName: session.displayName,
-        photoUrl: session.photoUrl,
-      );
+    uid: session.uid,
+    email: session.email,
+    displayName: session.displayName,
+    photoUrl: session.photoUrl,
+  );
 }

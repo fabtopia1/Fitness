@@ -165,7 +165,10 @@ abstract final class LocalCoach {
               'lever that protects muscle, so close this before worrying about '
               'anything else today.',
           evidence: [
-            (label: 'Protein logged', value: '${context.consumed.proteinG.round()} g'),
+            (
+              label: 'Protein logged',
+              value: '${context.consumed.proteinG.round()} g',
+            ),
             (label: 'Target', value: '${context.targets.proteinG.round()} g'),
           ],
           impact: 90,
@@ -198,9 +201,7 @@ abstract final class LocalCoach {
           detail:
               'There is room for a full meal. Under-eating by this much is not '
               'faster progress — it costs training quality and muscle.',
-          evidence: [
-            (label: 'Remaining', value: '${kcalGap.round()} kcal'),
-          ],
+          evidence: [(label: 'Remaining', value: '${kcalGap.round()} kcal')],
           impact: 55,
         ),
       );
@@ -234,8 +235,9 @@ abstract final class LocalCoach {
           evidence: [
             (
               label: 'Taken',
-              value: '${context.supplementsTaken} of '
-                  '${context.supplementsScheduled}'
+              value:
+                  '${context.supplementsTaken} of '
+                  '${context.supplementsScheduled}',
             ),
           ],
           impact: 35,
@@ -259,7 +261,8 @@ abstract final class LocalCoach {
       insights.add(
         CoachInsight(
           category: CoachCategory.recovery,
-          headline: 'You have trained ${context.sessionsThisWeek} times this week',
+          headline:
+              'You have trained ${context.sessionsThisWeek} times this week',
           detail:
               'That is a full week of work. A rest day now is what lets the '
               'training you already did turn into progress.',
@@ -277,17 +280,18 @@ abstract final class LocalCoach {
       insights.add(
         CoachInsight(
           category: CoachCategory.habits,
-          headline: 'Bodyweight ${change > 0 ? 'up' : 'down'} '
+          headline:
+              'Bodyweight ${change > 0 ? 'up' : 'down'} '
               '${change.abs().toStringAsFixed(1)} kg over 30 days',
           detail: change > 0
               ? 'Weight is trending up. If that is not the goal, the calorie '
-                  'target is the first thing to check.'
+                    'target is the first thing to check.'
               : 'Weight is trending down. Keep protein high so what you lose '
-                  'is fat rather than muscle.',
+                    'is fat rather than muscle.',
           evidence: [
             (
               label: '30-day change',
-              value: '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)} kg'
+              value: '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)} kg',
             ),
           ],
           impact: 45,
@@ -342,16 +346,8 @@ class CoachInsight {
 /// and opens the assistant. No API key ships in the binary and no request is
 /// made on the user's behalf.
 enum ExternalAssistant {
-  claude(
-    'Claude',
-    'https://claude.ai/new',
-    'Anthropic',
-  ),
-  copilot(
-    'Microsoft Copilot',
-    'https://copilot.microsoft.com',
-    'Microsoft',
-  );
+  claude('Claude', 'https://claude.ai/new', 'Anthropic'),
+  copilot('Microsoft Copilot', 'https://copilot.microsoft.com', 'Microsoft');
 
   const ExternalAssistant(this.label, this.url, this.vendor);
   final String label;

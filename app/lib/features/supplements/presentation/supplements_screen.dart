@@ -27,12 +27,12 @@ class SupplementsScreen extends ConsumerWidget {
         empty: LdEmptyState(
           icon: Icons.medication_rounded,
           headline: 'No supplements yet',
-          body: 'Add what you take and LifeDNA will remind you at the right '
+          body:
+              'Add what you take and LifeDNA will remind you at the right '
               'time each day.',
           actionLabel: 'Add the basics',
-          onAction: () => ref
-              .read(supplementRepositoryProvider)
-              .seedStarterStack(),
+          onAction: () =>
+              ref.read(supplementRepositoryProvider).seedStarterStack(),
           secondaryActionLabel: 'Add my own',
           onSecondaryAction: () => _edit(context, null),
         ),
@@ -60,8 +60,7 @@ class SupplementsScreen extends ConsumerWidget {
                     LdStatRow(
                       label: 'taken today',
                       value: '$taken / ${today.length}',
-                      progress:
-                          today.isEmpty ? 0 : taken / today.length,
+                      progress: today.isEmpty ? 0 : taken / today.length,
                       color: c.secondary,
                     ),
                     const SizedBox(height: LdSpacing.s2),
@@ -88,8 +87,7 @@ class SupplementsScreen extends ConsumerWidget {
                   supplement: entry.supplement,
                   taken: entry.taken,
                   onToggle: () async {
-                    final repository =
-                        ref.read(supplementRepositoryProvider);
+                    final repository = ref.read(supplementRepositoryProvider);
                     if (entry.taken) {
                       await repository.undoDose(entry.supplement.id);
                     } else {
@@ -186,10 +184,7 @@ class _DoseTile extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.tune_rounded),
-              onPressed: onEdit,
-            ),
+            IconButton(icon: const Icon(Icons.tune_rounded), onPressed: onEdit),
           ],
         ),
       ),

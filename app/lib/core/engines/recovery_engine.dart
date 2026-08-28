@@ -75,9 +75,9 @@ class PhysiologyInput {
   final double? hrvMs;
   final double? baselineHrvMs;
 
-  bool get hasRestingHr =>
-      restingHrBpm != null && baselineRestingHrBpm != null;
-  bool get hasHrv => hrvMs != null && baselineHrvMs != null && baselineHrvMs! > 0;
+  bool get hasRestingHr => restingHrBpm != null && baselineRestingHrBpm != null;
+  bool get hasHrv =>
+      hrvMs != null && baselineHrvMs != null && baselineHrvMs! > 0;
 }
 
 /// One weighted component of the composite score, with everything needed to
@@ -164,9 +164,11 @@ abstract final class RecoveryEngine {
     if (trainingScore == null) missing.add('training');
     if (activityScore == null) missing.add('activity');
 
-    final availableCount = [sleepScore, trainingScore, activityScore]
-        .where((s) => s != null)
-        .length;
+    final availableCount = [
+      sleepScore,
+      trainingScore,
+      activityScore,
+    ].where((s) => s != null).length;
 
     final components = <RecoveryComponent>[];
 
@@ -221,7 +223,8 @@ abstract final class RecoveryEngine {
         ),
       );
 
-    var composite = (sleepScore ?? 0) * normSleep +
+    var composite =
+        (sleepScore ?? 0) * normSleep +
         (trainingScore ?? 0) * normTraining +
         (activityScore ?? 0) * normActivity;
 
@@ -363,8 +366,7 @@ abstract final class RecoveryEngine {
 
     // A single unusually heavy session yesterday still costs today, even when
     // the ratio looks healthy.
-    if (t.meanDailyLoad28d > 0 &&
-        t.yesterdayLoad > 1.5 * t.meanDailyLoad28d) {
+    if (t.meanDailyLoad28d > 0 && t.yesterdayLoad > 1.5 * t.meanDailyLoad28d) {
       adjustment -= 15;
     }
     if ((t.yesterdaySessionRpe ?? 0) >= 9) {
@@ -392,7 +394,9 @@ abstract final class RecoveryEngine {
       stepScore = stepRatio * 80;
     }
 
-    final activeScore = (a.activeMinutes / 45 * 100).clamp(0.0, 100.0).toDouble();
+    final activeScore = (a.activeMinutes / 45 * 100)
+        .clamp(0.0, 100.0)
+        .toDouble();
     var score = 0.6 * stepScore + 0.4 * activeScore;
 
     // A genuinely sedentary day is a recovery signal in its own right.
@@ -474,16 +478,17 @@ abstract final class RecoveryEngine {
         'Recovery $recovery with a balanced load ratio'
             '${ratio == null ? '' : ' of $ratio'}. '
             'This is the day to attempt a record.',
-      TrainingAction.proceed => readiness != null && readiness < recovery
-          ? 'Recovery is $recovery, but today’s session is heavier than your '
-              'average, so readiness lands at $readiness. Hit your target reps; '
-              'save the record attempt for a lighter day.'
-          : 'Recovery $recovery'
-              '${ratio == null ? '' : ' and a load ratio of $ratio'}. '
-              'Train as planned.',
+      TrainingAction.proceed =>
+        readiness != null && readiness < recovery
+            ? 'Recovery is $recovery, but today’s session is heavier than your '
+                  'average, so readiness lands at $readiness. Hit your target reps; '
+                  'save the record attempt for a lighter day.'
+            : 'Recovery $recovery'
+                  '${ratio == null ? '' : ' and a load ratio of $ratio'}. '
+                  'Train as planned.',
       TrainingAction.reduce =>
         'Recovery is $recovery${sleepScore == null ? '' : ' with a sleep score '
-            'of $sleepScore'}. Keep the compound work and drop the last set of '
+                      'of $sleepScore'}. Keep the compound work and drop the last set of '
             'each accessory.',
       TrainingAction.rest =>
         'Recovery is $recovery'
@@ -503,11 +508,11 @@ abstract final class RecoveryEngine {
   }
 
   static String _domainLabel(String domain) => switch (domain) {
-        'sleep' => 'sleep',
-        'training' => 'training history',
-        'activity' => 'daily activity',
-        _ => domain,
-      };
+    'sleep' => 'sleep',
+    'training' => 'training history',
+    'activity' => 'daily activity',
+    _ => domain,
+  };
 
   static double _round2(double v) => (v * 100).roundToDouble() / 100;
 }

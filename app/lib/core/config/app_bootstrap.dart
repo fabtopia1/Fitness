@@ -66,8 +66,9 @@ class AppBootstrap {
 
       try {
         crashlytics = FirebaseCrashlytics.instance;
-        await crashlytics
-            .setCrashlyticsCollectionEnabled(Env.crashlyticsEnabled);
+        await crashlytics.setCrashlyticsCollectionEnabled(
+          Env.crashlyticsEnabled,
+        );
       } on Object catch (error) {
         debugPrint('Bootstrap: Crashlytics unavailable — $error');
         crashlytics = null;

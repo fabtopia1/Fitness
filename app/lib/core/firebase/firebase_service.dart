@@ -22,9 +22,7 @@ class FirebaseService {
 
   bool get isAvailable => status == FirebaseStatus.ready;
 
-  static Future<FirebaseService> initialize({
-    FirebaseOptions? options,
-  }) async {
+  static Future<FirebaseService> initialize({FirebaseOptions? options}) async {
     if (options == null) {
       debugPrint(
         'FirebaseService: no FirebaseOptions supplied — starting in local '
@@ -37,10 +35,7 @@ class FirebaseService {
       final app = await Firebase.initializeApp(options: options);
 
       if (Env.useEmulator) {
-        FirebaseFirestore.instance.useFirestoreEmulator(
-          Env.emulatorHost,
-          8080,
-        );
+        FirebaseFirestore.instance.useFirestoreEmulator(Env.emulatorHost, 8080);
         await FirebaseAuth.instance.useAuthEmulator(Env.emulatorHost, 9099);
       }
 
@@ -65,8 +60,7 @@ class FirebaseService {
   @visibleForTesting
   factory FirebaseService.forTesting({
     FirebaseStatus status = FirebaseStatus.ready,
-  }) =>
-      FirebaseService._(status, null);
+  }) => FirebaseService._(status, null);
 
   FirebaseApp? get app => _app;
 }
@@ -82,8 +76,8 @@ enum FirebaseStatus {
   failed;
 
   String get label => switch (this) {
-        FirebaseStatus.ready => 'Connected',
-        FirebaseStatus.notConfigured => 'Local mode — cloud sync not set up',
-        FirebaseStatus.failed => 'Local mode — cloud sync unavailable',
-      };
+    FirebaseStatus.ready => 'Connected',
+    FirebaseStatus.notConfigured => 'Local mode — cloud sync not set up',
+    FirebaseStatus.failed => 'Local mode — cloud sync unavailable',
+  };
 }

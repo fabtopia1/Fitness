@@ -39,10 +39,7 @@ class AiHubScreen extends ConsumerWidget {
           LdSpacing.scrollBottom,
         ),
         children: [
-          Text(
-            'Coach',
-            style: type.headlineM.copyWith(color: c.textPrimary),
-          ),
+          Text('Coach', style: type.headlineM.copyWith(color: c.textPrimary)),
           const SizedBox(height: LdSpacing.s1),
           Text(
             'Runs on this device from your own logged numbers. No account, no '
@@ -76,14 +73,12 @@ class AiHubScreen extends ConsumerWidget {
                         children: [
                           Text(
                             prompt.title,
-                            style:
-                                type.titleM.copyWith(color: c.textPrimary),
+                            style: type.titleM.copyWith(color: c.textPrimary),
                           ),
                           const SizedBox(height: LdSpacing.s1),
                           Text(
                             prompt.category.label,
-                            style: type.caption
-                                .copyWith(color: c.textTertiary),
+                            style: type.caption.copyWith(color: c.textTertiary),
                           ),
                         ],
                       ),
@@ -127,15 +122,12 @@ class AiHubScreen extends ConsumerWidget {
     BuildContext context,
     CoachPrompt prompt,
     CoachContext coachContext,
-  ) =>
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => _PromptSheet(
-          prompt: prompt,
-          text: prompt.compose(coachContext),
-        ),
-      );
+  ) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) =>
+        _PromptSheet(prompt: prompt, text: prompt.compose(coachContext)),
+  );
 }
 
 class _InsightCard extends StatelessWidget {
@@ -285,8 +277,10 @@ class _PromptSheet extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: text));
     final uri = Uri.parse(assistant.url);
     try {
-      final launched =
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched && context.mounted) {
         showSuccessSnack(
           context,

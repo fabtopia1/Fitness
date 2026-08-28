@@ -18,23 +18,22 @@ void main() {
   tearDown(() async => env.dispose());
 
   SyncEngine build({bool cloud = true}) => SyncEngine(
-        outbox: outbox,
-        connectivity: env.connectivity,
-        firestore: cloud ? firestore : null,
-        uid: cloud ? 'u1' : null,
-      );
+    outbox: outbox,
+    connectivity: env.connectivity,
+    firestore: cloud ? firestore : null,
+    uid: cloud ? 'u1' : null,
+  );
 
   Future<void> enqueue(
     String collection,
     String docId, {
     OutboxOp op = OutboxOp.upsert,
-  }) =>
-      outbox.enqueue(
-        op: op,
-        collection: collection,
-        docId: docId,
-        payload: {'id': docId, 'updatedAt': '2026-01-01T00:00:00.000Z'},
-      );
+  }) => outbox.enqueue(
+    op: op,
+    collection: collection,
+    docId: docId,
+    payload: {'id': docId, 'updatedAt': '2026-01-01T00:00:00.000Z'},
+  );
 
   test('local mode reports localOnly and never touches the queue', () async {
     final engine = build(cloud: false);
@@ -130,17 +129,19 @@ void main() {
     await engine.dispose();
   });
 
-  test('start emits the initial state and drains when already online',
-      () async {
-    final engine = build();
-    await enqueue('tasks', 'a');
+  test(
+    'start emits the initial state and drains when already online',
+    () async {
+      final engine = build();
+      await enqueue('tasks', 'a');
 
-    engine.start();
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+      engine.start();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(outbox.length, 0);
-    await engine.dispose();
-  });
+      expect(outbox.length, 0);
+      await engine.dispose();
+    },
+  );
 
   test('the state stream reports what the banner needs', () async {
     final engine = build();
@@ -157,8 +158,7 @@ void main() {
     await engine.dispose();
   });
 
-  test('SyncState reports unsynced work and the condition worth surfacing',
-      () {
+  test('SyncState reports unsynced work and the condition worth surfacing', () {
     const clean = SyncState();
     expect(clean.hasUnsyncedWork, isFalse);
     expect(clean.needsAttention, isFalse);

@@ -93,7 +93,11 @@ class LdTypography extends ThemeExtension<LdTypography> {
       fontWeight: FontWeight.w500,
       letterSpacing: 0.88,
     ),
-    caption: TextStyle(fontSize: 11, height: 1.273, fontWeight: FontWeight.w400),
+    caption: TextStyle(
+      fontSize: 11,
+      height: 1.273,
+      fontWeight: FontWeight.w400,
+    ),
   );
 
   @override

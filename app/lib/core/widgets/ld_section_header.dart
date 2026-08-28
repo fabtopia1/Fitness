@@ -23,10 +23,7 @@ class LdSectionHeader extends StatelessWidget {
     final type = context.ldType;
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top: LdSpacing.s6,
-        bottom: LdSpacing.s3,
-      ),
+      padding: const EdgeInsets.only(top: LdSpacing.s6, bottom: LdSpacing.s3),
       child: Row(
         children: [
           Expanded(
@@ -49,7 +46,11 @@ class LdSectionHeader extends StatelessWidget {
                       actionLabel!,
                       style: type.bodyS.copyWith(color: c.primary),
                     ),
-                    Icon(Icons.chevron_right_rounded, size: 16, color: c.primary),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: c.primary,
+                    ),
                   ],
                 ),
               ),

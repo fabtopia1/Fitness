@@ -25,22 +25,21 @@ void main() {
     int supplementsTaken = 2,
     int supplementsScheduled = 2,
     double? weightChangeKg,
-  }) =>
-      CoachContext(
-        consumed: consumed,
-        targets: targets,
-        waterMl: waterMl,
-        waterTargetMl: waterTargetMl,
-        trainedToday: trainedToday,
-        sessionsThisWeek: sessionsThisWeek,
-        weeklyVolumeKg: 24000,
-        supplementsTaken: supplementsTaken,
-        supplementsScheduled: supplementsScheduled,
-        weightKg: 82.4,
-        weightChangeKg: weightChangeKg,
-        goalLabel: 'Lose fat',
-        lastSessionName: 'Push A',
-      );
+  }) => CoachContext(
+    consumed: consumed,
+    targets: targets,
+    waterMl: waterMl,
+    waterTargetMl: waterTargetMl,
+    trainedToday: trainedToday,
+    sessionsThisWeek: sessionsThisWeek,
+    weeklyVolumeKg: 24000,
+    supplementsTaken: supplementsTaken,
+    supplementsScheduled: supplementsScheduled,
+    weightKg: 82.4,
+    weightChangeKg: weightChangeKg,
+    goalLabel: 'Lose fat',
+    lastSessionName: 'Push A',
+  );
 
   group('LocalCoach.analyse', () {
     test('a day that meets every target still says something useful', () {
@@ -53,7 +52,12 @@ void main() {
     test('a protein shortfall outranks everything else', () {
       final insights = LocalCoach.analyse(
         context(
-          consumed: const Macros(kcal: 2500, proteinG: 100, carbsG: 280, fatG: 75),
+          consumed: const Macros(
+            kcal: 2500,
+            proteinG: 100,
+            carbsG: 280,
+            fatG: 75,
+          ),
           waterMl: 500,
           supplementsTaken: 0,
         ),
@@ -123,10 +127,7 @@ void main() {
       final insights = LocalCoach.analyse(
         context(sessionsThisWeek: 6, trainedToday: false),
       );
-      expect(
-        insights.map((i) => i.category),
-        contains(CoachCategory.recovery),
-      );
+      expect(insights.map((i) => i.category), contains(CoachCategory.recovery));
     });
 
     test('a weight change smaller than the noise floor is not reported', () {
@@ -147,7 +148,12 @@ void main() {
     test('every insight carries the numbers that produced it', () {
       final insights = LocalCoach.analyse(
         context(
-          consumed: const Macros(kcal: 1000, proteinG: 60, carbsG: 100, fatG: 30),
+          consumed: const Macros(
+            kcal: 1000,
+            proteinG: 60,
+            carbsG: 100,
+            fatG: 30,
+          ),
           waterMl: 500,
           supplementsTaken: 0,
           sessionsThisWeek: 0,

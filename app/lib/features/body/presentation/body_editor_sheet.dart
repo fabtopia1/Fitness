@@ -273,11 +273,11 @@ class _Field extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-        ],
-        decoration: InputDecoration(labelText: label, suffixText: suffix),
-      );
+    controller: controller,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    inputFormatters: [
+      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+    ],
+    decoration: InputDecoration(labelText: label, suffixText: suffix),
+  );
 }

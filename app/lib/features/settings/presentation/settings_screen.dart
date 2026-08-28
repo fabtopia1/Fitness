@@ -130,9 +130,9 @@ class SettingsScreen extends ConsumerWidget {
         content: Text(
           unsynced > 0
               ? '$unsynced change${unsynced == 1 ? '' : 's'} has not reached '
-                  'the cloud yet. Signing out now keeps it on this device but '
-                  'it will not appear on your other devices until you sign '
-                  'back in here.'
+                    'the cloud yet. Signing out now keeps it on this device but '
+                    'it will not appear on your other devices until you sign '
+                    'back in here.'
               : 'Your data stays on this device and in your account.',
         ),
         actions: [
@@ -167,10 +167,10 @@ class SettingsScreen extends ConsumerWidget {
         content: Text(
           cloud
               ? 'Everything stored on this phone is deleted, including changes '
-                  'that have not synced yet. Data already in your account is '
-                  'downloaded again the next time you sign in.'
+                    'that have not synced yet. Data already in your account is '
+                    'downloaded again the next time you sign in.'
               : 'This build has no cloud backup. Every meal, workout, '
-                  'measurement and note on this device is deleted permanently.',
+                    'measurement and note on this device is deleted permanently.',
         ),
         actions: [
           TextButton(
@@ -207,11 +207,11 @@ class _AccountCard extends StatelessWidget {
     final initials = profile.displayName.trim().isEmpty
         ? '?'
         : profile.displayName
-            .trim()
-            .split(RegExp(r'\s+'))
-            .take(2)
-            .map((part) => part[0].toUpperCase())
-            .join();
+              .trim()
+              .split(RegExp(r'\s+'))
+              .take(2)
+              .map((part) => part[0].toUpperCase())
+              .join();
 
     return Padding(
       padding: const EdgeInsets.only(top: LdSpacing.s4),
@@ -376,8 +376,9 @@ class _RemindersCardState extends ConsumerState<_RemindersCard> {
 
   Future<void> _request() async {
     setState(() => _requesting = true);
-    final granted =
-        await ref.read(notificationServiceProvider).requestPermission();
+    final granted = await ref
+        .read(notificationServiceProvider)
+        .requestPermission();
     if (!mounted) return;
     setState(() => _requesting = false);
     if (granted) {
@@ -449,7 +450,10 @@ class _SyncCard extends ConsumerWidget {
             children: [
               Icon(Icons.circle, size: 10, color: statusColor),
               const SizedBox(width: LdSpacing.s2),
-              Text(statusText, style: type.titleM.copyWith(color: c.textPrimary)),
+              Text(
+                statusText,
+                style: type.titleM.copyWith(color: c.textPrimary),
+              ),
             ],
           ),
           const SizedBox(height: LdSpacing.s2),
@@ -457,7 +461,7 @@ class _SyncCard extends ConsumerWidget {
             sync.pending == 0
                 ? 'Nothing waiting to upload.'
                 : '${sync.pending} change${sync.pending == 1 ? '' : 's'} '
-                    'waiting to upload.',
+                      'waiting to upload.',
             style: type.bodyS.copyWith(color: c.textSecondary),
           ),
           if (sync.parked > 0)
@@ -469,9 +473,9 @@ class _SyncCard extends ConsumerWidget {
           Text(
             encrypted
                 ? 'Local database encrypted with a key held in the Android '
-                    'keystore.'
+                      'keystore.'
                 : 'Local database is not encrypted on this device — the '
-                    'keystore was unavailable at startup.',
+                      'keystore was unavailable at startup.',
             style: type.bodyS.copyWith(
               color: encrypted ? c.textTertiary : c.warning,
             ),
@@ -540,10 +544,10 @@ class _PrivacyCard extends ConsumerWidget {
           Text(
             cloud
                 ? 'Food names, weights, measurements, photos and notes are '
-                    'never included in analytics or crash reports. Photos '
-                    'never leave this device.'
+                      'never included in analytics or crash reports. Photos '
+                      'never leave this device.'
                 : 'This build sends nothing anywhere. Analytics and crash '
-                    'reporting have no destination configured.',
+                      'reporting have no destination configured.',
             style: type.bodyS.copyWith(color: c.textTertiary),
           ),
         ],
@@ -572,16 +576,13 @@ class _AboutCard extends ConsumerWidget {
             style: type.titleM.copyWith(color: c.textPrimary),
           ),
           const SizedBox(height: LdSpacing.s1),
-          Text(
-            switch (info) {
-              AsyncData(:final value) =>
-                'Version ${value.version} (${value.buildNumber}) · '
-                    '${Env.flavor.key}',
-              AsyncError() => 'Build ${Env.flavor.key}',
-              _ => 'Reading build information…',
-            },
-            style: type.bodyS.copyWith(color: c.textSecondary),
-          ),
+          Text(switch (info) {
+            AsyncData(:final value) =>
+              'Version ${value.version} (${value.buildNumber}) · '
+                  '${Env.flavor.key}',
+            AsyncError() => 'Build ${Env.flavor.key}',
+            _ => 'Reading build information…',
+          }, style: type.bodyS.copyWith(color: c.textSecondary)),
           const SizedBox(height: LdSpacing.s3),
           Text(
             'LifeDNA provides training and nutrition information for healthy '
@@ -632,7 +633,10 @@ class _NavCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(title, style: type.titleM.copyWith(color: c.textPrimary)),
+                  Text(
+                    title,
+                    style: type.titleM.copyWith(color: c.textPrimary),
+                  ),
                   Text(
                     subtitle,
                     style: type.bodyS.copyWith(color: c.textTertiary),

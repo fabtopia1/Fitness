@@ -20,7 +20,7 @@ import 'package:lifedna/core/storage/hive_store.dart';
 /// the regression worth catching.
 class FakeNotificationService implements NotificationService {
   FakeNotificationService({DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+    : _clock = clock ?? DateTime.now;
 
   /// The real service refuses to schedule a time that has already passed. The
   /// fake applies the same rule against the test's clock rather than the wall
@@ -28,7 +28,8 @@ class FakeNotificationService implements NotificationService {
   /// 2030.
   final DateTime Function() _clock;
 
-  final List<({int id, String title, int hour, int minute})> scheduledDaily = [];
+  final List<({int id, String title, int hour, int minute})> scheduledDaily =
+      [];
   final List<({int id, String title, DateTime at})> scheduledOnce = [];
   final List<({int id, String title})> shown = [];
   final List<int> cancelled = [];
@@ -169,7 +170,9 @@ class TestEnvironment {
     bool online = true,
     DateTime Function()? clock,
   }) async {
-    final root = _root ??= await Directory.systemTemp.createTemp('lifedna_test');
+    final root = _root ??= await Directory.systemTemp.createTemp(
+      'lifedna_test',
+    );
     Hive.init(root.path);
 
     final store = await HiveStore.open(inMemory: true);
@@ -207,8 +210,8 @@ class TestEnvironment {
 
   /// The overrides a widget test needs for its own ProviderScope.
   List<Override> get overrides => [
-        bootstrapProvider.overrideWithValue(bootstrap),
-      ];
+    bootstrapProvider.overrideWithValue(bootstrap),
+  ];
 
   Future<void> dispose() async {
     await connectivity.dispose();

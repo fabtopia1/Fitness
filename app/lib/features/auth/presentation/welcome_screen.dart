@@ -33,7 +33,11 @@ class WelcomeScreen extends ConsumerWidget {
                   color: c.primary,
                   borderRadius: BorderRadius.circular(LdRadius.m),
                 ),
-                child: Icon(Icons.bolt_rounded, color: c.textOnPrimary, size: 32),
+                child: Icon(
+                  Icons.bolt_rounded,
+                  color: c.textOnPrimary,
+                  size: 32,
+                ),
               ),
               const SizedBox(height: LdSpacing.s6),
               Text(
@@ -80,8 +84,11 @@ class WelcomeScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.phonelink_lock_rounded,
-                              size: 18, color: c.info),
+                          Icon(
+                            Icons.phonelink_lock_rounded,
+                            size: 18,
+                            color: c.info,
+                          ),
                           const SizedBox(width: LdSpacing.s2),
                           // Flexible, not fixed: at a large text scale on a
                           // narrow phone this heading is wider than the card.

@@ -17,12 +17,12 @@ class TaskEditorSheet extends ConsumerStatefulWidget {
 }
 
 class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
-  late final TextEditingController _title =
-      TextEditingController(text: widget.existing?.title ?? '');
+  late final TextEditingController _title = TextEditingController(
+    text: widget.existing?.title ?? '',
+  );
   late TaskCategory _category =
       widget.existing?.category ?? TaskCategory.personal;
-  late TaskPriority _priority =
-      widget.existing?.priority ?? TaskPriority.p3;
+  late TaskPriority _priority = widget.existing?.priority ?? TaskPriority.p3;
   late DateTime? _dueAt = widget.existing?.dueAt?.toLocal();
   late int? _reminder = widget.existing?.reminderMinutesBefore;
   bool _saving = false;
@@ -87,10 +87,9 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<TaskCategory>(
-                             isExpanded: true,
+                      isExpanded: true,
                       initialValue: _category,
-                      decoration:
-                          const InputDecoration(labelText: 'Category'),
+                      decoration: const InputDecoration(labelText: 'Category'),
                       items: [
                         for (final category in TaskCategory.values)
                           DropdownMenuItem(
@@ -105,10 +104,9 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                   const SizedBox(width: LdSpacing.s3),
                   Expanded(
                     child: DropdownButtonFormField<TaskPriority>(
-                             isExpanded: true,
+                      isExpanded: true,
                       initialValue: _priority,
-                      decoration:
-                          const InputDecoration(labelText: 'Priority'),
+                      decoration: const InputDecoration(labelText: 'Priority'),
                       items: [
                         for (final priority in TaskPriority.values)
                           DropdownMenuItem(
@@ -218,7 +216,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     setState(() => _saving = true);
 
     final repository = ref.read(calendarRepositoryProvider);
-    final task = widget.existing?.copyWith(
+    final task =
+        widget.existing?.copyWith(
           title: _title.text,
           category: _category,
           priority: _priority,

@@ -95,15 +95,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final signedIn = session.valueOrNull != null;
-      final onAuthRoute = location == Routes.welcome ||
+      final onAuthRoute =
+          location == Routes.welcome ||
           location == Routes.signIn ||
           location == Routes.signUp ||
           location == Routes.splash;
 
       if (!signedIn) {
-        return onAuthRoute && location != Routes.splash
-            ? null
-            : Routes.welcome;
+        return onAuthRoute && location != Routes.splash ? null : Routes.welcome;
       }
 
       final profile = ref.read(profileProvider).valueOrNull;
@@ -130,12 +129,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) =>
             ShellScaffold(location: state.matchedLocation, child: child),
         routes: [
-          GoRoute(path: Routes.home, builder: (_, __) => const DashboardScreen()),
+          GoRoute(
+            path: Routes.home,
+            builder: (_, __) => const DashboardScreen(),
+          ),
           GoRoute(
             path: Routes.nutrition,
             builder: (_, __) => const NutritionScreen(),
           ),
-          GoRoute(path: Routes.train, builder: (_, __) => const WorkoutScreen()),
+          GoRoute(
+            path: Routes.train,
+            builder: (_, __) => const WorkoutScreen(),
+          ),
           GoRoute(path: Routes.body, builder: (_, __) => const BodyScreen()),
           GoRoute(path: Routes.me, builder: (_, __) => const SettingsScreen()),
         ],
@@ -176,9 +181,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const SettingsScreen(),
       ),
     ],
-    errorBuilder: (context, state) => _RouteErrorScreen(
-      location: state.matchedLocation,
-    ),
+    errorBuilder: (context, state) =>
+        _RouteErrorScreen(location: state.matchedLocation),
   );
 });
 

@@ -12,11 +12,8 @@ import 'package:lifedna/core/error/failure.dart';
 /// throws rather than silently shipping a privacy leak, and is covered by a
 /// unit test.
 class TelemetryService {
-  TelemetryService({
-    this.analytics,
-    this.crashlytics,
-    bool available = true,
-  }) : _available = available;
+  TelemetryService({this.analytics, this.crashlytics, bool available = true})
+    : _available = available;
 
   final FirebaseAnalytics? analytics;
   final FirebaseCrashlytics? crashlytics;
@@ -136,10 +133,12 @@ class TelemetryService {
   ///
   /// The failure CODE is safe to send. The debug message may contain user
   /// content, so it never leaves the device.
-  Future<void> recordFailure(Failure failure, {String? context}) =>
-      logEvent('app_failure', parameters: {
-        'failure_code': failure.code,
-        'failure_type': failure.runtimeType.toString(),
-        if (context != null) 'context': context,
-      });
+  Future<void> recordFailure(Failure failure, {String? context}) => logEvent(
+    'app_failure',
+    parameters: {
+      'failure_code': failure.code,
+      'failure_type': failure.runtimeType.toString(),
+      if (context != null) 'context': context,
+    },
+  );
 }

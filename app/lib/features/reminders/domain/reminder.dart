@@ -54,41 +54,40 @@ class Reminder implements SyncedEntity {
     bool? enabled,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      Reminder(
-        id: id,
-        title: title ?? this.title,
-        note: note ?? this.note,
-        hour: hour ?? this.hour,
-        minute: minute ?? this.minute,
-        enabled: enabled ?? this.enabled,
-        createdAt: createdAt,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => Reminder(
+    id: id,
+    title: title ?? this.title,
+    note: note ?? this.note,
+    hour: hour ?? this.hour,
+    minute: minute ?? this.minute,
+    enabled: enabled ?? this.enabled,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'note': note,
-        'hour': hour,
-        'minute': minute,
-        'enabled': enabled,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'note': note,
+    'hour': hour,
+    'minute': minute,
+    'enabled': enabled,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory Reminder.fromJson(Map<String, dynamic> json) => Reminder(
-        id: Json.string(json['id']),
-        title: Json.string(json['title']),
-        note: json['note'] as String?,
-        hour: Json.integer(json['hour']).clamp(0, 23),
-        minute: Json.integer(json['minute']).clamp(0, 59),
-        enabled: Json.boolean(json['enabled'], true),
-        createdAt: Json.date(json['createdAt'], fallback: DateTime.now()),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    title: Json.string(json['title']),
+    note: json['note'] as String?,
+    hour: Json.integer(json['hour']).clamp(0, 23),
+    minute: Json.integer(json['minute']).clamp(0, 59),
+    enabled: Json.boolean(json['enabled'], true),
+    createdAt: Json.date(json['createdAt'], fallback: DateTime.now()),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }

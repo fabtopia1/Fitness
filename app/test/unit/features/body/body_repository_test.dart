@@ -22,9 +22,8 @@ void main() {
   });
   tearDown(() async => env.dispose());
 
-  Future<void> weighIn(double kg, DateTime at) => repository.save(
-        repository.create(measuredAt: at, weightKg: kg),
-      );
+  Future<void> weighIn(double kg, DateTime at) =>
+      repository.save(repository.create(measuredAt: at, weightKg: kg));
 
   group('validation', () {
     test('an entirely empty measurement is refused', () async {
@@ -34,29 +33,26 @@ void main() {
 
     test('an impossible bodyweight is refused', () async {
       for (final kg in [19.0, 401.0]) {
-        final result = await repository.save(
-          repository.create(weightKg: kg),
-        );
+        final result = await repository.save(repository.create(weightKg: kg));
         expect(
           result.failureOrNull,
-          isA<ValidationFailure>()
-              .having((f) => f.code, 'code', 'body_weight_out_of_range'),
+          isA<ValidationFailure>().having(
+            (f) => f.code,
+            'code',
+            'body_weight_out_of_range',
+          ),
           reason: '$kg',
         );
       }
     });
 
     test('an impossible body-fat percentage is refused', () async {
-      final result = await repository.save(
-        repository.create(bodyFatPct: 90),
-      );
+      final result = await repository.save(repository.create(bodyFatPct: 90));
       expect(result.failureOrNull, isA<ValidationFailure>());
     });
 
     test('an impossible circumference is refused', () async {
-      final result = await repository.save(
-        repository.create(waistCm: 400),
-      );
+      final result = await repository.save(repository.create(waistCm: 400));
       expect(result.failureOrNull, isA<ValidationFailure>());
     });
 
@@ -71,7 +67,11 @@ void main() {
       );
       expect(
         result.failureOrNull,
-        isA<ValidationFailure>().having((f) => f.code, 'code', 'date_in_future'),
+        isA<ValidationFailure>().having(
+          (f) => f.code,
+          'code',
+          'date_in_future',
+        ),
       );
     });
 
@@ -85,38 +85,38 @@ void main() {
   });
 
   group('reading', () {
-    test('chronological is oldest first and latest is the newest entry',
-        () async {
-      await weighIn(82, now.subtract(const Duration(days: 7)));
-      await weighIn(81, now);
+    test(
+      'chronological is oldest first and latest is the newest entry',
+      () async {
+        await weighIn(82, now.subtract(const Duration(days: 7)));
+        await weighIn(81, now);
 
-      expect(repository.chronological().first.weightKg, 82);
-      expect(repository.latest()?.weightKg, 81);
-    });
+        expect(repository.chronological().first.weightKg, 82);
+        expect(repository.latest()?.weightKg, 81);
+      },
+    );
 
     test('latestWeightKg skips entries that recorded no weight', () async {
       await weighIn(82, now.subtract(const Duration(days: 2)));
-      await repository.save(
-        repository.create(measuredAt: now, waistCm: 84),
-      );
+      await repository.save(repository.create(measuredAt: now, waistCm: 84));
 
       // The most recent measurement has no weight, so the last known weight is
       // still the useful answer — not null.
       expect(repository.latestWeightKg(), 82);
     });
 
-    test('availableMetrics offers only metrics with data behind them',
-        () async {
-      await repository.save(
-        repository.create(weightKg: 82, waistCm: 84),
-      );
+    test(
+      'availableMetrics offers only metrics with data behind them',
+      () async {
+        await repository.save(repository.create(weightKg: 82, waistCm: 84));
 
-      expect(
-        repository.availableMetrics(),
-        containsAll([BodyMetric.weight, BodyMetric.waist]),
-      );
-      expect(repository.availableMetrics(), isNot(contains(BodyMetric.neck)));
-    });
+        expect(
+          repository.availableMetrics(),
+          containsAll([BodyMetric.weight, BodyMetric.waist]),
+        );
+        expect(repository.availableMetrics(), isNot(contains(BodyMetric.neck)));
+      },
+    );
 
     test('withPhotos lists only entries with a photo, newest first', () async {
       await repository.save(
@@ -174,19 +174,21 @@ void main() {
       expect(trend.weeklyRate, isNull);
     });
 
-    test('the smoothed line lags the raw reading, which is the point',
-        () async {
-      // A day of water weight must not look like a day of fat gain.
-      for (var i = 10; i >= 1; i--) {
-        await weighIn(80, now.subtract(Duration(days: i)));
-      }
-      await weighIn(84, now);
+    test(
+      'the smoothed line lags the raw reading, which is the point',
+      () async {
+        // A day of water weight must not look like a day of fat gain.
+        for (var i = 10; i >= 1; i--) {
+          await weighIn(80, now.subtract(Duration(days: i)));
+        }
+        await weighIn(84, now);
 
-      final trend = repository.trendFor(BodyMetric.weight, now: now);
-      expect(trend.latest, 84);
-      expect(trend.smoothedLatest, lessThan(82));
-      expect(trend.smoothedLatest, greaterThan(80));
-    });
+        final trend = repository.trendFor(BodyMetric.weight, now: now);
+        expect(trend.latest, 84);
+        expect(trend.smoothedLatest, lessThan(82));
+        expect(trend.smoothedLatest, greaterThan(80));
+      },
+    );
 
     test('weekly rate is expressed per week, not per window', () async {
       await weighIn(84, now.subtract(const Duration(days: 28)));

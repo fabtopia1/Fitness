@@ -5,7 +5,11 @@ import 'package:lifedna/core/widgets/ld_widgets.dart';
 
 /// Wraps a widget in the real app themes so tests exercise the same
 /// `ThemeExtension` lookup path production does.
-Widget host(Widget child, {Brightness brightness = Brightness.dark, double textScale = 1.0}) {
+Widget host(
+  Widget child, {
+  Brightness brightness = Brightness.dark,
+  double textScale = 1.0,
+}) {
   return MaterialApp(
     theme: brightness == Brightness.dark ? AppTheme.dark() : AppTheme.light(),
     home: MediaQuery(
@@ -35,8 +39,9 @@ void main() {
       expect(find.text('PROTEIN'), findsOneWidget);
     });
 
-    testWidgets('exposes a screen-reader summary, not just a picture',
-        (tester) async {
+    testWidgets('exposes a screen-reader summary, not just a picture', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           const LdProgressRing(
@@ -55,8 +60,9 @@ void main() {
       );
     });
 
-    testWidgets('handles a zero target without dividing by zero',
-        (tester) async {
+    testWidgets('handles a zero target without dividing by zero', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           const LdProgressRing(
@@ -71,8 +77,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('renders over-target values without clipping the label',
-        (tester) async {
+    testWidgets('renders over-target values without clipping the label', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           const LdProgressRing(
@@ -133,8 +140,9 @@ void main() {
   });
 
   group('LdPrimaryButton', () {
-    testWidgets('a loading button keeps its label so width does not jump',
-        (tester) async {
+    testWidgets('a loading button keeps its label so width does not jump', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           const LdPrimaryButton(
@@ -157,8 +165,9 @@ void main() {
       expect(tapped, isFalse);
     });
 
-    testWidgets('Live Gym size meets the 64 dp one-handed minimum',
-        (tester) async {
+    testWidgets('Live Gym size meets the 64 dp one-handed minimum', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           LdPrimaryButton(
@@ -190,8 +199,9 @@ void main() {
       expect(find.text('Log breakfast'), findsOneWidget);
     });
 
-    testWidgets('shows progress instead of a button when waiting on time',
-        (tester) async {
+    testWidgets('shows progress instead of a button when waiting on time', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           const LdEmptyState(
@@ -208,8 +218,9 @@ void main() {
   });
 
   group('themes', () {
-    testWidgets('both themes resolve the design-system extensions',
-        (tester) async {
+    testWidgets('both themes resolve the design-system extensions', (
+      tester,
+    ) async {
       for (final brightness in Brightness.values) {
         await tester.pumpWidget(
           host(
@@ -231,14 +242,19 @@ void main() {
       }
     });
 
-    testWidgets('recovery band colours map to the documented thresholds',
-        (tester) async {
+    testWidgets('recovery band colours map to the documented thresholds', (
+      tester,
+    ) async {
       late BuildContext ctx;
       await tester.pumpWidget(
-        host(Builder(builder: (context) {
-          ctx = context;
-          return const SizedBox();
-        })),
+        host(
+          Builder(
+            builder: (context) {
+              ctx = context;
+              return const SizedBox();
+            },
+          ),
+        ),
       );
       final c = ctx.ldColors;
       expect(c.recoveryBandColor(20), c.recoveryLow);

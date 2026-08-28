@@ -55,8 +55,7 @@ class HealthSyncScreen extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           availability.title,
-                          style:
-                              type.titleL.copyWith(color: c.textPrimary),
+                          style: type.titleL.copyWith(color: c.textPrimary),
                         ),
                       ),
                     ],
@@ -101,7 +100,11 @@ class HealthSyncScreen extends ConsumerWidget {
                     style: type.bodyS.copyWith(color: c.textSecondary),
                   ),
                   const SizedBox(height: LdSpacing.s4),
-                  for (var i = 0; i < HealthSyncService.enablementSteps.length; i++)
+                  for (
+                    var i = 0;
+                    i < HealthSyncService.enablementSteps.length;
+                    i++
+                  )
                     Padding(
                       padding: const EdgeInsets.only(bottom: LdSpacing.s2),
                       child: Row(
@@ -117,16 +120,18 @@ class HealthSyncScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               '${i + 1}',
-                              style: type.caption
-                                  .copyWith(color: c.textSecondary),
+                              style: type.caption.copyWith(
+                                color: c.textSecondary,
+                              ),
                             ),
                           ),
                           const SizedBox(width: LdSpacing.s3),
                           Expanded(
                             child: Text(
                               HealthSyncService.enablementSteps[i],
-                              style: type.bodyS
-                                  .copyWith(color: c.textSecondary),
+                              style: type.bodyS.copyWith(
+                                color: c.textSecondary,
+                              ),
                             ),
                           ),
                         ],
@@ -149,14 +154,12 @@ class HealthSyncScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               metric.label,
-                              style: type.bodyM
-                                  .copyWith(color: c.textPrimary),
+                              style: type.bodyM.copyWith(color: c.textPrimary),
                             ),
                           ),
                           Text(
                             metric.unit,
-                            style: type.caption
-                                .copyWith(color: c.textTertiary),
+                            style: type.caption.copyWith(color: c.textTertiary),
                           ),
                         ],
                       ),

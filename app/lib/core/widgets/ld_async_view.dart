@@ -71,7 +71,10 @@ class LdLoadingView extends StatelessWidget {
           SizedBox(
             width: 28,
             height: 28,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: c.primary),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: c.primary,
+            ),
           ),
           if (label != null) ...[
             const SizedBox(height: LdSpacing.s4),
@@ -112,10 +115,10 @@ class LdErrorView extends StatelessWidget {
         FailureSeverity.error => Icons.error_outline_rounded,
       },
       headline: message.title,
-      body: _context == null
-          ? message.body
-          : '${message.body}\n\n($_context)',
-      actionLabel: failure.isRetryable ? (message.actionLabel ?? 'Retry') : null,
+      body: _context == null ? message.body : '${message.body}\n\n($_context)',
+      actionLabel: failure.isRetryable
+          ? (message.actionLabel ?? 'Retry')
+          : null,
       onAction: failure.isRetryable ? onRetry : null,
       iconColor: switch (message.severity) {
         FailureSeverity.info => c.info,
@@ -153,7 +156,8 @@ class LdOfflineBanner extends StatelessWidget {
       return _Banner(
         color: c.danger,
         icon: Icons.sync_problem_rounded,
-        text: '$parkedWrites change${parkedWrites == 1 ? '' : 's'} '
+        text:
+            '$parkedWrites change${parkedWrites == 1 ? '' : 's'} '
             "couldn't sync",
         actionLabel: 'Retry',
         onAction: onRetry,
@@ -166,7 +170,7 @@ class LdOfflineBanner extends StatelessWidget {
         icon: Icons.cloud_off_rounded,
         text: pendingWrites > 0
             ? "Offline · $pendingWrites change${pendingWrites == 1 ? '' : 's'} "
-                'will sync later'
+                  'will sync later'
             : 'Offline · everything still works',
         style: type.bodyS,
       );

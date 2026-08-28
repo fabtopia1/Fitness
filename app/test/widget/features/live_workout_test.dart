@@ -30,7 +30,9 @@ void main() {
     final auth = AuthRepository(store: env.store);
     final session = (await auth.continueWithoutAccount()).valueOrNull!;
     await ProfileRepository(store: env.store, outbox: outbox()).save(
-      auth.initialProfile(session).copyWith(
+      auth
+          .initialProfile(session)
+          .copyWith(
             dateOfBirth: DateTime(1998, 4, 12),
             sex: Sex.male,
             heightCm: 180,
@@ -82,8 +84,9 @@ void main() {
   });
 
   group('Live Gym Mode', () {
-    testWidgets('opens on the planned exercise with the set counter',
-        (tester) async {
+    testWidgets('opens on the planned exercise with the set counter', (
+      tester,
+    ) async {
       await signIn();
       await startPlannedSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -96,8 +99,9 @@ void main() {
       expect(find.text('COMPLETE SET'), findsOneWidget);
     });
 
-    testWidgets('the primary action meets the one-handed size floor',
-        (tester) async {
+    testWidgets('the primary action meets the one-handed size floor', (
+      tester,
+    ) async {
       // Live Gym Mode is operated mid-set, at arm's length, one-handed.
       await signIn();
       await startPlannedSession();
@@ -130,8 +134,9 @@ void main() {
       expect(find.text('5'), findsOneWidget);
     });
 
-    testWidgets('completing a set logs it and starts the rest timer',
-        (tester) async {
+    testWidgets('completing a set logs it and starts the rest timer', (
+      tester,
+    ) async {
       await signIn();
       await startPlannedSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -156,7 +161,11 @@ void main() {
       await pumpFrames(tester);
 
       await tester.tap(find.text('COMPLETE SET'));
-      await pumpFrames(tester, frames: 2, step: const Duration(milliseconds: 10));
+      await pumpFrames(
+        tester,
+        frames: 2,
+        step: const Duration(milliseconds: 10),
+      );
 
       await tester.tap(find.text('+ 15s'));
       await tester.pump();
@@ -168,8 +177,9 @@ void main() {
       expect(find.text('Skip'), findsNothing);
     });
 
-    testWidgets('the rest timer fires a notification when it runs out',
-        (tester) async {
+    testWidgets('the rest timer fires a notification when it runs out', (
+      tester,
+    ) async {
       // Most people switch apps mid-rest, so the alert has to leave the app.
       await signIn();
       await startPlannedSession();
@@ -183,8 +193,9 @@ void main() {
       expect(env.notifications.shown.last.title, 'Rest finished');
     });
 
-    testWidgets('the first working set of an exercise is announced as a PR',
-        (tester) async {
+    testWidgets('the first working set of an exercise is announced as a PR', (
+      tester,
+    ) async {
       await signIn();
       await startPlannedSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -210,8 +221,9 @@ void main() {
       expect(workouts().activeSession()!.sets.single.rpe, 8);
     });
 
-    testWidgets('a logged set is prefilled from the last performance',
-        (tester) async {
+    testWidgets('a logged set is prefilled from the last performance', (
+      tester,
+    ) async {
       await signIn();
       final repository = workouts();
       final exercise = repository.createExercise(
@@ -229,8 +241,7 @@ void main() {
         exerciseName: exercise.name,
         weightKg: 100,
         reps: 5,
-      ))
-          .valueOrNull!;
+      )).valueOrNull!;
       await repository.finishSession(previous);
 
       await repository.saveWorkout(
@@ -261,8 +272,9 @@ void main() {
       expect(find.textContaining('Last time'), findsOneWidget);
     });
 
-    testWidgets('finishing an empty session offers to discard it',
-        (tester) async {
+    testWidgets('finishing an empty session offers to discard it', (
+      tester,
+    ) async {
       await signIn();
       await startPlannedSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -291,8 +303,9 @@ void main() {
       expect(workouts().activeSession(), isNull);
     });
 
-    testWidgets('finishing a logged session shows a summary before saving',
-        (tester) async {
+    testWidgets('finishing a logged session shows a summary before saving', (
+      tester,
+    ) async {
       await signIn();
       await startPlannedSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -317,8 +330,9 @@ void main() {
       expect(workouts().history(), hasLength(1));
     });
 
-    testWidgets('"Keep going" from the summary leaves the session open',
-        (tester) async {
+    testWidgets('"Keep going" from the summary leaves the session open', (
+      tester,
+    ) async {
       await signIn();
       await startPlannedSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -336,8 +350,9 @@ void main() {
       expect(workouts().activeSession(), isNotNull);
     });
 
-    testWidgets('a freeform session prompts for the first exercise',
-        (tester) async {
+    testWidgets('a freeform session prompts for the first exercise', (
+      tester,
+    ) async {
       await signIn();
       await workouts().startSession();
       await pumpScreen(tester, env, const LiveWorkoutScreen());
@@ -347,8 +362,9 @@ void main() {
       expect(find.text('Add exercise'), findsWidgets);
     });
 
-    testWidgets('an exercise can be added mid-session from the picker',
-        (tester) async {
+    testWidgets('an exercise can be added mid-session from the picker', (
+      tester,
+    ) async {
       await signIn();
       final repository = workouts();
       await repository.saveExercise(
@@ -385,8 +401,9 @@ void main() {
       expect(find.text('Resume workout'), findsOneWidget);
     });
 
-    testWidgets('with no session it offers to start an empty one',
-        (tester) async {
+    testWidgets('with no session it offers to start an empty one', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const WorkoutScreen());
       await pumpFrames(tester);
@@ -395,8 +412,9 @@ void main() {
       expect(find.text('No programs yet'), findsOneWidget);
     });
 
-    testWidgets('starting an empty workout opens the live screen',
-        (tester) async {
+    testWidgets('starting an empty workout opens the live screen', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const WorkoutScreen());
       await pumpFrames(tester);
@@ -407,8 +425,9 @@ void main() {
       expect(workouts().activeSession(), isNotNull);
     });
 
-    testWidgets('a saved program is listed with its volume estimate',
-        (tester) async {
+    testWidgets('a saved program is listed with its volume estimate', (
+      tester,
+    ) async {
       await signIn();
       final repository = workouts();
       final exercise = repository.createExercise(

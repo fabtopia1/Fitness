@@ -87,20 +87,20 @@ class _LiveDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Icon(icon),
-          Positioned(
-            top: -2,
-            right: -3,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-          ),
-        ],
-      );
+    clipBehavior: Clip.none,
+    children: [
+      Icon(icon),
+      Positioned(
+        top: -2,
+        right: -3,
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+      ),
+    ],
+  );
 }
 
 class _ResumeBar extends StatelessWidget {

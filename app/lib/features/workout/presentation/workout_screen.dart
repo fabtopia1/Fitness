@@ -57,14 +57,16 @@ class WorkoutScreen extends ConsumerWidget {
                     children: [
                       Text(
                         active.name,
-                        style: context.ldType.titleL
-                            .copyWith(color: c.textPrimary),
+                        style: context.ldType.titleL.copyWith(
+                          color: c.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: LdSpacing.s1),
                       Text(
                         '${active.sets.length} sets logged',
-                        style: context.ldType.bodyS
-                            .copyWith(color: c.textSecondary),
+                        style: context.ldType.bodyS.copyWith(
+                          color: c.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: LdSpacing.s4),
                       LdPrimaryButton(
@@ -84,14 +86,16 @@ class WorkoutScreen extends ConsumerWidget {
                     children: [
                       Text(
                         'Start an empty session',
-                        style: context.ldType.titleL
-                            .copyWith(color: c.textPrimary),
+                        style: context.ldType.titleL.copyWith(
+                          color: c.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: LdSpacing.s1),
                       Text(
                         'Add exercises as you go.',
-                        style: context.ldType.bodyS
-                            .copyWith(color: c.textSecondary),
+                        style: context.ldType.bodyS.copyWith(
+                          color: c.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: LdSpacing.s4),
                       LdPrimaryButton(
@@ -136,20 +140,22 @@ class WorkoutScreen extends ConsumerWidget {
                     leading: Icon(Icons.emoji_events_rounded, color: c.accent),
                     title: Text(
                       record.exerciseName,
-                      style: context.ldType.titleM
-                          .copyWith(color: c.textPrimary),
+                      style: context.ldType.titleM.copyWith(
+                        color: c.textPrimary,
+                      ),
                     ),
                     subtitle: Text(
                       'Est. 1RM ${record.value.toStringAsFixed(1)} kg · '
                       '${_fmt(record.weightKg)} kg × ${record.reps}',
-                      style: context.ldType.bodyS
-                          .copyWith(color: c.textSecondary),
+                      style: context.ldType.bodyS.copyWith(
+                        color: c.textSecondary,
+                      ),
                     ),
                     trailing: Text(
-                      DateFormat('d MMM')
-                          .format(record.achievedAt.toLocal()),
-                      style: context.ldType.caption
-                          .copyWith(color: c.textTertiary),
+                      DateFormat('d MMM').format(record.achievedAt.toLocal()),
+                      style: context.ldType.caption.copyWith(
+                        color: c.textTertiary,
+                      ),
                     ),
                   ),
               ],
@@ -174,8 +180,9 @@ class WorkoutScreen extends ConsumerWidget {
     WidgetRef ref,
     Workout? workout,
   ) async {
-    final result =
-        await ref.read(workoutRepositoryProvider).startSession(workout: workout);
+    final result = await ref
+        .read(workoutRepositoryProvider)
+        .startSession(workout: workout);
     if (!context.mounted) return;
     result.when(
       ok: (_) => context.push(Routes.liveWorkout),
@@ -307,7 +314,10 @@ class _VolumeChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.ldColors;
     final type = context.ldType;
-    final peak = data.fold<double>(0, (max, w) => w.volumeKg > max ? w.volumeKg : max);
+    final peak = data.fold<double>(
+      0,
+      (max, w) => w.volumeKg > max ? w.volumeKg : max,
+    );
 
     return LdCard(
       child: SizedBox(

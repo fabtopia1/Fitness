@@ -44,7 +44,9 @@ void main() {
     final auth = AuthRepository(store: env.store);
     final session = (await auth.continueWithoutAccount()).valueOrNull!;
     await ProfileRepository(store: env.store, outbox: outbox()).save(
-      auth.initialProfile(session).copyWith(
+      auth
+          .initialProfile(session)
+          .copyWith(
             dateOfBirth: DateTime(1998, 4, 12),
             sex: Sex.male,
             heightCm: 180,
@@ -59,8 +61,9 @@ void main() {
       NutritionRepository(store: env.store, outbox: outbox());
 
   group('DashboardScreen', () {
-    testWidgets('greets an onboarded user and shows today\'s rings',
-        (tester) async {
+    testWidgets('greets an onboarded user and shows today\'s rings', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const DashboardScreen());
       await pumpFrames(tester);
@@ -102,8 +105,9 @@ void main() {
   });
 
   group('NutritionScreen', () {
-    testWidgets('offers a way to add food when the day is empty',
-        (tester) async {
+    testWidgets('offers a way to add food when the day is empty', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const NutritionScreen());
       await pumpFrames(tester);
@@ -135,8 +139,9 @@ void main() {
   });
 
   group('AddFoodScreen', () {
-    testWidgets('an empty library invites the user to create a food',
-        (tester) async {
+    testWidgets('an empty library invites the user to create a food', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const AddFoodScreen());
       await pumpFrames(tester);
@@ -166,8 +171,9 @@ void main() {
   });
 
   group('WorkoutScreen', () {
-    testWidgets('an athlete with no workouts is offered a way to start',
-        (tester) async {
+    testWidgets('an athlete with no workouts is offered a way to start', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const WorkoutScreen());
       await pumpFrames(tester);
@@ -196,8 +202,9 @@ void main() {
       expect(find.byType(LdEmptyState), findsWidgets);
     });
 
-    testWidgets('a measurement produces a chart and a latest value',
-        (tester) async {
+    testWidgets('a measurement produces a chart and a latest value', (
+      tester,
+    ) async {
       await signIn();
       final repository = BodyRepository(store: env.store, outbox: outbox());
       await repository.save(
@@ -305,8 +312,9 @@ void main() {
   });
 
   group('AiHubScreen', () {
-    testWidgets('shows deterministic insights and the exact brief to be sent',
-        (tester) async {
+    testWidgets('shows deterministic insights and the exact brief to be sent', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const AiHubScreen());
       await pumpFrames(tester);
@@ -334,8 +342,9 @@ void main() {
   });
 
   group('SettingsScreen', () {
-    testWidgets('shows the account, the derived targets and local mode',
-        (tester) async {
+    testWidgets('shows the account, the derived targets and local mode', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const SettingsScreen());
       await pumpFrames(tester);
@@ -362,26 +371,30 @@ void main() {
       }
     });
 
-    testWidgets('the reminder switch changes the stored setting',
-        (tester) async {
+    testWidgets('the reminder switch changes the stored setting', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const SettingsScreen());
       await pumpFrames(tester);
 
       await tester.scrollUntilVisible(find.text('Scheduled reminders'), 200);
       await tester.tap(
-        find.descendant(
-          of: find.byType(LdSwitchRow),
-          matching: find.byType(Switch),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(LdSwitchRow),
+              matching: find.byType(Switch),
+            )
+            .first,
       );
       await pumpFrames(tester);
 
       expect(env.notifications.remindersEnabled, isFalse);
     });
 
-    testWidgets('erasing local data asks first and then wipes everything',
-        (tester) async {
+    testWidgets('erasing local data asks first and then wipes everything', (
+      tester,
+    ) async {
       await signIn();
       await env.store.write(HiveStore.boxWorkouts, 'w', {'id': 'w'});
 
@@ -404,8 +417,9 @@ void main() {
       expect(env.store.readAll(HiveStore.boxWorkouts), hasLength(1));
     });
 
-    testWidgets('signing out warns about work that has not synced',
-        (tester) async {
+    testWidgets('signing out warns about work that has not synced', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const SettingsScreen());
       await pumpFrames(tester);
@@ -421,8 +435,9 @@ void main() {
   });
 
   group('the shell', () {
-    testWidgets('the app routes an onboarded user to the dashboard',
-        (tester) async {
+    testWidgets('the app routes an onboarded user to the dashboard', (
+      tester,
+    ) async {
       await signIn();
       await pumpApp(tester, env);
       await pumpFrames(tester, frames: 12);
@@ -432,8 +447,9 @@ void main() {
       expect(find.text('Train'), findsOneWidget);
     });
 
-    testWidgets('a signed-out user lands on the welcome screen',
-        (tester) async {
+    testWidgets('a signed-out user lands on the welcome screen', (
+      tester,
+    ) async {
       await pumpApp(tester, env);
       await pumpFrames(tester, frames: 12);
 
@@ -452,8 +468,9 @@ void main() {
       expect(find.byType(BodyScreen), findsOneWidget);
     });
 
-    testWidgets('an unknown route offers a way home rather than a blank page',
-        (tester) async {
+    testWidgets('an unknown route offers a way home rather than a blank page', (
+      tester,
+    ) async {
       await signIn();
       await pumpApp(tester, env);
       await pumpFrames(tester, frames: 12);

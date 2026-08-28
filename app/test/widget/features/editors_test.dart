@@ -38,7 +38,9 @@ void main() {
     final auth = AuthRepository(store: env.store);
     final session = (await auth.continueWithoutAccount()).valueOrNull!;
     await ProfileRepository(store: env.store, outbox: outbox()).save(
-      auth.initialProfile(session).copyWith(
+      auth
+          .initialProfile(session)
+          .copyWith(
             dateOfBirth: DateTime(1998, 4, 12),
             sex: Sex.male,
             heightCm: 180,
@@ -54,17 +56,17 @@ void main() {
     String value,
   ) async {
     await tester.enterText(
-      find.ancestor(
-        of: find.text(label),
-        matching: find.byType(TextFormField),
-      ).first,
+      find
+          .ancestor(of: find.text(label), matching: find.byType(TextFormField))
+          .first,
       value,
     );
   }
 
   group('CreateFoodSheet', () {
-    testWidgets('requires the values a food cannot be used without',
-        (tester) async {
+    testWidgets('requires the values a food cannot be used without', (
+      tester,
+    ) async {
       await signIn();
       await pumpSheet(tester, env, const CreateFoodSheet());
 
@@ -75,8 +77,9 @@ void main() {
       expect(find.text('Required'), findsWidgets);
     });
 
-    testWidgets('warns when the stated energy contradicts the macros',
-        (tester) async {
+    testWidgets('warns when the stated energy contradicts the macros', (
+      tester,
+    ) async {
       // Community food data fails this constantly. Saving it silently would
       // poison every daily total computed from it afterwards.
       await signIn();
@@ -102,11 +105,16 @@ void main() {
       await enterByLabel(tester, 'Protein', '10');
       await enterByLabel(tester, 'Carbs', '3.6');
       await enterByLabel(tester, 'Fat', '0.4');
-      await tapVisible(tester, find.widgetWithText(LdPrimaryButton, 'Save food'));
+      await tapVisible(
+        tester,
+        find.widgetWithText(LdPrimaryButton, 'Save food'),
+      );
       await pumpFrames(tester, frames: 10);
 
-      final foods =
-          NutritionRepository(store: env.store, outbox: outbox()).foods.readAll();
+      final foods = NutritionRepository(
+        store: env.store,
+        outbox: outbox(),
+      ).foods.readAll();
       expect(foods, hasLength(1));
       expect(foods.single.name, 'Greek yoghurt');
       expect(foods.single.per100g.proteinG, 10);
@@ -118,9 +126,7 @@ void main() {
       await signIn();
       await pumpSheet(tester, env, const SupplementEditorSheet());
 
-      await tester.tap(
-        find.widgetWithText(LdPrimaryButton, 'Add supplement'),
-      );
+      await tester.tap(find.widgetWithText(LdPrimaryButton, 'Add supplement'));
       await pumpFrames(tester);
 
       expect(
@@ -139,9 +145,7 @@ void main() {
 
       await enterByLabel(tester, 'Name', 'Creatine');
       await enterByLabel(tester, 'Dose', '5');
-      await tester.tap(
-        find.widgetWithText(LdPrimaryButton, 'Add supplement'),
-      );
+      await tester.tap(find.widgetWithText(LdPrimaryButton, 'Add supplement'));
       await pumpFrames(tester, frames: 10);
 
       final saved = SupplementRepository(
@@ -160,7 +164,11 @@ void main() {
         outbox: outbox(),
         notifications: env.notifications,
       );
-      final existing = repository.create(name: 'Magnesium', dose: 300, unit: 'mg');
+      final existing = repository.create(
+        name: 'Magnesium',
+        dose: 300,
+        unit: 'mg',
+      );
       await repository.save(existing);
 
       await pumpSheet(tester, env, SupplementEditorSheet(existing: existing));
@@ -199,7 +207,9 @@ void main() {
       );
     });
 
-    testWidgets('the limb measurements are behind a disclosure', (tester) async {
+    testWidgets('the limb measurements are behind a disclosure', (
+      tester,
+    ) async {
       // Ten fields on one sheet is a form nobody fills in.
       await signIn();
       await pumpSheet(tester, env, const BodyEditorSheet());
@@ -235,7 +245,10 @@ void main() {
       await pumpSheet(tester, env, const TaskEditorSheet());
 
       await tester.enterText(find.byType(TextField).first, 'Write report');
-      await tapVisible(tester, find.widgetWithText(LdPrimaryButton, 'Add task'));
+      await tapVisible(
+        tester,
+        find.widgetWithText(LdPrimaryButton, 'Add task'),
+      );
       await pumpFrames(tester, frames: 10);
 
       final tasks = CalendarRepository(
@@ -308,11 +321,14 @@ void main() {
   });
 
   group('GoalsEditorSheet', () {
-    testWidgets('shows the targets a change would produce before saving',
-        (tester) async {
+    testWidgets('shows the targets a change would produce before saving', (
+      tester,
+    ) async {
       await signIn();
-      final profile =
-          ProfileRepository(store: env.store, outbox: outbox()).read()!;
+      final profile = ProfileRepository(
+        store: env.store,
+        outbox: outbox(),
+      ).read()!;
 
       await pumpSheet(tester, env, GoalsEditorSheet(profile: profile));
 
@@ -349,8 +365,10 @@ void main() {
       );
       await pumpFrames(tester, frames: 10);
 
-      final exercises =
-          WorkoutRepository(store: env.store, outbox: outbox()).searchExercises('');
+      final exercises = WorkoutRepository(
+        store: env.store,
+        outbox: outbox(),
+      ).searchExercises('');
       expect(exercises.single.name, 'Incline press');
       expect(exercises.single.isCustom, isTrue);
     });
@@ -374,8 +392,7 @@ void main() {
 
     testWidgets('the editor opens on an existing workout', (tester) async {
       await signIn();
-      final repository =
-          WorkoutRepository(store: env.store, outbox: outbox());
+      final repository = WorkoutRepository(store: env.store, outbox: outbox());
       final exercise = repository.createExercise(
         name: 'Bench press',
         muscleGroup: MuscleGroup.chest,

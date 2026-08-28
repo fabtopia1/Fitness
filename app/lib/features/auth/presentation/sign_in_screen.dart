@@ -47,10 +47,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                    (value == null || !value.contains('@'))
-                        ? 'Enter a valid email address'
-                        : null,
+                validator: (value) => (value == null || !value.contains('@'))
+                    ? 'Enter a valid email address'
+                    : null,
               ),
               const SizedBox(height: LdSpacing.s4),
               TextFormField(
@@ -93,8 +92,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   children: [
                     Expanded(child: Divider(color: c.border)),
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: LdSpacing.s3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: LdSpacing.s3,
+                      ),
                       child: Text(
                         'OR',
                         style: type.labelMono.copyWith(color: c.textTertiary),
@@ -122,16 +122,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final failure = await ref.read(authControllerProvider.notifier).signIn(
-          email: _email.text,
-          password: _password.text,
-        );
+    final failure = await ref
+        .read(authControllerProvider.notifier)
+        .signIn(email: _email.text, password: _password.text);
     if (failure != null && mounted) showFailureSnack(context, failure);
   }
 
   Future<void> _google() async {
-    final failure =
-        await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    final failure = await ref
+        .read(authControllerProvider.notifier)
+        .signInWithGoogle();
     if (failure != null && mounted) showFailureSnack(context, failure);
   }
 

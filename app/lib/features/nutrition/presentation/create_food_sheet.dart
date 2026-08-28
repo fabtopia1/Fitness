@@ -36,11 +36,11 @@ class _CreateFoodSheetState extends ConsumerState<CreateFoodSheet> {
   }
 
   Macros get _macros => Macros(
-        kcal: double.tryParse(_kcal.text) ?? 0,
-        proteinG: double.tryParse(_protein.text) ?? 0,
-        carbsG: double.tryParse(_carbs.text) ?? 0,
-        fatG: double.tryParse(_fat.text) ?? 0,
-      );
+    kcal: double.tryParse(_kcal.text) ?? 0,
+    proteinG: double.tryParse(_protein.text) ?? 0,
+    carbsG: double.tryParse(_carbs.text) ?? 0,
+    fatG: double.tryParse(_fat.text) ?? 0,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -79,16 +79,16 @@ class _CreateFoodSheetState extends ConsumerState<CreateFoodSheet> {
                   controller: _name,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Enter a name'
-                      : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
                 ),
                 const SizedBox(height: LdSpacing.s3),
                 TextFormField(
                   controller: _brand,
                   textCapitalization: TextCapitalization.words,
-                  decoration:
-                      const InputDecoration(labelText: 'Brand (optional)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Brand (optional)',
+                  ),
                 ),
                 const SizedBox(height: LdSpacing.s3),
                 Row(
@@ -144,16 +144,18 @@ class _CreateFoodSheetState extends ConsumerState<CreateFoodSheet> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded,
-                            size: 18, color: c.warning),
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 18,
+                          color: c.warning,
+                        ),
                         const SizedBox(width: LdSpacing.s2),
                         Expanded(
                           child: Text(
                             'The macros add up to about '
                             '${macros.derivedKcal.round()} kcal, not '
                             '${macros.kcal.round()}. Double-check the label.',
-                            style: type.bodyS
-                                .copyWith(color: c.textSecondary),
+                            style: type.bodyS.copyWith(color: c.textSecondary),
                           ),
                         ),
                       ],
@@ -214,21 +216,21 @@ class _NumberField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TextFormField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-        ],
-        decoration: InputDecoration(labelText: label, suffixText: suffix),
-        validator: (value) {
-          if (!required) return null;
-          final parsed = double.tryParse(value ?? '');
-          if (parsed == null) return 'Required';
-          if (parsed < 0) return 'Must be positive';
-          if (parsed > 2000) return 'Too large';
-          return null;
-        },
-      );
+    controller: controller,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    inputFormatters: [
+      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+    ],
+    decoration: InputDecoration(labelText: label, suffixText: suffix),
+    validator: (value) {
+      if (!required) return null;
+      final parsed = double.tryParse(value ?? '');
+      if (parsed == null) return 'Required';
+      if (parsed < 0) return 'Must be positive';
+      if (parsed > 2000) return 'Too large';
+      return null;
+    },
+  );
 }
 
 /// Chooses a portion and logs it.
@@ -355,7 +357,9 @@ class _PortionSheetState extends ConsumerState<PortionSheet> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    final result = await ref.read(nutritionRepositoryProvider).logFood(
+    final result = await ref
+        .read(nutritionRepositoryProvider)
+        .logFood(
           food: widget.food,
           quantity: _grams,
           unit: PortionUnit.grams,

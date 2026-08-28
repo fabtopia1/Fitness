@@ -6,13 +6,14 @@ import 'package:lifedna/core/theme/app_theme.dart';
 import 'package:lifedna/core/widgets/ld_widgets.dart';
 
 Widget host(Widget child, {ThemeData? theme}) => MaterialApp(
-      theme: theme ?? AppTheme.dark(),
-      home: Scaffold(body: Center(child: child)),
-    );
+  theme: theme ?? AppTheme.dark(),
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
   group('LdAsyncView', () {
-    Widget view(AsyncValue<List<String>> value, {VoidCallback? onRetry}) => host(
+    Widget view(AsyncValue<List<String>> value, {VoidCallback? onRetry}) =>
+        host(
           LdAsyncView<List<String>>(
             value: value,
             onRetry: onRetry ?? () {},
@@ -40,15 +41,17 @@ void main() {
       expect(find.text('b'), findsOneWidget);
     });
 
-    testWidgets('empty renders the empty state, not a blank screen',
-        (tester) async {
+    testWidgets('empty renders the empty state, not a blank screen', (
+      tester,
+    ) async {
       await tester.pumpWidget(view(const AsyncValue.data([])));
       await tester.pump();
       expect(find.text('Nothing here yet'), findsOneWidget);
     });
 
-    testWidgets('a retryable error offers the retry and fires it',
-        (tester) async {
+    testWidgets('a retryable error offers the retry and fires it', (
+      tester,
+    ) async {
       var retried = 0;
       await tester.pumpWidget(
         view(
@@ -64,8 +67,9 @@ void main() {
       expect(retried, 1);
     });
 
-    testWidgets('an error the user cannot retry offers no dead button',
-        (tester) async {
+    testWidgets('an error the user cannot retry offers no dead button', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         view(const AsyncValue.error(NotFoundFailure(), StackTrace.empty)),
       );
@@ -75,8 +79,9 @@ void main() {
       expect(find.byType(LdErrorView), findsOneWidget);
     });
 
-    testWidgets('an unexpected exception is mapped, never shown raw',
-        (tester) async {
+    testWidgets('an unexpected exception is mapped, never shown raw', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         view(
           AsyncValue.error(
@@ -113,8 +118,9 @@ void main() {
       expect(find.textContaining('3 changes will sync later'), findsOneWidget);
     });
 
-    testWidgets('parked work is the one condition that asks for help',
-        (tester) async {
+    testWidgets('parked work is the one condition that asks for help', (
+      tester,
+    ) async {
       var retried = 0;
       await tester.pumpWidget(
         host(
@@ -164,8 +170,9 @@ void main() {
   });
 
   group('LdCard', () {
-    testWidgets('an accent card lays out inside an unbounded parent',
-        (tester) async {
+    testWidgets('an accent card lays out inside an unbounded parent', (
+      tester,
+    ) async {
       // A stretch Row in a list once forced an infinite height here.
       await tester.pumpWidget(
         host(
@@ -186,7 +193,9 @@ void main() {
       expect(find.text('NEXT ACTION'), findsOneWidget);
     });
 
-    testWidgets('an interactive card reports itself as a button', (tester) async {
+    testWidgets('an interactive card reports itself as a button', (
+      tester,
+    ) async {
       var taps = 0;
       await tester.pumpWidget(
         host(
@@ -227,8 +236,9 @@ void main() {
   });
 
   group('LdSectionHeader', () {
-    testWidgets('an action is offered only when it does something',
-        (tester) async {
+    testWidgets('an action is offered only when it does something', (
+      tester,
+    ) async {
       var acted = 0;
       await tester.pumpWidget(
         host(
@@ -253,8 +263,9 @@ void main() {
   });
 
   group('the light theme', () {
-    testWidgets('renders the same components without exceptions',
-        (tester) async {
+    testWidgets('renders the same components without exceptions', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         host(
           const Column(

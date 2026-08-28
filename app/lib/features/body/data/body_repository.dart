@@ -16,17 +16,17 @@ class BodyRepository {
     String? uid,
     Uuid uuid = const Uuid(),
     DateTime Function()? clock,
-  })  : _uuid = uuid,
-        _clock = clock ?? DateTime.now,
-        measurements = SyncedCollection<BodyMeasurement>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxBodyMeasurements,
-          collection: 'body_measurements',
-          fromJson: BodyMeasurement.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+  }) : _uuid = uuid,
+       _clock = clock ?? DateTime.now,
+       measurements = SyncedCollection<BodyMeasurement>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxBodyMeasurements,
+         collection: 'body_measurements',
+         fromJson: BodyMeasurement.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final Uuid _uuid;
   final DateTime Function() _clock;
@@ -115,9 +115,9 @@ class BodyRepository {
         return const Err(ValidationFailure('measurement_out_of_range'));
       }
     }
-    if (measurement.measuredAt.isAfter(_clock().toUtc().add(
-          const Duration(minutes: 5),
-        ))) {
+    if (measurement.measuredAt.isAfter(
+      _clock().toUtc().add(const Duration(minutes: 5)),
+    )) {
       return const Err(ValidationFailure('date_in_future'));
     }
 
@@ -125,9 +125,9 @@ class BodyRepository {
   }
 
   Future<Result<void>> delete(String id) => measurements.remove(
-        id,
-        tombstone: (m) => m.copyWith(deletedAt: _clock().toUtc()),
-      );
+    id,
+    tombstone: (m) => m.copyWith(deletedAt: _clock().toUtc()),
+  );
 
   /// Series for one metric, oldest first.
   BodyTrend trendFor(BodyMetric metric, {int days = 90, DateTime? now}) {
@@ -154,8 +154,11 @@ class BodyRepository {
     return BodyMetric.values.where(present.contains).toList();
   }
 
-  List<BodyMeasurement> withPhotos() =>
-      chronological().where((m) => m.photoPath != null).toList().reversed.toList();
+  List<BodyMeasurement> withPhotos() => chronological()
+      .where((m) => m.photoPath != null)
+      .toList()
+      .reversed
+      .toList();
 
   Future<Result<int>> pullAll() => measurements.pull();
 }

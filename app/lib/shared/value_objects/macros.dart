@@ -20,26 +20,26 @@ class Macros {
   final double fatG;
 
   Macros operator +(Macros other) => Macros(
-        kcal: kcal + other.kcal,
-        proteinG: proteinG + other.proteinG,
-        carbsG: carbsG + other.carbsG,
-        fatG: fatG + other.fatG,
-      );
+    kcal: kcal + other.kcal,
+    proteinG: proteinG + other.proteinG,
+    carbsG: carbsG + other.carbsG,
+    fatG: fatG + other.fatG,
+  );
 
   Macros operator -(Macros other) => Macros(
-        kcal: kcal - other.kcal,
-        proteinG: proteinG - other.proteinG,
-        carbsG: carbsG - other.carbsG,
-        fatG: fatG - other.fatG,
-      );
+    kcal: kcal - other.kcal,
+    proteinG: proteinG - other.proteinG,
+    carbsG: carbsG - other.carbsG,
+    fatG: fatG - other.fatG,
+  );
 
   /// Scales every component. Used to convert per-100 g values to a portion.
   Macros scaled(double factor) => Macros(
-        kcal: kcal * factor,
-        proteinG: proteinG * factor,
-        carbsG: carbsG * factor,
-        fatG: fatG * factor,
-      );
+    kcal: kcal * factor,
+    proteinG: proteinG * factor,
+    carbsG: carbsG * factor,
+    fatG: fatG * factor,
+  );
 
   /// Energy reconstructed from the macronutrients using Atwater factors.
   ///
@@ -67,38 +67,37 @@ class Macros {
   }
 
   Macros rounded() => Macros(
-        kcal: kcal.roundToDouble(),
-        proteinG: (proteinG * 10).roundToDouble() / 10,
-        carbsG: (carbsG * 10).roundToDouble() / 10,
-        fatG: (fatG * 10).roundToDouble() / 10,
-      );
+    kcal: kcal.roundToDouble(),
+    proteinG: (proteinG * 10).roundToDouble() / 10,
+    carbsG: (carbsG * 10).roundToDouble() / 10,
+    fatG: (fatG * 10).roundToDouble() / 10,
+  );
 
   Macros copyWith({
     double? kcal,
     double? proteinG,
     double? carbsG,
     double? fatG,
-  }) =>
-      Macros(
-        kcal: kcal ?? this.kcal,
-        proteinG: proteinG ?? this.proteinG,
-        carbsG: carbsG ?? this.carbsG,
-        fatG: fatG ?? this.fatG,
-      );
+  }) => Macros(
+    kcal: kcal ?? this.kcal,
+    proteinG: proteinG ?? this.proteinG,
+    carbsG: carbsG ?? this.carbsG,
+    fatG: fatG ?? this.fatG,
+  );
 
   Map<String, dynamic> toJson() => {
-        'kcal': kcal,
-        'proteinG': proteinG,
-        'carbsG': carbsG,
-        'fatG': fatG,
-      };
+    'kcal': kcal,
+    'proteinG': proteinG,
+    'carbsG': carbsG,
+    'fatG': fatG,
+  };
 
   factory Macros.fromJson(Map<String, dynamic> json) => Macros(
-        kcal: (json['kcal'] as num?)?.toDouble() ?? 0,
-        proteinG: (json['proteinG'] as num?)?.toDouble() ?? 0,
-        carbsG: (json['carbsG'] as num?)?.toDouble() ?? 0,
-        fatG: (json['fatG'] as num?)?.toDouble() ?? 0,
-      );
+    kcal: (json['kcal'] as num?)?.toDouble() ?? 0,
+    proteinG: (json['proteinG'] as num?)?.toDouble() ?? 0,
+    carbsG: (json['carbsG'] as num?)?.toDouble() ?? 0,
+    fatG: (json['fatG'] as num?)?.toDouble() ?? 0,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -146,11 +145,11 @@ class MacroTargets {
   /// zero — "you are 62 kcal over" is expressed as a separate surplus, not as a
   /// negative remaining value.
   Macros remaining(Macros consumed) => Macros(
-        kcal: math.max(0.0, kcal - consumed.kcal),
-        proteinG: math.max(0.0, proteinG - consumed.proteinG),
-        carbsG: math.max(0.0, carbsG - consumed.carbsG),
-        fatG: math.max(0.0, fatG - consumed.fatG),
-      );
+    kcal: math.max(0.0, kcal - consumed.kcal),
+    proteinG: math.max(0.0, proteinG - consumed.proteinG),
+    carbsG: math.max(0.0, carbsG - consumed.carbsG),
+    fatG: math.max(0.0, fatG - consumed.fatG),
+  );
 
   /// Grams of protein still owed against the *floor*. This is the number the
   /// dashboard's Next Action card reports.
@@ -160,13 +159,12 @@ class MacroTargets {
   /// Fraction of each target achieved. May exceed 1.0.
   ({double kcal, double protein, double carbs, double fat}) progress(
     Macros consumed,
-  ) =>
-      (
-        kcal: kcal <= 0 ? 0 : consumed.kcal / kcal,
-        protein: proteinG <= 0 ? 0 : consumed.proteinG / proteinG,
-        carbs: carbsG <= 0 ? 0 : consumed.carbsG / carbsG,
-        fat: fatG <= 0 ? 0 : consumed.fatG / fatG,
-      );
+  ) => (
+    kcal: kcal <= 0 ? 0 : consumed.kcal / kcal,
+    protein: proteinG <= 0 ? 0 : consumed.proteinG / proteinG,
+    carbs: carbsG <= 0 ? 0 : consumed.carbsG / carbsG,
+    fat: fatG <= 0 ? 0 : consumed.fatG / fatG,
+  );
 
   /// Adherence as a percentage, where being *at* target scores 100 and
   /// deviation in either direction reduces the score symmetrically.
@@ -182,30 +180,29 @@ class MacroTargets {
     double? carbsG,
     double? fatG,
     double? proteinFloorG,
-  }) =>
-      MacroTargets(
-        kcal: kcal ?? this.kcal,
-        proteinG: proteinG ?? this.proteinG,
-        carbsG: carbsG ?? this.carbsG,
-        fatG: fatG ?? this.fatG,
-        proteinFloorG: proteinFloorG ?? this.proteinFloorG,
-      );
+  }) => MacroTargets(
+    kcal: kcal ?? this.kcal,
+    proteinG: proteinG ?? this.proteinG,
+    carbsG: carbsG ?? this.carbsG,
+    fatG: fatG ?? this.fatG,
+    proteinFloorG: proteinFloorG ?? this.proteinFloorG,
+  );
 
   Map<String, dynamic> toJson() => {
-        'kcal': kcal,
-        'proteinG': proteinG,
-        'carbsG': carbsG,
-        'fatG': fatG,
-        'proteinFloorG': proteinFloorG,
-      };
+    'kcal': kcal,
+    'proteinG': proteinG,
+    'carbsG': carbsG,
+    'fatG': fatG,
+    'proteinFloorG': proteinFloorG,
+  };
 
   factory MacroTargets.fromJson(Map<String, dynamic> json) => MacroTargets(
-        kcal: (json['kcal'] as num?)?.toDouble() ?? 0,
-        proteinG: (json['proteinG'] as num?)?.toDouble() ?? 0,
-        carbsG: (json['carbsG'] as num?)?.toDouble() ?? 0,
-        fatG: (json['fatG'] as num?)?.toDouble() ?? 0,
-        proteinFloorG: (json['proteinFloorG'] as num?)?.toDouble() ?? 0,
-      );
+    kcal: (json['kcal'] as num?)?.toDouble() ?? 0,
+    proteinG: (json['proteinG'] as num?)?.toDouble() ?? 0,
+    carbsG: (json['carbsG'] as num?)?.toDouble() ?? 0,
+    fatG: (json['fatG'] as num?)?.toDouble() ?? 0,
+    proteinFloorG: (json['proteinFloorG'] as num?)?.toDouble() ?? 0,
+  );
 
   @override
   bool operator ==(Object other) =>

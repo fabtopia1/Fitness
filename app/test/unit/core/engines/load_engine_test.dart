@@ -6,16 +6,16 @@ void main() {
     final start = DateTime(2026, 8, 1);
     return [
       for (var i = 0; i < loads.length; i++)
-        DailyLoad(date: start.add(Duration(days: i)), load: loads[i]),
+        DailyLoad(
+          date: start.add(Duration(days: i)),
+          load: loads[i],
+        ),
     ];
   }
 
   group('LoadEngine — session load', () {
     test('is RPE × duration', () {
-      expect(
-        LoadEngine.sessionLoad(sessionRpe: 8, durationMinutes: 73),
-        584,
-      );
+      expect(LoadEngine.sessionLoad(sessionRpe: 8, durationMinutes: 73), 584);
     });
 
     test('invalid input yields zero, not a negative load', () {
@@ -25,33 +25,39 @@ void main() {
     });
   });
 
-  group('LoadEngine — RPE estimation when the user did not rate the session', () {
-    test('a typical session estimates near its mean set RPE', () {
-      // 5 + (8 − 7) × 1.2 + volumeFactor(22 sets → 0.333) = 6.53 → 7
-      expect(
-        LoadEngine.estimateSessionRpe(avgSetRpe: 8, workingSets: 22),
-        7,
-      );
-    });
+  group(
+    'LoadEngine — RPE estimation when the user did not rate the session',
+    () {
+      test('a typical session estimates near its mean set RPE', () {
+        // 5 + (8 − 7) × 1.2 + volumeFactor(22 sets → 0.333) = 6.53 → 7
+        expect(LoadEngine.estimateSessionRpe(avgSetRpe: 8, workingSets: 22), 7);
+      });
 
-    test('high volume raises the estimate', () {
-      final low = LoadEngine.estimateSessionRpe(avgSetRpe: 8, workingSets: 10);
-      final high = LoadEngine.estimateSessionRpe(avgSetRpe: 8, workingSets: 30);
-      expect(high, greaterThan(low));
-    });
+      test('high volume raises the estimate', () {
+        final low = LoadEngine.estimateSessionRpe(
+          avgSetRpe: 8,
+          workingSets: 10,
+        );
+        final high = LoadEngine.estimateSessionRpe(
+          avgSetRpe: 8,
+          workingSets: 30,
+        );
+        expect(high, greaterThan(low));
+      });
 
-    test('the estimate is always a valid RPE', () {
-      for (final rpe in [null, 1.0, 5.0, 7.5, 10.0]) {
-        for (final sets in [0, 5, 22, 60]) {
-          final e = LoadEngine.estimateSessionRpe(
-            avgSetRpe: rpe,
-            workingSets: sets,
-          );
-          expect(e, inInclusiveRange(4, 10));
+      test('the estimate is always a valid RPE', () {
+        for (final rpe in [null, 1.0, 5.0, 7.5, 10.0]) {
+          for (final sets in [0, 5, 22, 60]) {
+            final e = LoadEngine.estimateSessionRpe(
+              avgSetRpe: rpe,
+              workingSets: sets,
+            );
+            expect(e, inInclusiveRange(4, 10));
+          }
         }
-      }
-    });
-  });
+      });
+    },
+  );
 
   group('LoadEngine — acute and chronic windows', () {
     test('an empty series is handled, not divided by zero', () {

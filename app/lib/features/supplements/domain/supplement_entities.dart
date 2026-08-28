@@ -11,9 +11,9 @@ enum SupplementFrequency {
   final String label;
 
   static SupplementFrequency fromWire(String value) => values.firstWhere(
-        (f) => f.wire == value,
-        orElse: () => SupplementFrequency.daily,
-      );
+    (f) => f.wire == value,
+    orElse: () => SupplementFrequency.daily,
+  );
 }
 
 /// A supplement in the user's stack. Firestore: `users/{uid}/supplements/{id}`.
@@ -96,64 +96,64 @@ class Supplement implements SyncedEntity {
     bool? active,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      Supplement(
-        id: id,
-        name: name ?? this.name,
-        dose: dose ?? this.dose,
-        unit: unit ?? this.unit,
-        frequency: frequency ?? this.frequency,
-        weekdays: weekdays ?? this.weekdays,
-        reminderHour: reminderHour ?? this.reminderHour,
-        reminderMinute: reminderMinute ?? this.reminderMinute,
-        reminderEnabled: reminderEnabled ?? this.reminderEnabled,
-        notes: notes ?? this.notes,
-        active: active ?? this.active,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => Supplement(
+    id: id,
+    name: name ?? this.name,
+    dose: dose ?? this.dose,
+    unit: unit ?? this.unit,
+    frequency: frequency ?? this.frequency,
+    weekdays: weekdays ?? this.weekdays,
+    reminderHour: reminderHour ?? this.reminderHour,
+    reminderMinute: reminderMinute ?? this.reminderMinute,
+    reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+    notes: notes ?? this.notes,
+    active: active ?? this.active,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'dose': dose,
-        'unit': unit,
-        'frequency': frequency.wire,
-        'weekdays': weekdays,
-        'reminderHour': reminderHour,
-        'reminderMinute': reminderMinute,
-        'reminderEnabled': reminderEnabled,
-        'notes': notes,
-        'active': active,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'dose': dose,
+    'unit': unit,
+    'frequency': frequency.wire,
+    'weekdays': weekdays,
+    'reminderHour': reminderHour,
+    'reminderMinute': reminderMinute,
+    'reminderEnabled': reminderEnabled,
+    'notes': notes,
+    'active': active,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory Supplement.fromJson(Map<String, dynamic> json) => Supplement(
-        id: Json.string(json['id']),
-        name: Json.string(json['name']),
-        dose: Json.number(json['dose']),
-        unit: Json.string(json['unit'], 'g'),
-        frequency:
-            SupplementFrequency.fromWire(Json.string(json['frequency'], 'daily')),
-        weekdays: (json['weekdays'] as List? ?? const [1, 2, 3, 4, 5, 6, 7])
-            .whereType<num>()
-            .map((n) => n.toInt())
-            .toList(),
-        reminderHour: Json.integer(json['reminderHour'], 9),
-        reminderMinute: Json.integer(json['reminderMinute']),
-        reminderEnabled: Json.boolean(json['reminderEnabled'], true),
-        notes: json['notes'] as String?,
-        active: Json.boolean(json['active'], true),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    name: Json.string(json['name']),
+    dose: Json.number(json['dose']),
+    unit: Json.string(json['unit'], 'g'),
+    frequency: SupplementFrequency.fromWire(
+      Json.string(json['frequency'], 'daily'),
+    ),
+    weekdays: (json['weekdays'] as List? ?? const [1, 2, 3, 4, 5, 6, 7])
+        .whereType<num>()
+        .map((n) => n.toInt())
+        .toList(),
+    reminderHour: Json.integer(json['reminderHour'], 9),
+    reminderMinute: Json.integer(json['reminderMinute']),
+    reminderEnabled: Json.boolean(json['reminderEnabled'], true),
+    notes: json['notes'] as String?,
+    active: Json.boolean(json['active'], true),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 
   /// The starter stack offered at setup. These are the four the product
   /// explicitly supports out of the box.
   static const List<({String name, double dose, String unit, int hour})>
-      starterCatalog = [
+  starterCatalog = [
     (name: 'Creatine monohydrate', dose: 5, unit: 'g', hour: 19),
     (name: 'Vitamin D3', dose: 4000, unit: 'IU', hour: 9),
     (name: 'Omega-3', dose: 1, unit: 'g', hour: 13),
@@ -194,24 +194,24 @@ class SupplementLog implements SyncedEntity {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'supplementId': supplementId,
-        'supplementName': supplementName,
-        'takenAt': takenAt.toIso8601String(),
-        'localDate': localDate,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'supplementId': supplementId,
+    'supplementName': supplementName,
+    'takenAt': takenAt.toIso8601String(),
+    'localDate': localDate,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory SupplementLog.fromJson(Map<String, dynamic> json) => SupplementLog(
-        id: Json.string(json['id']),
-        supplementId: Json.string(json['supplementId']),
-        supplementName: Json.string(json['supplementName']),
-        takenAt: Json.date(json['takenAt'], fallback: DateTime.now()),
-        localDate: Json.string(json['localDate']),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    supplementId: Json.string(json['supplementId']),
+    supplementName: Json.string(json['supplementName']),
+    takenAt: Json.date(json['takenAt'], fallback: DateTime.now()),
+    localDate: Json.string(json['localDate']),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 
   SupplementLog copyWith({DateTime? updatedAt, DateTime? deletedAt}) =>
       SupplementLog(

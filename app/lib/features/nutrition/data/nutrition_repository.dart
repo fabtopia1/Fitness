@@ -18,35 +18,35 @@ class NutritionRepository {
     String? uid,
     Uuid uuid = const Uuid(),
     DateTime Function()? clock,
-  })  : _uuid = uuid,
-        _clock = clock ?? DateTime.now,
-        foods = SyncedCollection<FoodItem>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxFoods,
-          collection: 'foods',
-          fromJson: FoodItem.fromJson,
-          firestore: firestore,
-          uid: uid,
-        ),
-        meals = SyncedCollection<Meal>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxMeals,
-          collection: 'meals',
-          fromJson: Meal.fromJson,
-          firestore: firestore,
-          uid: uid,
-        ),
-        logs = SyncedCollection<NutritionLog>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxNutritionLogs,
-          collection: 'nutrition_logs',
-          fromJson: NutritionLog.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+  }) : _uuid = uuid,
+       _clock = clock ?? DateTime.now,
+       foods = SyncedCollection<FoodItem>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxFoods,
+         collection: 'foods',
+         fromJson: FoodItem.fromJson,
+         firestore: firestore,
+         uid: uid,
+       ),
+       meals = SyncedCollection<Meal>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxMeals,
+         collection: 'meals',
+         fromJson: Meal.fromJson,
+         firestore: firestore,
+         uid: uid,
+       ),
+       logs = SyncedCollection<NutritionLog>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxNutritionLogs,
+         collection: 'nutrition_logs',
+         fromJson: NutritionLog.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final Uuid _uuid;
   final DateTime Function() _clock;
@@ -97,9 +97,9 @@ class NutritionRepository {
   Future<Result<FoodItem>> saveFood(FoodItem food) => foods.put(food);
 
   Future<Result<void>> deleteFood(String id) => foods.remove(
-        id,
-        tombstone: (f) => f.copyWith(deletedAt: _clock().toUtc()),
-      );
+    id,
+    tombstone: (f) => f.copyWith(deletedAt: _clock().toUtc()),
+  );
 
   FoodItem createFood({
     required String name,
@@ -107,16 +107,15 @@ class NutritionRepository {
     String? brand,
     String? servingLabel,
     double? servingGrams,
-  }) =>
-      FoodItem(
-        id: _uuid.v4(),
-        name: name.trim(),
-        brand: brand?.trim().isEmpty ?? true ? null : brand!.trim(),
-        per100g: per100g,
-        servingLabel: servingLabel,
-        servingGrams: servingGrams,
-        updatedAt: _clock().toUtc(),
-      );
+  }) => FoodItem(
+    id: _uuid.v4(),
+    name: name.trim(),
+    brand: brand?.trim().isEmpty ?? true ? null : brand!.trim(),
+    per100g: per100g,
+    servingLabel: servingLabel,
+    servingGrams: servingGrams,
+    updatedAt: _clock().toUtc(),
+  );
 
   // ------------------------------------------------------------------ meals --
 
@@ -125,19 +124,17 @@ class NutritionRepository {
   Future<Result<Meal>> saveMeal(Meal meal) => meals.put(meal);
 
   Future<Result<void>> deleteMeal(String id) => meals.remove(
-        id,
-        tombstone: (m) => m.copyWith(deletedAt: _clock().toUtc()),
-      );
+    id,
+    tombstone: (m) => m.copyWith(deletedAt: _clock().toUtc()),
+  );
 
   // ------------------------------------------------------------------- logs --
 
   Stream<List<NutritionLog>> watchLogs() => logs.watchAll();
 
-  List<NutritionLog> logsForDate(String localDate) => logs
-      .readAll()
-      .where((log) => log.localDate == localDate)
-      .toList()
-    ..sort((a, b) => a.loggedAt.compareTo(b.loggedAt));
+  List<NutritionLog> logsForDate(String localDate) =>
+      logs.readAll().where((log) => log.localDate == localDate).toList()
+        ..sort((a, b) => a.loggedAt.compareTo(b.loggedAt));
 
   /// Logs a food portion. Validates before writing so an impossible entry can
   /// never reach storage and corrupt a day's totals.
@@ -233,9 +230,9 @@ class NutritionRepository {
   }
 
   Future<Result<void>> deleteLog(String id) => logs.remove(
-        id,
-        tombstone: (l) => l.copyWith(deletedAt: _clock().toUtc()),
-      );
+    id,
+    tombstone: (l) => l.copyWith(deletedAt: _clock().toUtc()),
+  );
 
   Future<Result<int>> pullAll() async {
     final results = await Future.wait([

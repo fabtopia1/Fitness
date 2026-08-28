@@ -9,7 +9,6 @@ import 'package:lifedna/core/theme/app_theme.dart';
 
 import 'test_harness.dart';
 
-
 /// Unmounts the tree at the end of the test.
 ///
 /// Provider subscriptions to Hive boxes must be cancelled BEFORE the boxes are
@@ -150,8 +149,9 @@ Future<void> pumpSheet(
 }
 
 /// True once the sheet under test has closed itself.
-bool sheetIsClosed() => find.byKey(const Key('open-sheet')).evaluate().length == 1
-    && find.byType(BottomSheet).evaluate().isEmpty;
+bool sheetIsClosed() =>
+    find.byKey(const Key('open-sheet')).evaluate().length == 1 &&
+    find.byType(BottomSheet).evaluate().isEmpty;
 
 class _SheetHost extends StatelessWidget {
   const _SheetHost({required this.sheet});

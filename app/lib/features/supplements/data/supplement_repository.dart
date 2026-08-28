@@ -18,27 +18,27 @@ class SupplementRepository {
     String? uid,
     Uuid uuid = const Uuid(),
     DateTime Function()? clock,
-  })  : _notifications = notifications,
-        _uuid = uuid,
-        _clock = clock ?? DateTime.now,
-        supplements = SyncedCollection<Supplement>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxSupplements,
-          collection: 'supplements',
-          fromJson: Supplement.fromJson,
-          firestore: firestore,
-          uid: uid,
-        ),
-        logs = SyncedCollection<SupplementLog>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxSupplementLogs,
-          collection: 'supplement_logs',
-          fromJson: SupplementLog.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+  }) : _notifications = notifications,
+       _uuid = uuid,
+       _clock = clock ?? DateTime.now,
+       supplements = SyncedCollection<Supplement>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxSupplements,
+         collection: 'supplements',
+         fromJson: Supplement.fromJson,
+         firestore: firestore,
+         uid: uid,
+       ),
+       logs = SyncedCollection<SupplementLog>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxSupplementLogs,
+         collection: 'supplement_logs',
+         fromJson: SupplementLog.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final NotificationService _notifications;
   final Uuid _uuid;
@@ -64,12 +64,16 @@ class SupplementRepository {
         .map((l) => l.supplementId)
         .toSet();
 
-    final due = supplements
-        .readAll()
-        .where((s) => s.isScheduledOn(date, isTrainingDay: isTrainingDay))
-        .toList()
-      ..sort((a, b) => (a.reminderHour * 60 + a.reminderMinute)
-          .compareTo(b.reminderHour * 60 + b.reminderMinute));
+    final due =
+        supplements
+            .readAll()
+            .where((s) => s.isScheduledOn(date, isTrainingDay: isTrainingDay))
+            .toList()
+          ..sort(
+            (a, b) => (a.reminderHour * 60 + a.reminderMinute).compareTo(
+              b.reminderHour * 60 + b.reminderMinute,
+            ),
+          );
 
     return [
       for (final s in due) (supplement: s, taken: takenIds.contains(s.id)),
@@ -86,20 +90,19 @@ class SupplementRepository {
     int reminderMinute = 0,
     bool reminderEnabled = true,
     String? notes,
-  }) =>
-      Supplement(
-        id: _uuid.v4(),
-        name: name.trim(),
-        dose: dose,
-        unit: unit.trim(),
-        frequency: frequency,
-        weekdays: weekdays,
-        reminderHour: reminderHour,
-        reminderMinute: reminderMinute,
-        reminderEnabled: reminderEnabled,
-        notes: notes,
-        updatedAt: _clock().toUtc(),
-      );
+  }) => Supplement(
+    id: _uuid.v4(),
+    name: name.trim(),
+    dose: dose,
+    unit: unit.trim(),
+    frequency: frequency,
+    weekdays: weekdays,
+    reminderHour: reminderHour,
+    reminderMinute: reminderMinute,
+    reminderEnabled: reminderEnabled,
+    notes: notes,
+    updatedAt: _clock().toUtc(),
+  );
 
   Future<Result<Supplement>> save(Supplement supplement) async {
     if (supplement.name.trim().isEmpty) {
@@ -184,11 +187,7 @@ class SupplementRepository {
         if (logsByDate[localDate]?.contains(supplement.id) ?? false) taken++;
       }
     }
-    return SupplementCompliance(
-      taken: taken,
-      scheduled: scheduled,
-      days: days,
-    );
+    return SupplementCompliance(taken: taken, scheduled: scheduled, days: days);
   }
 
   /// Re-arms every reminder. Called after sign-in and on app resume, because

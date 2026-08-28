@@ -20,8 +20,9 @@ class AddFoodScreen extends ConsumerStatefulWidget {
 
 class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   final _search = TextEditingController();
-  late MealSlot _slot =
-      MealSlot.fromWire(widget.slotWire ?? MealSlot.snack.wire);
+  late MealSlot _slot = MealSlot.fromWire(
+    widget.slotWire ?? MealSlot.snack.wire,
+  );
   int _tab = 0;
 
   @override
@@ -96,8 +97,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                 ButtonSegment(value: 1, label: Text('Meals')),
               ],
               selected: {_tab},
-              onSelectionChanged: (value) =>
-                  setState(() => _tab = value.first),
+              onSelectionChanged: (value) => setState(() => _tab = value.first),
             ),
           ),
           const SizedBox(height: LdSpacing.s3),
@@ -187,12 +187,8 @@ class _FoodList extends StatelessWidget {
 
     if (foods.isEmpty) {
       return LdEmptyState(
-        icon: query.isEmpty
-            ? Icons.no_food_rounded
-            : Icons.search_off_rounded,
-        headline: query.isEmpty
-            ? 'No foods yet'
-            : 'No match for "$query"',
+        icon: query.isEmpty ? Icons.no_food_rounded : Icons.search_off_rounded,
+        headline: query.isEmpty ? 'No foods yet' : 'No match for "$query"',
         body: 'Create it once and it stays in your list forever.',
         actionLabel: 'Create food',
         onAction: onCreate,

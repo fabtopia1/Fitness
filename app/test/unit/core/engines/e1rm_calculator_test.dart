@@ -56,14 +56,23 @@ void main() {
     });
 
     test('6–12 reps is moderate', () {
-      expect(E1rmCalculator.estimate(100, 6).confidence, E1rmConfidence.moderate);
-      expect(E1rmCalculator.estimate(100, 12).confidence, E1rmConfidence.moderate);
+      expect(
+        E1rmCalculator.estimate(100, 6).confidence,
+        E1rmConfidence.moderate,
+      );
+      expect(
+        E1rmCalculator.estimate(100, 12).confidence,
+        E1rmConfidence.moderate,
+      );
     });
 
-    test('above 12 reps is flagged low — an endurance set is not a max test', () {
-      expect(E1rmCalculator.estimate(100, 13).confidence, E1rmConfidence.low);
-      expect(E1rmCalculator.estimate(100, 25).confidence, E1rmConfidence.low);
-    });
+    test(
+      'above 12 reps is flagged low — an endurance set is not a max test',
+      () {
+        expect(E1rmCalculator.estimate(100, 13).confidence, E1rmConfidence.low);
+        expect(E1rmCalculator.estimate(100, 25).confidence, E1rmConfidence.low);
+      },
+    );
   });
 
   group('E1rmCalculator — inverse and rounding', () {
@@ -74,7 +83,10 @@ void main() {
 
     test('rounds to the nearest achievable plate increment', () {
       // 103.7 is 1.2 above 102.5 and 1.3 below 105, so it rounds DOWN.
-      expect(E1rmCalculator.roundToIncrement(103.7, 2.5), closeTo(102.5, 0.001));
+      expect(
+        E1rmCalculator.roundToIncrement(103.7, 2.5),
+        closeTo(102.5, 0.001),
+      );
       expect(E1rmCalculator.roundToIncrement(104.0, 2.5), closeTo(105, 0.001));
       expect(E1rmCalculator.roundToIncrement(101.2, 2.5), closeTo(100, 0.001));
       // An unknown increment must pass the load through untouched rather than
@@ -205,13 +217,13 @@ void main() {
 
   group('OverloadAdvisor', () {
     SessionPerformance perfect() => SessionPerformance(
-          date: DateTime(2026, 8, 27),
-          workingSets: const [
-            (weightKg: 32.5, reps: 12, rpe: 7),
-            (weightKg: 32.5, reps: 12, rpe: 8),
-            (weightKg: 32.5, reps: 12, rpe: 8),
-          ],
-        );
+      date: DateTime(2026, 8, 27),
+      workingSets: const [
+        (weightKg: 32.5, reps: 12, rpe: 7),
+        (weightKg: 32.5, reps: 12, rpe: 8),
+        (weightKg: 32.5, reps: 12, rpe: 8),
+      ],
+    );
 
     test('two clean sessions at RPE ≤ 8 earn a load increase', () {
       final suggestion = OverloadAdvisor.suggestedIncrease(

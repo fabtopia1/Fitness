@@ -61,7 +61,8 @@ class NutritionScreen extends ConsumerWidget {
                   children: [
                     LdStatRow(
                       label: 'calories',
-                      value: '${_int(nutrition.totals.kcal)} / '
+                      value:
+                          '${_int(nutrition.totals.kcal)} / '
                           '${_int(targets.kcal)} kcal',
                       progress: targets.kcal <= 0
                           ? 0
@@ -70,7 +71,8 @@ class NutritionScreen extends ConsumerWidget {
                     ),
                     LdStatRow(
                       label: 'protein',
-                      value: '${_int(nutrition.totals.proteinG)} / '
+                      value:
+                          '${_int(nutrition.totals.proteinG)} / '
                           '${_int(targets.proteinG)} g',
                       progress: targets.proteinG <= 0
                           ? 0
@@ -79,7 +81,8 @@ class NutritionScreen extends ConsumerWidget {
                     ),
                     LdStatRow(
                       label: 'carbs',
-                      value: '${_int(nutrition.totals.carbsG)} / '
+                      value:
+                          '${_int(nutrition.totals.carbsG)} / '
                           '${_int(targets.carbsG)} g',
                       progress: targets.carbsG <= 0
                           ? 0
@@ -88,7 +91,8 @@ class NutritionScreen extends ConsumerWidget {
                     ),
                     LdStatRow(
                       label: 'fat',
-                      value: '${_int(nutrition.totals.fatG)} / '
+                      value:
+                          '${_int(nutrition.totals.fatG)} / '
                           '${_int(targets.fatG)} g',
                       progress: targets.fatG <= 0
                           ? 0
@@ -202,7 +206,7 @@ class _SlotSection extends ConsumerWidget {
             entries.isEmpty
                 ? 'not logged'
                 : '${totals.kcal.round()} kcal · '
-                    '${totals.proteinG.round()} g P',
+                      '${totals.proteinG.round()} g P',
             style: type.bodyS.copyWith(
               color: entries.isEmpty ? c.accent : c.textSecondary,
             ),
@@ -222,9 +226,7 @@ class _SlotSection extends ConsumerWidget {
               child: Icon(Icons.delete_outline_rounded, color: c.danger),
             ),
             onDismissed: (_) async {
-              await ref
-                  .read(nutritionRepositoryProvider)
-                  .deleteLog(entry.id);
+              await ref.read(nutritionRepositoryProvider).deleteLog(entry.id);
               if (context.mounted) {
                 showSuccessSnack(context, '${entry.foodName} removed');
               }
@@ -263,8 +265,7 @@ class _SlotSection extends ConsumerWidget {
           label: '+ Add to ${slot.label.toLowerCase()}',
           size: LdButtonSize.s,
           variant: LdButtonVariant.ghost,
-          onPressed: () =>
-              context.push('${Routes.addFood}?slot=${slot.wire}'),
+          onPressed: () => context.push('${Routes.addFood}?slot=${slot.wire}'),
         ),
       ],
     );

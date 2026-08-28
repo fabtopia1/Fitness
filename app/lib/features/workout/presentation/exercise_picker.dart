@@ -66,8 +66,7 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                 height: 44,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: LdSpacing.s4),
+                  padding: const EdgeInsets.symmetric(horizontal: LdSpacing.s4),
                   children: [
                     ChoiceChip(
                       label: const Text('All'),
@@ -109,16 +108,13 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
                           return ListTile(
                             title: Text(
                               exercise.name,
-                              style: type.titleM
-                                  .copyWith(color: c.textPrimary),
+                              style: type.titleM.copyWith(color: c.textPrimary),
                             ),
                             subtitle: Text(
                               exercise.subtitle,
-                              style: type.bodyS
-                                  .copyWith(color: c.textTertiary),
+                              style: type.bodyS.copyWith(color: c.textTertiary),
                             ),
-                            onTap: () =>
-                                Navigator.of(context).pop(exercise),
+                            onTap: () => Navigator.of(context).pop(exercise),
                           );
                         },
                       ),

@@ -129,10 +129,10 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                     onAddExercise: () => _addExercise(session),
                     onNext: hasPlan && index < plan.length - 1
                         ? () => setState(() {
-                              _exerciseIndex = index + 1;
-                              _weightKg = null;
-                              _reps = null;
-                            })
+                            _exerciseIndex = index + 1;
+                            _weightKg = null;
+                            _reps = null;
+                          })
                         : null,
                   ),
                 ],
@@ -142,8 +142,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                   remaining: _restRemaining,
                   total: _restTotal,
                   onAdjust: (delta) => setState(
-                    () => _restRemaining =
-                        (_restRemaining + delta).clamp(0, 900).toInt(),
+                    () => _restRemaining = (_restRemaining + delta)
+                        .clamp(0, 900)
+                        .toInt(),
                   ),
                   onSkip: _stopRest,
                 ),
@@ -174,7 +175,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
     WorkoutSession session,
     WorkoutExercise exercise,
   ) async {
-    final result = await ref.read(workoutRepositoryProvider).addSet(
+    final result = await ref
+        .read(workoutRepositoryProvider)
+        .addSet(
           session: session,
           exerciseId: exercise.exerciseId,
           exerciseName: exercise.exerciseName,
@@ -244,7 +247,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
         // Fires even if the user has switched apps mid-rest, which is what
         // most people do.
         unawaited(
-          ref.read(notificationServiceProvider).showNow(
+          ref
+              .read(notificationServiceProvider)
+              .showNow(
                 id: 90001,
                 channel: NotificationChannelId.restTimer,
                 title: 'Rest finished',
@@ -292,8 +297,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
     );
     if (confirmed != true || !mounted) return;
 
-    final result =
-        await ref.read(workoutRepositoryProvider).finishSession(session);
+    final result = await ref
+        .read(workoutRepositoryProvider)
+        .finishSession(session);
     if (!mounted) return;
     result.when(
       ok: (_) {
@@ -314,7 +320,8 @@ class _Header extends StatelessWidget {
     final c = context.ldColors;
     final type = context.ldType;
     final elapsed = session.durationAt(DateTime.now());
-    final clock = '${elapsed.inHours > 0 ? '${elapsed.inHours}:' : ''}'
+    final clock =
+        '${elapsed.inHours > 0 ? '${elapsed.inHours}:' : ''}'
         '${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')}:'
         '${elapsed.inSeconds.remainder(60).toString().padLeft(2, '0')}';
 
@@ -345,15 +352,15 @@ class _FreeformPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(top: LdSpacing.s8),
-        child: LdEmptyState(
-          icon: Icons.add_circle_outline_rounded,
-          headline: 'Add your first exercise',
-          body: 'Pick from your library and start logging sets.',
-          actionLabel: 'Add exercise',
-          onAction: onAdd,
-        ),
-      );
+    padding: const EdgeInsets.only(top: LdSpacing.s8),
+    child: LdEmptyState(
+      icon: Icons.add_circle_outline_rounded,
+      headline: 'Add your first exercise',
+      body: 'Pick from your library and start logging sets.',
+      actionLabel: 'Add exercise',
+      onAction: onAdd,
+    ),
+  );
 }
 
 class _ExercisePanel extends ConsumerWidget {
@@ -382,9 +389,11 @@ class _ExercisePanel extends ConsumerWidget {
     final c = context.ldColors;
     final type = context.ldType;
     final done = session.setsDoneFor(exercise.exerciseId);
-    final last =
-        ref.read(workoutRepositoryProvider).lastPerformance(exercise.exerciseId);
-    final increment = ref
+    final last = ref
+        .read(workoutRepositoryProvider)
+        .lastPerformance(exercise.exerciseId);
+    final increment =
+        ref
             .read(workoutRepositoryProvider)
             .exercises
             .readOne(exercise.exerciseId)
@@ -412,10 +421,12 @@ class _ExercisePanel extends ConsumerWidget {
               child: _Stepper(
                 value: _fmt(weightKg),
                 unit: 'KG',
-                onDecrement: () =>
-                    onWeight((weightKg - increment).clamp(0.0, 500.0).toDouble()),
-                onIncrement: () =>
-                    onWeight((weightKg + increment).clamp(0.0, 500.0).toDouble()),
+                onDecrement: () => onWeight(
+                  (weightKg - increment).clamp(0.0, 500.0).toDouble(),
+                ),
+                onIncrement: () => onWeight(
+                  (weightKg + increment).clamp(0.0, 500.0).toDouble(),
+                ),
               ),
             ),
             const SizedBox(width: LdSpacing.s3),
@@ -563,8 +574,7 @@ class _CompletedSets extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.ldColors;
     final type = context.ldType;
-    final sets =
-        session.sets.where((s) => s.exerciseId == exerciseId).toList();
+    final sets = session.sets.where((s) => s.exerciseId == exerciseId).toList();
     if (sets.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -708,8 +718,9 @@ class _RestOverlay extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: c.surfaceElevated,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(LdRadius.l)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(LdRadius.l),
+          ),
           border: Border(top: BorderSide(color: c.borderStrong)),
           boxShadow: [
             BoxShadow(
@@ -726,7 +737,10 @@ class _RestOverlay extends StatelessWidget {
             Text(
               '${remaining ~/ 60}:'
               '${(remaining % 60).toString().padLeft(2, '0')}',
-              style: type.displayXL.copyWith(color: c.textPrimary, fontSize: 64),
+              style: type.displayXL.copyWith(
+                color: c.textPrimary,
+                fontSize: 64,
+              ),
             ),
             const SizedBox(height: LdSpacing.s3),
             ClipRRect(

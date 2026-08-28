@@ -21,29 +21,29 @@ class CalendarRepository {
     String? uid,
     Uuid uuid = const Uuid(),
     DateTime Function()? clock,
-  })  : _store = store,
-        _notifications = notifications,
-        _google = google,
-        _uuid = uuid,
-        _clock = clock ?? DateTime.now,
-        tasks = SyncedCollection<Task>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxTasks,
-          collection: 'tasks',
-          fromJson: Task.fromJson,
-          firestore: firestore,
-          uid: uid,
-        ),
-        events = SyncedCollection<CalendarEvent>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxCalendarEvents,
-          collection: 'calendar_events',
-          fromJson: CalendarEvent.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+  }) : _store = store,
+       _notifications = notifications,
+       _google = google,
+       _uuid = uuid,
+       _clock = clock ?? DateTime.now,
+       tasks = SyncedCollection<Task>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxTasks,
+         collection: 'tasks',
+         fromJson: Task.fromJson,
+         firestore: firestore,
+         uid: uid,
+       ),
+       events = SyncedCollection<CalendarEvent>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxCalendarEvents,
+         collection: 'calendar_events',
+         fromJson: CalendarEvent.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final HiveStore _store;
   final NotificationService _notifications;
@@ -175,11 +175,9 @@ class CalendarRepository {
 
   List<CalendarEvent> upcoming({int limit = 5, DateTime? now}) {
     final from = now ?? _clock();
-    final list = events
-        .readAll()
-        .where((e) => e.endAt.isAfter(from.toUtc()))
-        .toList()
-      ..sort((a, b) => a.startAt.compareTo(b.startAt));
+    final list =
+        events.readAll().where((e) => e.endAt.isAfter(from.toUtc())).toList()
+          ..sort((a, b) => a.startAt.compareTo(b.startAt));
     return list.take(limit).toList();
   }
 
@@ -190,17 +188,16 @@ class CalendarRepository {
     String? description,
     String? location,
     bool isAllDay = false,
-  }) =>
-      CalendarEvent(
-        id: _uuid.v4(),
-        title: title.trim(),
-        description: description,
-        location: location,
-        startAt: startAt.toUtc(),
-        endAt: endAt.toUtc(),
-        isAllDay: isAllDay,
-        updatedAt: _clock().toUtc(),
-      );
+  }) => CalendarEvent(
+    id: _uuid.v4(),
+    title: title.trim(),
+    description: description,
+    location: location,
+    startAt: startAt.toUtc(),
+    endAt: endAt.toUtc(),
+    isAllDay: isAllDay,
+    updatedAt: _clock().toUtc(),
+  );
 
   Future<Result<CalendarEvent>> saveEvent(CalendarEvent event) {
     if (event.title.trim().isEmpty) {
@@ -262,7 +259,10 @@ class CalendarRepository {
   }
 
   /// Pulls a window of Google events into the local mirror.
-  Future<Result<int>> syncGoogle({int daysBack = 7, int daysForward = 30}) async {
+  Future<Result<int>> syncGoogle({
+    int daysBack = 7,
+    int daysForward = 30,
+  }) async {
     final now = _clock();
     final result = await _google.fetchEvents(
       from: now.subtract(Duration(days: daysBack)),

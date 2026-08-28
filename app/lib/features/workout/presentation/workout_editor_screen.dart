@@ -112,16 +112,18 @@ class _WorkoutEditorScreenState extends ConsumerState<WorkoutEditorScreen> {
                             children: [
                               Text(
                                 exercise.exerciseName,
-                                style: type.titleM
-                                    .copyWith(color: c.textPrimary),
+                                style: type.titleM.copyWith(
+                                  color: c.textPrimary,
+                                ),
                               ),
                               const SizedBox(height: LdSpacing.s1),
                               Text(
                                 '${exercise.targetSets} × '
                                 '${exercise.repRange} · '
                                 '${exercise.restSeconds}s rest',
-                                style: type.bodyS
-                                    .copyWith(color: c.textTertiary),
+                                style: type.bodyS.copyWith(
+                                  color: c.textTertiary,
+                                ),
                               ),
                             ],
                           ),
@@ -207,10 +209,8 @@ class _WorkoutEditorScreenState extends ConsumerState<WorkoutEditorScreen> {
         ? null
         : repository.workoutById(widget.workoutId!);
 
-    final workout = existing?.copyWith(
-          name: _name.text.trim(),
-          exercises: _exercises,
-        ) ??
+    final workout =
+        existing?.copyWith(name: _name.text.trim(), exercises: _exercises) ??
         Workout(
           id: const Uuid().v4(),
           name: _name.text.trim(),
@@ -313,9 +313,8 @@ class _ExerciseParamsSheetState extends State<_ExerciseParamsSheet> {
             _Row(
               label: 'Max reps',
               value: '$_repMax',
-              onMinus: () => setState(
-                () => _repMax = (_repMax - 1).clamp(_repMin, 50),
-              ),
+              onMinus: () =>
+                  setState(() => _repMax = (_repMax - 1).clamp(_repMin, 50)),
               onPlus: () =>
                   setState(() => _repMax = (_repMax + 1).clamp(_repMin, 50)),
             ),
@@ -324,8 +323,7 @@ class _ExerciseParamsSheetState extends State<_ExerciseParamsSheet> {
               value: '$_rest',
               onMinus: () =>
                   setState(() => _rest = (_rest - 15).clamp(15, 600)),
-              onPlus: () =>
-                  setState(() => _rest = (_rest + 15).clamp(15, 600)),
+              onPlus: () => setState(() => _rest = (_rest + 15).clamp(15, 600)),
             ),
             const SizedBox(height: LdSpacing.s5),
             LdPrimaryButton(

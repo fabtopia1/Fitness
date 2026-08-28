@@ -16,19 +16,20 @@ class SupplementEditorSheet extends ConsumerStatefulWidget {
       _SupplementEditorSheetState();
 }
 
-class _SupplementEditorSheetState
-    extends ConsumerState<SupplementEditorSheet> {
+class _SupplementEditorSheetState extends ConsumerState<SupplementEditorSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _name =
-      TextEditingController(text: widget.existing?.name ?? '');
+  late final TextEditingController _name = TextEditingController(
+    text: widget.existing?.name ?? '',
+  );
   late final TextEditingController _dose = TextEditingController(
     text: widget.existing == null ? '' : _trim(widget.existing!.dose),
   );
   late String _unit = widget.existing?.unit ?? 'g';
   late SupplementFrequency _frequency =
       widget.existing?.frequency ?? SupplementFrequency.daily;
-  late final List<int> _weekdays =
-      [...widget.existing?.weekdays ?? const [1, 2, 3, 4, 5, 6, 7]];
+  late final List<int> _weekdays = [
+    ...widget.existing?.weekdays ?? const [1, 2, 3, 4, 5, 6, 7],
+  ];
   late TimeOfDay _time = TimeOfDay(
     hour: widget.existing?.reminderHour ?? 9,
     minute: widget.existing?.reminderMinute ?? 0,
@@ -71,8 +72,7 @@ class _SupplementEditorSheetState
                     Expanded(
                       child: Text(
                         isEdit ? 'Edit supplement' : 'New supplement',
-                        style:
-                            type.headlineM.copyWith(color: c.textPrimary),
+                        style: type.headlineM.copyWith(color: c.textPrimary),
                       ),
                     ),
                     if (isEdit)
@@ -87,9 +87,8 @@ class _SupplementEditorSheetState
                   controller: _name,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Enter a name'
-                      : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
                 ),
                 const SizedBox(height: LdSpacing.s3),
                 Row(
@@ -123,8 +122,7 @@ class _SupplementEditorSheetState
                         // Without this the button sizes to its widest item and
                         // overflows the row on a narrow phone.
                         isExpanded: true,
-                        decoration:
-                            const InputDecoration(labelText: 'Unit'),
+                        decoration: const InputDecoration(labelText: 'Unit'),
                         items: [
                           for (final unit in _units)
                             DropdownMenuItem(value: unit, child: Text(unit)),
@@ -177,9 +175,7 @@ class _SupplementEditorSheetState
                   onChanged: (value) => setState(() => _remind = value),
                   title: const Text('Daily reminder'),
                   subtitle: Text(
-                    _remind
-                        ? 'At ${_time.format(context)}'
-                        : 'No reminder',
+                    _remind ? 'At ${_time.format(context)}' : 'No reminder',
                     style: type.bodyS.copyWith(color: c.textTertiary),
                   ),
                 ),
@@ -221,7 +217,8 @@ class _SupplementEditorSheetState
     final repository = ref.read(supplementRepositoryProvider);
     final dose = double.parse(_dose.text);
 
-    final supplement = widget.existing?.copyWith(
+    final supplement =
+        widget.existing?.copyWith(
           name: _name.text,
           dose: dose,
           unit: _unit,

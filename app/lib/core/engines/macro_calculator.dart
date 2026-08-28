@@ -156,8 +156,7 @@ abstract final class MacroCalculator {
     var trainingKcal = baseTdee + trainingBonus + goalDeltaKcal;
     var restKcal = baseTdee + goalDeltaKcal;
 
-    final absoluteFloor =
-        input.sex == Sex.female ? minKcalFemale : minKcalMale;
+    final absoluteFloor = input.sex == Sex.female ? minKcalFemale : minKcalMale;
     if (restKcal < absoluteFloor) {
       restKcal = absoluteFloor;
       clamped = true;
@@ -172,8 +171,11 @@ abstract final class MacroCalculator {
     final proteinFloorG = _proteinFloor(input);
 
     // ---- 7. Fat, then carbohydrate as the remainder ------------------------
-    final trainingTargets =
-        _distribute(trainingKcal, proteinFloorG, input.weightKg);
+    final trainingTargets = _distribute(
+      trainingKcal,
+      proteinFloorG,
+      input.weightKg,
+    );
     final restTargets = _distribute(restKcal, proteinFloorG, input.weightKg);
 
     // ---- 8. Hydration ------------------------------------------------------

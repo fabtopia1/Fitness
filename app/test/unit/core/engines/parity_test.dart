@@ -51,8 +51,9 @@ void main() {
             heightCm: (input['heightCm'] as num).toDouble(),
             age: input['age'] as int,
             sex: Sex.fromWire(input['sex'] as String),
-            activityLevel:
-                ActivityLevel.fromWire(input['activityLevel'] as String),
+            activityLevel: ActivityLevel.fromWire(
+              input['activityLevel'] as String,
+            ),
             goalMode: GoalMode.fromWire(input['goalMode'] as String),
             trainingDaysPerWeek: (input['trainingDaysPerWeek'] as int?) ?? 4,
             leanMassKg: (input['leanMassKg'] as num?)?.toDouble(),
@@ -63,8 +64,11 @@ void main() {
 
         expect(result.bmr, expected['bmr'], reason: 'bmr');
         expect(result.tdee, expected['tdee'], reason: 'tdee');
-        expect(result.proteinFloorG, expected['proteinFloorG'],
-            reason: 'proteinFloorG');
+        expect(
+          result.proteinFloorG,
+          expected['proteinFloorG'],
+          reason: 'proteinFloorG',
+        );
         expect(result.waterMl, expected['waterMl'], reason: 'waterMl');
         expect(result.clamped, expected['clamped'], reason: 'clamped');
         expect(
@@ -74,7 +78,10 @@ void main() {
         );
         expect(
           result.projectedWeeklyChangeKg,
-          closeTo((expected['projectedWeeklyChangeKg'] as num).toDouble(), 0.01),
+          closeTo(
+            (expected['projectedWeeklyChangeKg'] as num).toDouble(),
+            0.01,
+          ),
           reason: 'projectedWeeklyChangeKg',
         );
 
@@ -114,15 +121,22 @@ void main() {
           training: _training(input['training'] as Map<String, dynamic>?),
           activity: _activity(input['activity'] as Map<String, dynamic>?),
           physiology: _physiology(input['physiology'] as Map<String, dynamic>?),
-          plannedSession:
-              _planned(input['plannedSession'] as Map<String, dynamic>?),
+          plannedSession: _planned(
+            input['plannedSession'] as Map<String, dynamic>?,
+          ),
         );
 
-        expect(result.recoveryScore, expected['recoveryScore'],
-            reason: 'recoveryScore');
+        expect(
+          result.recoveryScore,
+          expected['recoveryScore'],
+          reason: 'recoveryScore',
+        );
         expect(result.band.wire, expected['band'], reason: 'band');
-        expect(result.readinessScore, expected['readinessScore'],
-            reason: 'readinessScore');
+        expect(
+          result.readinessScore,
+          expected['readinessScore'],
+          reason: 'readinessScore',
+        );
         expect(result.sleepScore, expected['sleepScore'], reason: 'sleepScore');
         expect(result.action?.wire, expected['action'], reason: 'action');
         expect(
@@ -131,24 +145,33 @@ void main() {
           reason: 'missingInputs',
         );
 
-        final expectedComponents =
-            (expected['components'] as List).cast<Map<String, dynamic>>();
-        expect(result.components.length, expectedComponents.length,
-            reason: 'component count');
+        final expectedComponents = (expected['components'] as List)
+            .cast<Map<String, dynamic>>();
+        expect(
+          result.components.length,
+          expectedComponents.length,
+          reason: 'component count',
+        );
         for (var i = 0; i < expectedComponents.length; i++) {
           final actual = result.components[i];
           final want = expectedComponents[i];
           expect(actual.name, want['name'], reason: 'component[$i].name');
           expect(actual.score, want['score'], reason: 'component[$i].score');
-          expect(actual.weight, closeTo((want['weight'] as num).toDouble(), 0.001),
-              reason: 'component[$i].weight');
+          expect(
+            actual.weight,
+            closeTo((want['weight'] as num).toDouble(), 0.001),
+            reason: 'component[$i].weight',
+          );
           expect(
             actual.contribution,
             closeTo((want['contribution'] as num).toDouble(), 0.1),
             reason: 'component[$i].contribution',
           );
-          expect(actual.available, want['available'],
-              reason: 'component[$i].available');
+          expect(
+            actual.available,
+            want['available'],
+            reason: 'component[$i].available',
+          );
         }
 
         if (expected['detail'] != null) {
@@ -169,17 +192,16 @@ List<File> _fixtures(Directory dir) {
     ..sort((a, b) => a.path.compareTo(b.path));
 }
 
-void _expectTargets(
-  dynamic actual,
-  Map<String, dynamic> want,
-  String label,
-) {
+void _expectTargets(dynamic actual, Map<String, dynamic> want, String label) {
   expect(actual.kcal, want['kcal'], reason: '$label.kcal');
   expect(actual.proteinG, want['proteinG'], reason: '$label.proteinG');
   expect(actual.carbsG, want['carbsG'], reason: '$label.carbsG');
   expect(actual.fatG, want['fatG'], reason: '$label.fatG');
-  expect(actual.proteinFloorG, want['proteinFloorG'],
-      reason: '$label.proteinFloorG');
+  expect(
+    actual.proteinFloorG,
+    want['proteinFloorG'],
+    reason: '$label.proteinFloorG',
+  );
 }
 
 SleepInput? _sleep(Map<String, dynamic>? j) => j == null
@@ -190,8 +212,7 @@ SleepInput? _sleep(Map<String, dynamic>? j) => j == null
         goalMinutes: (j['goalMinutes'] as int?) ?? 480,
         deepMinutes: j['deepMinutes'] as int?,
         remMinutes: j['remMinutes'] as int?,
-        bedtimeStdDevMinutes:
-            (j['bedtimeStdDevMinutes'] as num?)?.toDouble(),
+        bedtimeStdDevMinutes: (j['bedtimeStdDevMinutes'] as num?)?.toDouble(),
         wakeStdDevMinutes: (j['wakeStdDevMinutes'] as num?)?.toDouble(),
         nightsOfHistory: (j['nightsOfHistory'] as int?) ?? 0,
       );

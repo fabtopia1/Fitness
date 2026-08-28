@@ -10,7 +10,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 /// portal reports "connected" and drops every request.
 class ConnectivityService {
   ConnectivityService({Connectivity? connectivity})
-      : _connectivity = connectivity ?? Connectivity();
+    : _connectivity = connectivity ?? Connectivity();
 
   final Connectivity _connectivity;
 
@@ -21,6 +21,5 @@ class ConnectivityService {
       _connectivity.onConnectivityChanged.map(_isOnline).distinct();
 
   static bool _isOnline(List<ConnectivityResult> results) =>
-      results.isNotEmpty &&
-      !results.every((r) => r == ConnectivityResult.none);
+      results.isNotEmpty && !results.every((r) => r == ConnectivityResult.none);
 }

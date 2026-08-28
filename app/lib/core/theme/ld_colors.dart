@@ -99,8 +99,9 @@ class LdColors extends ThemeExtension<LdColors> {
 
   /// The blend endpoint for [overTarget] — white in dark themes, black in
   /// light ones, so "over" always reads as brighter than the track.
-  Color get _overTargetBlend =>
-      bg.computeLuminance() < 0.5 ? const Color(0xFFFFFFFF) : const Color(0xFF000000);
+  Color get _overTargetBlend => bg.computeLuminance() < 0.5
+      ? const Color(0xFFFFFFFF)
+      : const Color(0xFF000000);
 
   /// Drop shadow for genuinely floating layers (elevation 3+ in docs/04 §4.3).
   Color get shadow => const Color(0x59000000);

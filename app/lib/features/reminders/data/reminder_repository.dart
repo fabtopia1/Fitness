@@ -21,18 +21,18 @@ class ReminderRepository {
     String? uid,
     DateTime Function()? clock,
     Uuid uuid = const Uuid(),
-  })  : _notifications = notifications,
-        _clock = clock ?? DateTime.now,
-        _uuid = uuid,
-        _reminders = SyncedCollection<Reminder>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxNotifications,
-          collection: 'notifications',
-          fromJson: Reminder.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+  }) : _notifications = notifications,
+       _clock = clock ?? DateTime.now,
+       _uuid = uuid,
+       _reminders = SyncedCollection<Reminder>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxNotifications,
+         collection: 'notifications',
+         fromJson: Reminder.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final SyncedCollection<Reminder> _reminders;
   final NotificationService _notifications;
@@ -44,8 +44,11 @@ class ReminderRepository {
   List<Reminder> readAll() => _sorted(_reminders.readAll());
 
   static List<Reminder> _sorted(List<Reminder> items) {
-    final sorted = [...items]..sort((a, b) {
-        final byTime = (a.hour * 60 + a.minute).compareTo(b.hour * 60 + b.minute);
+    final sorted = [...items]
+      ..sort((a, b) {
+        final byTime = (a.hour * 60 + a.minute).compareTo(
+          b.hour * 60 + b.minute,
+        );
         return byTime != 0 ? byTime : a.title.compareTo(b.title);
       });
     return sorted;

@@ -14,14 +14,16 @@ final supplementLogsProvider = StreamProvider<List<SupplementLog>>(
 /// Today's schedule with taken state.
 final todaySupplementsProvider =
     Provider<List<({Supplement supplement, bool taken})>>((ref) {
-  ref
-    ..watch(supplementsProvider)
-    ..watch(supplementLogsProvider);
-  return ref.watch(supplementRepositoryProvider).scheduleFor(
-        ref.watch(todayProvider),
-        isTrainingDay: ref.watch(trainedTodayProvider),
-      );
-});
+      ref
+        ..watch(supplementsProvider)
+        ..watch(supplementLogsProvider);
+      return ref
+          .watch(supplementRepositoryProvider)
+          .scheduleFor(
+            ref.watch(todayProvider),
+            isTrainingDay: ref.watch(trainedTodayProvider),
+          );
+    });
 
 final supplementComplianceProvider = Provider<SupplementCompliance>((ref) {
   ref

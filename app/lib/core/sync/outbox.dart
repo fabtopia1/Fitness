@@ -58,49 +58,46 @@ class OutboxEntry {
     int? attempts,
     DateTime? nextAttemptAt,
     String? lastError,
-  }) =>
-      OutboxEntry(
-        id: id,
-        op: op,
-        collection: collection,
-        docId: docId,
-        payload: payload,
-        createdAt: createdAt,
-        attempts: attempts ?? this.attempts,
-        nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
-        lastError: lastError ?? this.lastError,
-      );
+  }) => OutboxEntry(
+    id: id,
+    op: op,
+    collection: collection,
+    docId: docId,
+    payload: payload,
+    createdAt: createdAt,
+    attempts: attempts ?? this.attempts,
+    nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+    lastError: lastError ?? this.lastError,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'op': op.name,
-        'collection': collection,
-        'docId': docId,
-        'payload': payload,
-        'createdAt': createdAt.toIso8601String(),
-        'attempts': attempts,
-        'nextAttemptAt': nextAttemptAt?.toIso8601String(),
-        'lastError': lastError,
-      };
+    'id': id,
+    'op': op.name,
+    'collection': collection,
+    'docId': docId,
+    'payload': payload,
+    'createdAt': createdAt.toIso8601String(),
+    'attempts': attempts,
+    'nextAttemptAt': nextAttemptAt?.toIso8601String(),
+    'lastError': lastError,
+  };
 
   factory OutboxEntry.fromJson(Map<String, dynamic> json) => OutboxEntry(
-        id: json['id'] as String,
-        op: OutboxOp.values.firstWhere(
-          (o) => o.name == json['op'],
-          orElse: () => OutboxOp.upsert,
-        ),
-        collection: json['collection'] as String,
-        docId: json['docId'] as String,
-        payload: Map<String, dynamic>.from(
-          json['payload'] as Map? ?? const {},
-        ),
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        attempts: (json['attempts'] as num?)?.toInt() ?? 0,
-        nextAttemptAt: json['nextAttemptAt'] == null
-            ? null
-            : DateTime.parse(json['nextAttemptAt'] as String),
-        lastError: json['lastError'] as String?,
-      );
+    id: json['id'] as String,
+    op: OutboxOp.values.firstWhere(
+      (o) => o.name == json['op'],
+      orElse: () => OutboxOp.upsert,
+    ),
+    collection: json['collection'] as String,
+    docId: json['docId'] as String,
+    payload: Map<String, dynamic>.from(json['payload'] as Map? ?? const {}),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    attempts: (json['attempts'] as num?)?.toInt() ?? 0,
+    nextAttemptAt: json['nextAttemptAt'] == null
+        ? null
+        : DateTime.parse(json['nextAttemptAt'] as String),
+    lastError: json['lastError'] as String?,
+  );
 }
 
 class Outbox {
@@ -138,11 +135,9 @@ class Outbox {
     await _store.write(HiveStore.boxOutbox, key, entry.toJson());
   }
 
-  List<OutboxEntry> pending() => _store
-      .readAll(HiveStore.boxOutbox)
-      .map(OutboxEntry.fromJson)
-      .toList()
-    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  List<OutboxEntry> pending() =>
+      _store.readAll(HiveStore.boxOutbox).map(OutboxEntry.fromJson).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   List<OutboxEntry> due(DateTime now) =>
       pending().where((e) => e.isDue(now)).toList();

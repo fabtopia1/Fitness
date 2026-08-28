@@ -297,14 +297,12 @@ class SessionPerformance {
   final List<({double weightKg, int reps, int? rpe})> workingSets;
   final DateTime date;
 
-  double get volumeKg => workingSets.fold(
-        0,
-        (sum, s) => sum + s.weightKg * s.reps,
-      );
+  double get volumeKg =>
+      workingSets.fold(0, (sum, s) => sum + s.weightKg * s.reps);
 
   double get bestE1rm => workingSets.isEmpty
       ? 0
       : workingSets
-          .map((s) => E1rmCalculator.epley(s.weightKg, s.reps))
-          .reduce(math.max);
+            .map((s) => E1rmCalculator.epley(s.weightKg, s.reps))
+            .reduce(math.max);
 }

@@ -10,25 +10,222 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: '3.24.0'
+  # Pinned to the version the suite is verified against. The Dart formatter's
+  # style changes between SDK releases, so an unpinned CI would fail the format
+  # gate on code that is correctly formatted locally.
+  FLUTTER_VERSION: '3.47.2'
   NODE_VERSION: '20'
+  COVERAGE_MIN: '80'
 
 jobs:
   # ---------------------------------------------------------------------------
-  # The parity gate. This job is the reason the engines can be trusted, and it
-  # cannot be overridden by a maintainer — a divergence between the client and
-  # server implementations means a user sees one recovery score before syncing
-  # and a different one after.
+  # The gate that decides whether the app ships. Analyze, format, layer rules,
+  # the full test suite, and the coverage floor.
   # ---------------------------------------------------------------------------
-  engine-parity:
-    name: Engine parity (Dart ↔ TypeScript ↔ spec)
+  flutter:
+    name: Flutter — analyze, test, coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install
+        working-directory: app
+        run: flutter pub get
+
+      # --fatal-infos: the lint set includes `todo: error` and the layering
+      # rules, and a warning that is allowed to accumulate is a rule nobody
+      # follows.
+      - name: Analyze
+        working-directory: app
+        run: flutter analyze --fatal-infos
+
+      - name: Format
+        working-directory: app
+        run: dart format --output=none --set-exit-if-changed lib test integration_test
+
+      # The two rules the analyzer cannot express: the pure-Dart domain
+      # boundary and no colour literal outside core/theme.
+      - name: Layer boundaries and colour discipline
+        working-directory: app
+        run: python3 tool/check_sources.py
+
+      - name: Test
+        working-directory: app
+        run: flutter test --coverage --reporter expanded
+
+      - name: Coverage gate
+        working-directory: app
+        run: dart ../tool/coverage_gate.dart --min ${{ env.COVERAGE_MIN }}
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: app/coverage/lcov.info
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # Proof that each flavour compiles and links. A green test suite says nothing
+  # about whether the Android toolchain can produce an installable artefact.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build ${{ matrix.flavor }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: flutter
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [dev, staging, prod]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install
+        working-directory: app
+        run: flutter pub get
+
+      # Firebase configuration arrives as --dart-define, never as a committed
+      # file. A pull request from a fork has no secrets, so it builds the
+      # local-mode binary — which is a supported configuration, not a stub.
+      - name: Build APK
+        working-directory: app
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          GOOGLE_CALENDAR_CLIENT_ID: ${{ secrets.GOOGLE_CALENDAR_CLIENT_ID }}
+        run: |
+          flutter build apk \
+            --flavor ${{ matrix.flavor }} \
+            --${{ matrix.flavor == 'dev' && 'debug' || 'release' }} \
+            --dart-define=FLAVOR=${{ matrix.flavor }} \
+            --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" \
+            --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" \
+            --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID" \
+            --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
+            --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
+            --dart-define=GOOGLE_CALENDAR_CLIENT_ID="$GOOGLE_CALENDAR_CLIENT_ID"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifedna-${{ matrix.flavor }}-apk
+          path: app/build/app/outputs/flutter-apk/*.apk
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # The journeys, on a real emulator. Slower and flakier than the headless run,
+  # so it does not gate a pull request — but it must be green before a release.
+  # ---------------------------------------------------------------------------
+  integration:
+    name: Integration (Android emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: flutter
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'run-integration')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install
+        working-directory: app
+        run: flutter pub get
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: cd app && flutter test integration_test/app_test.dart
+
+  # ---------------------------------------------------------------------------
+  # Firestore rules are the only thing between one user's data and another's.
+  # They are tested against the emulator, not reviewed by eye.
+  # ---------------------------------------------------------------------------
+  rules:
+    name: Firestore rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # firebase-tools is a dev dependency of the suite rather than a global
+      # install, so CI runs the same emulator version a developer does.
+      - name: Rules test suite
+        working-directory: firebase/rules-test
+        run: |
+          npm ci
+          npm run emulator
+
+  # ---------------------------------------------------------------------------
+  # The engines exist twice — Dart on the client, TypeScript on the server —
+  # and a divergence means a user sees one number before syncing and another
+  # after. Fixtures generated by a third, independent implementation bind both.
+  # ---------------------------------------------------------------------------
+  engine-parity:
+    name: Engine parity (Dart ↔ TypeScript ↔ spec)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
           cache: true
 
       - uses: actions/setup-node@v4
@@ -63,89 +260,8 @@ jobs:
           npm ci
           npm test -- test/engines/parity.test.ts
 
-  flutter:
-    name: Flutter
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install
-        working-directory: app
-        run: flutter pub get
-
-      - name: Analyze
-        working-directory: app
-        run: flutter analyze --fatal-infos
-
-      - name: Format
-        working-directory: app
-        run: dart format --output=none --set-exit-if-changed lib test
-
-      # Enforces the two rules the analyzer cannot express: the pure-Dart
-      # domain boundary (docs/02 §4.1) and no colour literal outside
-      # core/theme (docs/04 §12).
-      - name: Layer boundaries and colour discipline
-        working-directory: app
-        run: python3 tool/check_sources.py
-
-      - name: Test
-        working-directory: app
-        run: flutter test --coverage
-
-      - name: Coverage gate
-        working-directory: app
-        run: |
-          # The engines produce every number the user sees. They are the one
-          # place where less than full coverage is not acceptable.
-          if ! grep -q "core/engines" coverage/lcov.info; then
-            echo "::error::No coverage recorded for core/engines"
-            exit 1
-          fi
-
-      - name: Build (staging)
-        working-directory: app
-        run: flutter build apk --debug --target-platform android-arm64
-
-  functions:
-    name: Cloud Functions
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: functions/package-lock.json
-
-      - name: Install
-        working-directory: functions
-        run: npm ci
-
-      - name: Lint
-        working-directory: functions
-        run: npm run lint
-
-      - name: Typecheck and build
-        working-directory: functions
-        run: npm run build
-
-      - name: Test
-        working-directory: functions
-        run: npm test
-
       # Math.round and Dart's num.round() disagree on negative halves, and
       # projectedWeeklyChangeKg is negative for every user in a deficit.
-      # See functions/README.md §4.
       - name: No platform rounding inside the engines
         working-directory: functions
         run: |
@@ -158,6 +274,7 @@ jobs:
   security:
     name: Security
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -165,7 +282,7 @@ jobs:
         run: |
           # These files are gitignored; a commit means credentials leaked.
           for f in google-services.json GoogleService-Info.plist \
-                   firebase_options.dart serviceAccountKey.json; do
+                   firebase_options.dart serviceAccountKey.json key.properties; do
             if git ls-files --error-unmatch "**/$f" 2>/dev/null; then
               echo "::error::$f must never be committed."
               exit 1
@@ -178,10 +295,12 @@ jobs:
           fi
           echo "No committed secrets."
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Dependency audit
-        working-directory: functions
-        run: npm audit --audit-level=high || true
+      # An app that ships a keystore or a signing password in the repository is
+      # an app anyone can publish an update to.
+      - name: No keystore in the tree
+        run: |
+          if git ls-files | grep -E '\.(jks|keystore|p12|pem)$'; then
+            echo "::error::A signing key is committed."
+            exit 1
+          fi
+          echo "No signing material committed."

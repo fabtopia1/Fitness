@@ -30,7 +30,8 @@ class BodyScreen extends ConsumerWidget {
         empty: LdEmptyState(
           icon: Icons.monitor_weight_rounded,
           headline: 'No measurements yet',
-          body: 'Log your weight to start seeing a trend. Everything else is '
+          body:
+              'Log your weight to start seeing a trend. Everything else is '
               'optional.',
           actionLabel: 'Add measurement',
           onAction: () => _edit(context),
@@ -39,8 +40,9 @@ class BodyScreen extends ConsumerWidget {
           final metrics = ref.watch(availableBodyMetricsProvider);
           final selected = ref.watch(selectedBodyMetricProvider);
           final trend = ref.watch(bodyTrendProvider);
-          final photos =
-              measurements.where((m) => m.photoPath != null).toList();
+          final photos = measurements
+              .where((m) => m.photoPath != null)
+              .toList();
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(
@@ -60,9 +62,11 @@ class BodyScreen extends ConsumerWidget {
                         ChoiceChip(
                           label: Text(metric.label),
                           selected: selected == metric,
-                          onSelected: (_) => ref
-                              .read(selectedBodyMetricProvider.notifier)
-                              .state = metric,
+                          onSelected: (_) =>
+                              ref
+                                      .read(selectedBodyMetricProvider.notifier)
+                                      .state =
+                                  metric,
                         ),
                         const SizedBox(width: LdSpacing.s2),
                       ],
@@ -90,8 +94,7 @@ class BodyScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(LdRadius.m),
+                              borderRadius: BorderRadius.circular(LdRadius.m),
                               child: Image.file(
                                 // Photos are device-local; a missing file is
                                 // normal after a restore, so it degrades to a
@@ -113,8 +116,7 @@ class BodyScreen extends ConsumerWidget {
                           const SizedBox(height: LdSpacing.s1),
                           Text(
                             photo.localDate,
-                            style: type.caption
-                                .copyWith(color: c.textTertiary),
+                            style: type.caption.copyWith(color: c.textTertiary),
                           ),
                         ],
                       );
@@ -134,12 +136,11 @@ class BodyScreen extends ConsumerWidget {
     );
   }
 
-  static Future<void> _edit(BuildContext context) =>
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => const BodyEditorSheet(),
-      );
+  static Future<void> _edit(BuildContext context) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const BodyEditorSheet(),
+  );
 }
 
 class _TrendCard extends StatelessWidget {
@@ -192,8 +193,8 @@ class _TrendCard extends StatelessWidget {
                     color: improving == null
                         ? c.textSecondary
                         : improving
-                            ? c.success
-                            : c.warning,
+                        ? c.success
+                        : c.warning,
                   ),
                 ),
             ],

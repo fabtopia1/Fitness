@@ -40,18 +40,17 @@ class FoodItem implements SyncedEntity {
   @override
   final DateTime? deletedAt;
 
-  String get displayName => brand == null || brand!.isEmpty
-      ? name
-      : '$name · $brand';
+  String get displayName =>
+      brand == null || brand!.isEmpty ? name : '$name · $brand';
 
   Macros macrosForGrams(double grams) => per100g.scaled(grams / 100);
 
   /// Grams for a quantity expressed in [unit].
   double gramsFor(double quantity, PortionUnit unit) => switch (unit) {
-        PortionUnit.grams => quantity,
-        PortionUnit.millilitres => quantity,
-        PortionUnit.serving => quantity * (servingGrams ?? 100),
-      };
+    PortionUnit.grams => quantity,
+    PortionUnit.millilitres => quantity,
+    PortionUnit.serving => quantity * (servingGrams ?? 100),
+  };
 
   /// True when the stated energy disagrees with the Atwater reconstruction.
   /// Surfaced in the UI so a user can correct bad data rather than trust it.
@@ -67,46 +66,45 @@ class FoodItem implements SyncedEntity {
     int? useCount,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      FoodItem(
-        id: id,
-        name: name ?? this.name,
-        brand: brand ?? this.brand,
-        per100g: per100g ?? this.per100g,
-        servingLabel: servingLabel ?? this.servingLabel,
-        servingGrams: servingGrams ?? this.servingGrams,
-        isFavorite: isFavorite ?? this.isFavorite,
-        useCount: useCount ?? this.useCount,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => FoodItem(
+    id: id,
+    name: name ?? this.name,
+    brand: brand ?? this.brand,
+    per100g: per100g ?? this.per100g,
+    servingLabel: servingLabel ?? this.servingLabel,
+    servingGrams: servingGrams ?? this.servingGrams,
+    isFavorite: isFavorite ?? this.isFavorite,
+    useCount: useCount ?? this.useCount,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'brand': brand,
-        'per100g': per100g.toJson(),
-        'servingLabel': servingLabel,
-        'servingGrams': servingGrams,
-        'isFavorite': isFavorite,
-        'useCount': useCount,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'brand': brand,
+    'per100g': per100g.toJson(),
+    'servingLabel': servingLabel,
+    'servingGrams': servingGrams,
+    'isFavorite': isFavorite,
+    'useCount': useCount,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
-        id: Json.string(json['id']),
-        name: Json.string(json['name']),
-        brand: json['brand'] as String?,
-        per100g: Macros.fromJson(Json.map(json['per100g'])),
-        servingLabel: json['servingLabel'] as String?,
-        servingGrams: (json['servingGrams'] as num?)?.toDouble(),
-        isFavorite: Json.boolean(json['isFavorite']),
-        useCount: Json.integer(json['useCount']),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    name: Json.string(json['name']),
+    brand: json['brand'] as String?,
+    per100g: Macros.fromJson(Json.map(json['per100g'])),
+    servingLabel: json['servingLabel'] as String?,
+    servingGrams: (json['servingGrams'] as num?)?.toDouble(),
+    isFavorite: Json.boolean(json['isFavorite']),
+    useCount: Json.integer(json['useCount']),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 enum PortionUnit {
@@ -117,8 +115,10 @@ enum PortionUnit {
   const PortionUnit(this.label);
   final String label;
 
-  static PortionUnit fromWire(String value) =>
-      values.firstWhere((u) => u.label == value, orElse: () => PortionUnit.grams);
+  static PortionUnit fromWire(String value) => values.firstWhere(
+    (u) => u.label == value,
+    orElse: () => PortionUnit.grams,
+  );
 }
 
 /// A saved meal: an ordered set of foods logged together in one tap.
@@ -156,41 +156,40 @@ class Meal implements SyncedEntity {
     int? useCount,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      Meal(
-        id: id,
-        name: name ?? this.name,
-        items: items ?? this.items,
-        slot: slot ?? this.slot,
-        useCount: useCount ?? this.useCount,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => Meal(
+    id: id,
+    name: name ?? this.name,
+    items: items ?? this.items,
+    slot: slot ?? this.slot,
+    useCount: useCount ?? this.useCount,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'slot': slot?.wire,
-        'items': items.map((i) => i.toJson()).toList(),
-        'useCount': useCount,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'slot': slot?.wire,
+    'items': items.map((i) => i.toJson()).toList(),
+    'useCount': useCount,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory Meal.fromJson(Map<String, dynamic> json) => Meal(
-        id: Json.string(json['id']),
-        name: Json.string(json['name']),
-        slot: json['slot'] == null
-            ? null
-            : MealSlot.fromWire(Json.string(json['slot'])),
-        items: (json['items'] as List? ?? const [])
-            .map((e) => MealItem.fromJson(Json.map(e)))
-            .toList(),
-        useCount: Json.integer(json['useCount']),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    name: Json.string(json['name']),
+    slot: json['slot'] == null
+        ? null
+        : MealSlot.fromWire(Json.string(json['slot'])),
+    items: (json['items'] as List? ?? const [])
+        .map((e) => MealItem.fromJson(Json.map(e)))
+        .toList(),
+    useCount: Json.integer(json['useCount']),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 /// One food inside a saved meal. Denormalised name and macros so rendering a
@@ -210,18 +209,18 @@ class MealItem {
   final Macros macros;
 
   Map<String, dynamic> toJson() => {
-        'foodId': foodId,
-        'foodName': foodName,
-        'grams': grams,
-        'macros': macros.toJson(),
-      };
+    'foodId': foodId,
+    'foodName': foodName,
+    'grams': grams,
+    'macros': macros.toJson(),
+  };
 
   factory MealItem.fromJson(Map<String, dynamic> json) => MealItem(
-        foodId: Json.string(json['foodId']),
-        foodName: Json.string(json['foodName']),
-        grams: Json.number(json['grams']),
-        macros: Macros.fromJson(Json.map(json['macros'])),
-      );
+    foodId: Json.string(json['foodId']),
+    foodName: Json.string(json['foodName']),
+    grams: Json.number(json['grams']),
+    macros: Macros.fromJson(Json.map(json['macros'])),
+  );
 }
 
 enum NutritionEntryType { food, water }
@@ -297,64 +296,63 @@ class NutritionLog implements SyncedEntity {
     int? waterMl,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      NutritionLog(
-        id: id,
-        type: type,
-        foodId: foodId,
-        foodName: foodName,
-        grams: grams ?? this.grams,
-        quantity: quantity ?? this.quantity,
-        unit: unit,
-        macros: macros ?? this.macros,
-        slot: slot ?? this.slot,
-        waterMl: waterMl ?? this.waterMl,
-        mealId: mealId,
-        loggedAt: loggedAt,
-        localDate: localDate,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => NutritionLog(
+    id: id,
+    type: type,
+    foodId: foodId,
+    foodName: foodName,
+    grams: grams ?? this.grams,
+    quantity: quantity ?? this.quantity,
+    unit: unit,
+    macros: macros ?? this.macros,
+    slot: slot ?? this.slot,
+    waterMl: waterMl ?? this.waterMl,
+    mealId: mealId,
+    loggedAt: loggedAt,
+    localDate: localDate,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type.name,
-        'foodId': foodId,
-        'foodName': foodName,
-        'grams': grams,
-        'quantity': quantity,
-        'unit': unit.label,
-        'macros': macros.toJson(),
-        'slot': slot.wire,
-        'waterMl': waterMl,
-        'mealId': mealId,
-        'loggedAt': loggedAt.toIso8601String(),
-        'localDate': localDate,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'type': type.name,
+    'foodId': foodId,
+    'foodName': foodName,
+    'grams': grams,
+    'quantity': quantity,
+    'unit': unit.label,
+    'macros': macros.toJson(),
+    'slot': slot.wire,
+    'waterMl': waterMl,
+    'mealId': mealId,
+    'loggedAt': loggedAt.toIso8601String(),
+    'localDate': localDate,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory NutritionLog.fromJson(Map<String, dynamic> json) => NutritionLog(
-        id: Json.string(json['id']),
-        type: NutritionEntryType.values.firstWhere(
-          (t) => t.name == json['type'],
-          orElse: () => NutritionEntryType.food,
-        ),
-        foodId: json['foodId'] as String?,
-        foodName: Json.string(json['foodName']),
-        grams: Json.number(json['grams']),
-        quantity: Json.number(json['quantity']),
-        unit: PortionUnit.fromWire(Json.string(json['unit'], 'g')),
-        macros: Macros.fromJson(Json.map(json['macros'])),
-        slot: MealSlot.fromWire(Json.string(json['slot'], 'snack')),
-        waterMl: Json.integer(json['waterMl']),
-        mealId: json['mealId'] as String?,
-        loggedAt: Json.date(json['loggedAt'], fallback: DateTime.now()),
-        localDate: Json.string(json['localDate']),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    type: NutritionEntryType.values.firstWhere(
+      (t) => t.name == json['type'],
+      orElse: () => NutritionEntryType.food,
+    ),
+    foodId: json['foodId'] as String?,
+    foodName: Json.string(json['foodName']),
+    grams: Json.number(json['grams']),
+    quantity: Json.number(json['quantity']),
+    unit: PortionUnit.fromWire(Json.string(json['unit'], 'g')),
+    macros: Macros.fromJson(Json.map(json['macros'])),
+    slot: MealSlot.fromWire(Json.string(json['slot'], 'snack')),
+    waterMl: Json.integer(json['waterMl']),
+    mealId: json['mealId'] as String?,
+    loggedAt: Json.date(json['loggedAt'], fallback: DateTime.now()),
+    localDate: Json.string(json['localDate']),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 /// A day's nutrition, assembled from logs. Not persisted — derived, so it can
@@ -375,9 +373,8 @@ class DailyNutrition {
   Macros get totals =>
       foodEntries.fold(Macros.zero, (sum, e) => sum + e.macros);
 
-  int get waterMl => entries
-      .where((e) => e.isWater)
-      .fold(0, (sum, e) => sum + e.waterMl);
+  int get waterMl =>
+      entries.where((e) => e.isWater).fold(0, (sum, e) => sum + e.waterMl);
 
   List<NutritionLog> forSlot(MealSlot slot) =>
       foodEntries.where((e) => e.slot == slot).toList()

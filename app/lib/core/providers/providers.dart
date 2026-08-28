@@ -32,14 +32,17 @@ final bootstrapProvider = Provider<AppBootstrap>(
 
 // ------------------------------------------------------------------ services --
 
-final hiveStoreProvider =
-    Provider<HiveStore>((ref) => ref.watch(bootstrapProvider).store);
+final hiveStoreProvider = Provider<HiveStore>(
+  (ref) => ref.watch(bootstrapProvider).store,
+);
 
-final firebaseServiceProvider =
-    Provider<FirebaseService>((ref) => ref.watch(bootstrapProvider).firebase);
+final firebaseServiceProvider = Provider<FirebaseService>(
+  (ref) => ref.watch(bootstrapProvider).firebase,
+);
 
-final telemetryProvider =
-    Provider<TelemetryService>((ref) => ref.watch(bootstrapProvider).telemetry);
+final telemetryProvider = Provider<TelemetryService>(
+  (ref) => ref.watch(bootstrapProvider).telemetry,
+);
 
 final notificationServiceProvider = Provider<NotificationService>(
   (ref) => ref.watch(bootstrapProvider).notifications,
@@ -54,8 +57,9 @@ final isOnlineProvider = StreamProvider<bool>((ref) {
   return connectivity.onStatusChange;
 });
 
-final outboxProvider =
-    Provider<Outbox>((ref) => Outbox(ref.watch(hiveStoreProvider)));
+final outboxProvider = Provider<Outbox>(
+  (ref) => Outbox(ref.watch(hiveStoreProvider)),
+);
 
 /// "Now", overridable in tests so time-dependent behaviour is deterministic.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
@@ -65,8 +69,9 @@ final todayProvider = Provider<DateTime>((ref) {
   return DateTime(now.year, now.month, now.day);
 });
 
-final todayLocalDateProvider =
-    Provider<String>((ref) => Json.localDate(ref.watch(todayProvider)));
+final todayLocalDateProvider = Provider<String>(
+  (ref) => Json.localDate(ref.watch(todayProvider)),
+);
 
 // ---------------------------------------------------------------------- auth --
 
@@ -170,8 +175,9 @@ final bodyRepositoryProvider = Provider<BodyRepository>((ref) {
   );
 });
 
-final googleCalendarServiceProvider =
-    Provider<GoogleCalendarService>((ref) => GoogleCalendarService());
+final googleCalendarServiceProvider = Provider<GoogleCalendarService>(
+  (ref) => GoogleCalendarService(),
+);
 
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
   final bootstrap = ref.watch(bootstrapProvider);
@@ -186,5 +192,6 @@ final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
   );
 });
 
-final healthSyncServiceProvider =
-    Provider<HealthSyncService>((ref) => HealthSyncService());
+final healthSyncServiceProvider = Provider<HealthSyncService>(
+  (ref) => HealthSyncService(),
+);

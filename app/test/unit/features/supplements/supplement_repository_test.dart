@@ -28,23 +28,20 @@ void main() {
     bool reminderEnabled = true,
     SupplementFrequency frequency = SupplementFrequency.daily,
     List<int> weekdays = const [1, 2, 3, 4, 5, 6, 7],
-  }) =>
-      repository.create(
-        name: 'Creatine',
-        dose: 5,
-        unit: 'g',
-        frequency: frequency,
-        weekdays: weekdays,
-        reminderHour: 8,
-        reminderMinute: 30,
-        reminderEnabled: reminderEnabled,
-      );
+  }) => repository.create(
+    name: 'Creatine',
+    dose: 5,
+    unit: 'g',
+    frequency: frequency,
+    weekdays: weekdays,
+    reminderHour: 8,
+    reminderMinute: 30,
+    reminderEnabled: reminderEnabled,
+  );
 
   group('validation', () {
     test('a nameless supplement is refused', () async {
-      final result = await repository.save(
-        creatine().copyWith(name: '   '),
-      );
+      final result = await repository.save(creatine().copyWith(name: '   '));
       expect(result.failureOrNull, isA<ValidationFailure>());
       expect(repository.readSupplements(), isEmpty);
     });
@@ -53,8 +50,11 @@ void main() {
       final result = await repository.save(creatine().copyWith(dose: 0));
       expect(
         result.failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'quantity_must_be_positive'),
+        isA<ValidationFailure>().having(
+          (f) => f.code,
+          'code',
+          'quantity_must_be_positive',
+        ),
       );
     });
   });
@@ -155,76 +155,84 @@ void main() {
   });
 
   group('the daily schedule', () {
-    test('reports what is due and what has been taken, ordered by time',
-        () async {
-      final morning = creatine();
-      final evening = repository.create(
-        name: 'Magnesium',
-        dose: 300,
-        unit: 'mg',
-        reminderHour: 22,
-      );
-      await repository.save(morning);
-      await repository.save(evening);
-      await repository.logDose(morning);
+    test(
+      'reports what is due and what has been taken, ordered by time',
+      () async {
+        final morning = creatine();
+        final evening = repository.create(
+          name: 'Magnesium',
+          dose: 300,
+          unit: 'mg',
+          reminderHour: 22,
+        );
+        await repository.save(morning);
+        await repository.save(evening);
+        await repository.logDose(morning);
 
-      final schedule = repository.scheduleFor(now, isTrainingDay: false);
+        final schedule = repository.scheduleFor(now, isTrainingDay: false);
 
-      expect(schedule.map((e) => e.supplement.name), ['Creatine', 'Magnesium']);
-      expect(schedule.first.taken, isTrue);
-      expect(schedule.last.taken, isFalse);
-    });
+        expect(schedule.map((e) => e.supplement.name), [
+          'Creatine',
+          'Magnesium',
+        ]);
+        expect(schedule.first.taken, isTrue);
+        expect(schedule.last.taken, isFalse);
+      },
+    );
 
-    test('a weekday supplement is absent on a day it is not scheduled',
-        () async {
-      // 14 March 2026 is a Saturday (weekday 6).
-      await repository.save(
-        creatine(
-          frequency: SupplementFrequency.weekdays,
-          weekdays: const [1, 2, 3, 4, 5],
-        ),
-      );
+    test(
+      'a weekday supplement is absent on a day it is not scheduled',
+      () async {
+        // 14 March 2026 is a Saturday (weekday 6).
+        await repository.save(
+          creatine(
+            frequency: SupplementFrequency.weekdays,
+            weekdays: const [1, 2, 3, 4, 5],
+          ),
+        );
 
-      expect(repository.scheduleFor(now, isTrainingDay: false), isEmpty);
-      expect(
-        repository.scheduleFor(
-          DateTime(2026, 3, 16),
-          isTrainingDay: false,
-        ),
-        hasLength(1),
-      );
-    });
+        expect(repository.scheduleFor(now, isTrainingDay: false), isEmpty);
+        expect(
+          repository.scheduleFor(DateTime(2026, 3, 16), isTrainingDay: false),
+          hasLength(1),
+        );
+      },
+    );
 
-    test('a training-day supplement follows the caller, not the calendar',
-        () async {
-      await repository.save(
-        creatine(frequency: SupplementFrequency.trainingDays),
-      );
+    test(
+      'a training-day supplement follows the caller, not the calendar',
+      () async {
+        await repository.save(
+          creatine(frequency: SupplementFrequency.trainingDays),
+        );
 
-      expect(repository.scheduleFor(now, isTrainingDay: false), isEmpty);
-      expect(repository.scheduleFor(now, isTrainingDay: true), hasLength(1));
-    });
+        expect(repository.scheduleFor(now, isTrainingDay: false), isEmpty);
+        expect(repository.scheduleFor(now, isTrainingDay: true), hasLength(1));
+      },
+    );
   });
 
   group('compliance', () {
-    test('counts scheduled doses from each schedule, not one per day',
-        () async {
-      // A training-days-only supplement must not be marked non-compliant for
-      // the rest days it was never due on.
-      await repository.save(
-        creatine(frequency: SupplementFrequency.trainingDays),
-      );
+    test(
+      'counts scheduled doses from each schedule, not one per day',
+      () async {
+        // A training-days-only supplement must not be marked non-compliant for
+        // the rest days it was never due on.
+        await repository.save(
+          creatine(frequency: SupplementFrequency.trainingDays),
+        );
 
-      final compliance = repository.compliance(
-        days: 7,
-        now: now,
-        isTrainingDay: (day) => day.weekday <= 3,
-      );
+        final compliance = repository.compliance(
+          days: 7,
+          now: now,
+          isTrainingDay: (day) => day.weekday <= 3,
+        );
 
-      expect(compliance.scheduled, 3);
-      expect(compliance.taken, 0);
-      expect(compliance.percent, 0);
-    });
+        expect(compliance.scheduled, 3);
+        expect(compliance.taken, 0);
+        expect(compliance.percent, 0);
+      },
+    );
 
     test('a taken dose raises the percentage', () async {
       final supplement = creatine();

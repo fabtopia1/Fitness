@@ -14,9 +14,9 @@ enum ThemePreference {
   final String label;
 
   static ThemePreference fromWire(String value) => values.firstWhere(
-        (t) => t.wire == value,
-        orElse: () => ThemePreference.dark,
-      );
+    (t) => t.wire == value,
+    orElse: () => ThemePreference.dark,
+  );
 }
 
 /// User preferences. Firestore: `users/{uid}/settings/preferences`.
@@ -64,35 +64,34 @@ class AppSettings implements SyncedEntity {
     bool? analyticsConsent,
     bool? crashReportsConsent,
     DateTime? updatedAt,
-  }) =>
-      AppSettings(
-        theme: theme ?? this.theme,
-        remindersEnabled: remindersEnabled ?? this.remindersEnabled,
-        analyticsConsent: analyticsConsent ?? this.analyticsConsent,
-        crashReportsConsent: crashReportsConsent ?? this.crashReportsConsent,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt,
-      );
+  }) => AppSettings(
+    theme: theme ?? this.theme,
+    remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+    analyticsConsent: analyticsConsent ?? this.analyticsConsent,
+    crashReportsConsent: crashReportsConsent ?? this.crashReportsConsent,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'theme': theme.wire,
-        'remindersEnabled': remindersEnabled,
-        'analyticsConsent': analyticsConsent,
-        'crashReportsConsent': crashReportsConsent,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'theme': theme.wire,
+    'remindersEnabled': remindersEnabled,
+    'analyticsConsent': analyticsConsent,
+    'crashReportsConsent': crashReportsConsent,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-        theme: ThemePreference.fromWire(Json.string(json['theme'], 'dark')),
-        remindersEnabled: Json.boolean(json['remindersEnabled'], true),
-        analyticsConsent: Json.boolean(json['analyticsConsent']),
-        crashReportsConsent: Json.boolean(json['crashReportsConsent'], true),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    theme: ThemePreference.fromWire(Json.string(json['theme'], 'dark')),
+    remindersEnabled: Json.boolean(json['remindersEnabled'], true),
+    analyticsConsent: Json.boolean(json['analyticsConsent']),
+    crashReportsConsent: Json.boolean(json['crashReportsConsent'], true),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 
   factory AppSettings.defaults({DateTime? now}) =>
       AppSettings(updatedAt: (now ?? DateTime.now()).toUtc());

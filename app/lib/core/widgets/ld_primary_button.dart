@@ -49,7 +49,11 @@ class LdPrimaryButton extends StatelessWidget {
 
     final (bg, fg, border) = switch (variant) {
       LdButtonVariant.primary => (c.primary, c.textOnPrimary, null),
-      LdButtonVariant.secondary => (c.surfaceElevated, c.textPrimary, c.borderStrong),
+      LdButtonVariant.secondary => (
+        c.surfaceElevated,
+        c.textPrimary,
+        c.borderStrong,
+      ),
       LdButtonVariant.ghost => (Colors.transparent, c.textSecondary, c.border),
       LdButtonVariant.danger => (c.danger, c.textOnPrimary, null),
     };
@@ -71,9 +75,7 @@ class LdPrimaryButton extends StatelessWidget {
             height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(
-                enabled ? fg : c.textDisabled,
-              ),
+              valueColor: AlwaysStoppedAnimation(enabled ? fg : c.textDisabled),
             ),
           ),
           const SizedBox(width: LdSpacing.s3),
@@ -86,9 +88,7 @@ class LdPrimaryButton extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: labelStyle.copyWith(
-              color: enabled ? fg : c.textDisabled,
-            ),
+            style: labelStyle.copyWith(color: enabled ? fg : c.textDisabled),
           ),
         ),
       ],

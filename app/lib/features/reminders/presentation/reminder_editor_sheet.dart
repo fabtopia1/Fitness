@@ -148,7 +148,9 @@ class _ReminderEditorSheetState extends ConsumerState<ReminderEditorSheet> {
 
     final navigator = Navigator.of(context);
     final note = _note.text.trim();
-    final result = await ref.read(reminderRepositoryProvider).save(
+    final result = await ref
+        .read(reminderRepositoryProvider)
+        .save(
           widget.reminder.copyWith(
             title: _title.text.trim(),
             note: note.isEmpty ? null : note,
@@ -170,8 +172,9 @@ class _ReminderEditorSheetState extends ConsumerState<ReminderEditorSheet> {
 
   Future<void> _delete() async {
     final navigator = Navigator.of(context);
-    final result =
-        await ref.read(reminderRepositoryProvider).delete(widget.reminder.id);
+    final result = await ref
+        .read(reminderRepositoryProvider)
+        .delete(widget.reminder.id);
     if (!mounted) return;
 
     final failure = result.failureOrNull;

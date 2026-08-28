@@ -70,60 +70,57 @@ class Task implements SyncedEntity {
     DateTime? updatedAt,
     DateTime? deletedAt,
     bool clearDueAt = false,
-  }) =>
-      Task(
-        id: id,
-        title: title ?? this.title,
-        notes: notes ?? this.notes,
-        category: category ?? this.category,
-        priority: priority ?? this.priority,
-        status: status ?? this.status,
-        dueAt: clearDueAt ? null : (dueAt ?? this.dueAt),
-        reminderMinutesBefore:
-            reminderMinutesBefore ?? this.reminderMinutesBefore,
-        completedAt: completedAt ?? this.completedAt,
-        createdAt: createdAt,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => Task(
+    id: id,
+    title: title ?? this.title,
+    notes: notes ?? this.notes,
+    category: category ?? this.category,
+    priority: priority ?? this.priority,
+    status: status ?? this.status,
+    dueAt: clearDueAt ? null : (dueAt ?? this.dueAt),
+    reminderMinutesBefore: reminderMinutesBefore ?? this.reminderMinutesBefore,
+    completedAt: completedAt ?? this.completedAt,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'notes': notes,
-        'category': category.wire,
-        'priority': priority.level,
-        'status': status.wire,
-        'dueAt': dueAt?.toIso8601String(),
-        'reminderMinutesBefore': reminderMinutesBefore,
-        'completedAt': completedAt?.toIso8601String(),
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'notes': notes,
+    'category': category.wire,
+    'priority': priority.level,
+    'status': status.wire,
+    'dueAt': dueAt?.toIso8601String(),
+    'reminderMinutesBefore': reminderMinutesBefore,
+    'completedAt': completedAt?.toIso8601String(),
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
-        id: Json.string(json['id']),
-        title: Json.string(json['title']),
-        notes: json['notes'] as String?,
-        category:
-            TaskCategory.values.firstWhere(
-          (c) => c.wire == json['category'],
-          orElse: () => TaskCategory.personal,
-        ),
-        priority: TaskPriority.fromLevel(Json.integer(json['priority'], 3)),
-        status: TaskStatus.values.firstWhere(
-          (s) => s.wire == json['status'],
-          orElse: () => TaskStatus.open,
-        ),
-        dueAt: Json.dateOrNull(json['dueAt']),
-        reminderMinutesBefore: (json['reminderMinutesBefore'] as num?)?.toInt(),
-        completedAt: Json.dateOrNull(json['completedAt']),
-        createdAt: Json.date(json['createdAt'], fallback: DateTime.now()),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    title: Json.string(json['title']),
+    notes: json['notes'] as String?,
+    category: TaskCategory.values.firstWhere(
+      (c) => c.wire == json['category'],
+      orElse: () => TaskCategory.personal,
+    ),
+    priority: TaskPriority.fromLevel(Json.integer(json['priority'], 3)),
+    status: TaskStatus.values.firstWhere(
+      (s) => s.wire == json['status'],
+      orElse: () => TaskStatus.open,
+    ),
+    dueAt: Json.dateOrNull(json['dueAt']),
+    reminderMinutesBefore: (json['reminderMinutesBefore'] as num?)?.toInt(),
+    completedAt: Json.dateOrNull(json['completedAt']),
+    createdAt: Json.date(json['createdAt'], fallback: DateTime.now()),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 /// Where an event came from.
@@ -195,53 +192,52 @@ class CalendarEvent implements SyncedEntity {
     bool? isAllDay,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      CalendarEvent(
-        id: id,
-        title: title ?? this.title,
-        description: description ?? this.description,
-        location: location ?? this.location,
-        startAt: startAt ?? this.startAt,
-        endAt: endAt ?? this.endAt,
-        isAllDay: isAllDay ?? this.isAllDay,
-        source: source,
-        providerEventId: providerEventId,
-        calendarId: calendarId,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => CalendarEvent(
+    id: id,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    location: location ?? this.location,
+    startAt: startAt ?? this.startAt,
+    endAt: endAt ?? this.endAt,
+    isAllDay: isAllDay ?? this.isAllDay,
+    source: source,
+    providerEventId: providerEventId,
+    calendarId: calendarId,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'location': location,
-        'startAt': startAt.toIso8601String(),
-        'endAt': endAt.toIso8601String(),
-        'isAllDay': isAllDay,
-        'source': source.wire,
-        'providerEventId': providerEventId,
-        'calendarId': calendarId,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'description': description,
+    'location': location,
+    'startAt': startAt.toIso8601String(),
+    'endAt': endAt.toIso8601String(),
+    'isAllDay': isAllDay,
+    'source': source.wire,
+    'providerEventId': providerEventId,
+    'calendarId': calendarId,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) => CalendarEvent(
-        id: Json.string(json['id']),
-        title: Json.string(json['title']),
-        description: json['description'] as String?,
-        location: json['location'] as String?,
-        startAt: Json.date(json['startAt'], fallback: DateTime.now()),
-        endAt: Json.date(json['endAt'], fallback: DateTime.now()),
-        isAllDay: Json.boolean(json['isAllDay']),
-        source: EventSource.values.firstWhere(
-          (s) => s.wire == json['source'],
-          orElse: () => EventSource.lifedna,
-        ),
-        providerEventId: json['providerEventId'] as String?,
-        calendarId: json['calendarId'] as String?,
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    title: Json.string(json['title']),
+    description: json['description'] as String?,
+    location: json['location'] as String?,
+    startAt: Json.date(json['startAt'], fallback: DateTime.now()),
+    endAt: Json.date(json['endAt'], fallback: DateTime.now()),
+    isAllDay: Json.boolean(json['isAllDay']),
+    source: EventSource.values.firstWhere(
+      (s) => s.wire == json['source'],
+      orElse: () => EventSource.lifedna,
+    ),
+    providerEventId: json['providerEventId'] as String?,
+    calendarId: json['calendarId'] as String?,
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }

@@ -61,8 +61,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                 ButtonSegment(value: 2, label: Text('Reminders')),
               ],
               selected: {_tab},
-              onSelectionChanged: (value) =>
-                  setState(() => _tab = value.first),
+              onSelectionChanged: (value) => setState(() => _tab = value.first),
             ),
           ),
         ),
@@ -89,21 +88,21 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   }
 
   Future<void> _newTask() => showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => const TaskEditorSheet(),
-      );
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const TaskEditorSheet(),
+  );
 
   Future<void> _newEvent() => showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => const EventEditorSheet(),
-      );
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const EventEditorSheet(),
+  );
 
   Future<void> _newReminder() => ReminderEditorSheet.show(
-        context,
-        ref.read(reminderRepositoryProvider).draft(),
-      );
+    context,
+    ref.read(reminderRepositoryProvider).draft(),
+  );
 
   Future<void> _syncGoogle() async {
     setState(() => _syncing = true);
@@ -170,16 +169,14 @@ class _TasksTab extends ConsumerWidget {
                   padding: const EdgeInsets.only(right: LdSpacing.s4),
                   child: Icon(Icons.delete_outline_rounded, color: c.danger),
                 ),
-                onDismissed: (_) => ref
-                    .read(calendarRepositoryProvider)
-                    .deleteTask(task.id),
+                onDismissed: (_) =>
+                    ref.read(calendarRepositoryProvider).deleteTask(task.id),
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Checkbox(
                     value: task.isDone,
-                    onChanged: (_) => ref
-                        .read(calendarRepositoryProvider)
-                        .toggleTask(task),
+                    onChanged: (_) =>
+                        ref.read(calendarRepositoryProvider).toggleTask(task),
                   ),
                   title: Text(
                     task.title,
@@ -190,8 +187,7 @@ class _TasksTab extends ConsumerWidget {
                       task.category.label,
                       task.priority.label,
                       if (task.dueAt != null)
-                        DateFormat('d MMM HH:mm')
-                            .format(task.dueAt!.toLocal()),
+                        DateFormat('d MMM HH:mm').format(task.dueAt!.toLocal()),
                     ].join(' · '),
                     style: type.bodyS.copyWith(
                       color: task.isOverdue(now) ? c.danger : c.textTertiary,
@@ -241,13 +237,13 @@ class _CalendarTab extends ConsumerWidget {
                 itemCount: 21,
                 itemBuilder: (context, index) {
                   final day = today.add(Duration(days: index - 3));
-                  final isSelected = day.year == selected.year &&
+                  final isSelected =
+                      day.year == selected.year &&
                       day.month == selected.month &&
                       day.day == selected.day;
                   return GestureDetector(
-                    onTap: () => ref
-                        .read(selectedDayProvider.notifier)
-                        .state = day,
+                    onTap: () =>
+                        ref.read(selectedDayProvider.notifier).state = day,
                     child: Container(
                       width: 52,
                       margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -288,7 +284,7 @@ class _CalendarTab extends ConsumerWidget {
                       headline: 'Nothing scheduled',
                       body: repository.isGoogleConfigured
                           ? 'Add an event, or sync your Google Calendar from '
-                              'the toolbar.'
+                                'the toolbar.'
                           : 'Add an event to plan this day.',
                     )
                   : ListView(
@@ -299,8 +295,7 @@ class _CalendarTab extends ConsumerWidget {
                         LdSpacing.scrollBottom,
                       ),
                       children: [
-                        for (final event in events)
-                          _EventTile(event: event),
+                        for (final event in events) _EventTile(event: event),
                         if (tasksDue.isNotEmpty) ...[
                           const LdSectionHeader(title: 'Tasks due'),
                           for (final task in tasksDue)
@@ -310,13 +305,13 @@ class _CalendarTab extends ConsumerWidget {
                                 task.isDone
                                     ? Icons.check_circle_rounded
                                     : Icons.circle_outlined,
-                                color:
-                                    task.isDone ? c.success : c.textTertiary,
+                                color: task.isDone ? c.success : c.textTertiary,
                               ),
                               title: Text(
                                 task.title,
-                                style: type.bodyM
-                                    .copyWith(color: c.textPrimary),
+                                style: type.bodyM.copyWith(
+                                  color: c.textPrimary,
+                                ),
                               ),
                             ),
                         ],
@@ -346,10 +341,10 @@ class _EventTile extends ConsumerWidget {
         onTap: event.isReadOnly
             ? null
             : () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => EventEditorSheet(existing: event),
-                ),
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => EventEditorSheet(existing: event),
+              ),
         child: Row(
           children: [
             Container(
@@ -375,8 +370,8 @@ class _EventTile extends ConsumerWidget {
                     event.isAllDay
                         ? 'All day'
                         : '${DateFormat('HH:mm').format(event.startAt.toLocal())}'
-                            ' – '
-                            '${DateFormat('HH:mm').format(event.endAt.toLocal())}',
+                              ' – '
+                              '${DateFormat('HH:mm').format(event.endAt.toLocal())}',
                     style: type.bodyS.copyWith(color: c.textTertiary),
                   ),
                 ],
@@ -385,8 +380,11 @@ class _EventTile extends ConsumerWidget {
             if (event.isReadOnly)
               Tooltip(
                 message: 'From Google Calendar — read only',
-                child: Icon(Icons.lock_outline_rounded,
-                    size: 16, color: c.textTertiary),
+                child: Icon(
+                  Icons.lock_outline_rounded,
+                  size: 16,
+                  color: c.textTertiary,
+                ),
               ),
           ],
         ),
@@ -412,7 +410,8 @@ class _RemindersTab extends ConsumerWidget {
       empty: LdEmptyState(
         icon: Icons.alarm_rounded,
         headline: 'No reminders yet',
-        body: 'Set one for anything the app does not already track — weigh in, '
+        body:
+            'Set one for anything the app does not already track — weigh in, '
             'stretch, book a session.',
         actionLabel: 'Add a reminder',
         onAction: () => ReminderEditorSheet.show(

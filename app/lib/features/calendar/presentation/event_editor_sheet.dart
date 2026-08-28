@@ -16,13 +16,15 @@ class EventEditorSheet extends ConsumerStatefulWidget {
 }
 
 class _EventEditorSheetState extends ConsumerState<EventEditorSheet> {
-  late final TextEditingController _title =
-      TextEditingController(text: widget.existing?.title ?? '');
-  late final TextEditingController _location =
-      TextEditingController(text: widget.existing?.location ?? '');
-  late DateTime _start =
-      widget.existing?.startAt.toLocal() ?? _defaultStart();
-  late DateTime _end = widget.existing?.endAt.toLocal() ??
+  late final TextEditingController _title = TextEditingController(
+    text: widget.existing?.title ?? '',
+  );
+  late final TextEditingController _location = TextEditingController(
+    text: widget.existing?.location ?? '',
+  );
+  late DateTime _start = widget.existing?.startAt.toLocal() ?? _defaultStart();
+  late DateTime _end =
+      widget.existing?.endAt.toLocal() ??
       _defaultStart().add(const Duration(hours: 1));
   bool _saving = false;
 
@@ -90,8 +92,9 @@ class _EventEditorSheetState extends ConsumerState<EventEditorSheet> {
               const SizedBox(height: LdSpacing.s3),
               TextField(
                 controller: _location,
-                decoration:
-                    const InputDecoration(labelText: 'Location (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Location (optional)',
+                ),
               ),
               const SizedBox(height: LdSpacing.s4),
               ListTile(
@@ -160,7 +163,9 @@ class _EventEditorSheetState extends ConsumerState<EventEditorSheet> {
         _start = picked;
         // Keep the duration rather than letting the end drift behind the
         // start, which would then fail validation for no good reason.
-        _end = picked.add(duration.isNegative ? const Duration(hours: 1) : duration);
+        _end = picked.add(
+          duration.isNegative ? const Duration(hours: 1) : duration,
+        );
       } else {
         _end = picked;
       }
@@ -179,7 +184,8 @@ class _EventEditorSheetState extends ConsumerState<EventEditorSheet> {
 
     setState(() => _saving = true);
     final repository = ref.read(calendarRepositoryProvider);
-    final event = widget.existing?.copyWith(
+    final event =
+        widget.existing?.copyWith(
           title: _title.text,
           location: _location.text,
           startAt: _start.toUtc(),

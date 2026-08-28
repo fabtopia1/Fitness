@@ -18,35 +18,35 @@ class WorkoutRepository {
     String? uid,
     Uuid uuid = const Uuid(),
     DateTime Function()? clock,
-  })  : _uuid = uuid,
-        _clock = clock ?? DateTime.now,
-        exercises = SyncedCollection<Exercise>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxExercises,
-          collection: 'exercises',
-          fromJson: Exercise.fromJson,
-          firestore: firestore,
-          uid: uid,
-        ),
-        workouts = SyncedCollection<Workout>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxWorkouts,
-          collection: 'workouts',
-          fromJson: Workout.fromJson,
-          firestore: firestore,
-          uid: uid,
-        ),
-        sessions = SyncedCollection<WorkoutSession>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxWorkoutSessions,
-          collection: 'workout_sessions',
-          fromJson: WorkoutSession.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+  }) : _uuid = uuid,
+       _clock = clock ?? DateTime.now,
+       exercises = SyncedCollection<Exercise>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxExercises,
+         collection: 'exercises',
+         fromJson: Exercise.fromJson,
+         firestore: firestore,
+         uid: uid,
+       ),
+       workouts = SyncedCollection<Workout>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxWorkouts,
+         collection: 'workouts',
+         fromJson: Workout.fromJson,
+         firestore: firestore,
+         uid: uid,
+       ),
+       sessions = SyncedCollection<WorkoutSession>(
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxWorkoutSessions,
+         collection: 'workout_sessions',
+         fromJson: WorkoutSession.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final Uuid _uuid;
   final DateTime Function() _clock;
@@ -61,18 +61,19 @@ class WorkoutRepository {
 
   List<Exercise> searchExercises(String query, {MuscleGroup? muscle}) {
     final q = query.trim().toLowerCase();
-    final all = exercises.readAll()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final all = exercises.readAll()..sort((a, b) => a.name.compareTo(b.name));
     return all
-        .where((e) =>
-            (muscle == null || e.muscleGroup == muscle) &&
-            (q.isEmpty || e.name.toLowerCase().contains(q)))
+        .where(
+          (e) =>
+              (muscle == null || e.muscleGroup == muscle) &&
+              (q.isEmpty || e.name.toLowerCase().contains(q)),
+        )
         .toList();
   }
 
   Map<String, Exercise> get exerciseIndex => {
-        for (final e in exercises.readAll()) e.id: e,
-      };
+    for (final e in exercises.readAll()) e.id: e,
+  };
 
   Exercise createExercise({
     required String name,
@@ -81,22 +82,23 @@ class WorkoutRepository {
     bool isCompound = true,
     int restSeconds = 120,
     double incrementKg = 2.5,
-  }) =>
-      Exercise(
-        id: _uuid.v4(),
-        name: name.trim(),
-        muscleGroup: muscleGroup,
-        equipment: equipment,
-        isCompound: isCompound,
-        defaultRestSeconds: restSeconds,
-        incrementKg: incrementKg,
-        isCustom: true,
-        updatedAt: _clock().toUtc(),
-      );
+  }) => Exercise(
+    id: _uuid.v4(),
+    name: name.trim(),
+    muscleGroup: muscleGroup,
+    equipment: equipment,
+    isCompound: isCompound,
+    defaultRestSeconds: restSeconds,
+    incrementKg: incrementKg,
+    isCustom: true,
+    updatedAt: _clock().toUtc(),
+  );
 
   Future<Result<Exercise>> saveExercise(Exercise exercise) {
     if (exercise.name.trim().isEmpty) {
-      return Future.value(const Err(ValidationFailure('required', field: 'name')));
+      return Future.value(
+        const Err(ValidationFailure('required', field: 'name')),
+      );
     }
     return exercises.put(exercise);
   }
@@ -109,7 +111,9 @@ class WorkoutRepository {
 
   Future<Result<Workout>> saveWorkout(Workout workout) {
     if (workout.name.trim().isEmpty) {
-      return Future.value(const Err(ValidationFailure('required', field: 'name')));
+      return Future.value(
+        const Err(ValidationFailure('required', field: 'name')),
+      );
     }
     if (workout.exercises.isEmpty) {
       return Future.value(const Err(ValidationFailure('no_exercises')));
@@ -118,20 +122,21 @@ class WorkoutRepository {
   }
 
   Future<Result<void>> deleteWorkout(String id) => workouts.remove(
-        id,
-        tombstone: (w) => w.copyWith(deletedAt: _clock().toUtc()),
-      );
+    id,
+    tombstone: (w) => w.copyWith(deletedAt: _clock().toUtc()),
+  );
 
   // --------------------------------------------------------------- sessions --
 
   Stream<List<WorkoutSession>> watchSessions() => sessions.watchAll();
 
   List<WorkoutSession> history({int limit = 50}) {
-    final done = sessions
-        .readAll()
-        .where((s) => s.status == SessionStatus.completed)
-        .toList()
-      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    final done =
+        sessions
+            .readAll()
+            .where((s) => s.status == SessionStatus.completed)
+            .toList()
+          ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
     return done.take(limit).toList();
   }
 
@@ -252,7 +257,8 @@ class WorkoutRepository {
     return result;
   }
 
-  Future<Result<void>> discardSession(WorkoutSession session) => sessions.remove(
+  Future<Result<void>> discardSession(WorkoutSession session) =>
+      sessions.remove(
         session.id,
         tombstone: (s) => s.copyWith(deletedAt: _clock().toUtc()),
       );
@@ -294,7 +300,9 @@ class WorkoutRepository {
       final e1rm = set.e1rm;
       if (bestE1rm == null || e1rm > bestE1rm) bestE1rm = e1rm;
       final prior = repsAtWeight[set.weightKg];
-      if (prior == null || set.reps > prior) repsAtWeight[set.weightKg] = set.reps;
+      if (prior == null || set.reps > prior) {
+        repsAtWeight[set.weightKg] = set.reps;
+      }
     }
 
     return ExerciseBests(
@@ -308,11 +316,12 @@ class WorkoutRepository {
   List<PersonalRecordEntry> personalRecords() {
     final byExercise = <String, PersonalRecordEntry>{};
 
-    final completed = sessions
-        .readAll()
-        .where((s) => s.status == SessionStatus.completed)
-        .toList()
-      ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
+    final completed =
+        sessions
+            .readAll()
+            .where((s) => s.status == SessionStatus.completed)
+            .toList()
+          ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
 
     for (final session in completed) {
       for (final set in session.sets) {
@@ -349,8 +358,7 @@ class WorkoutRepository {
     for (var i = 0; i < weeks; i++) {
       final day = end.subtract(Duration(days: 7 * i));
       final start = _weekStart(day);
-      buckets[Json.localDate(start)] =
-          (start: start, volume: 0, count: 0);
+      buckets[Json.localDate(start)] = (start: start, volume: 0, count: 0);
     }
 
     for (final session in history(limit: 500)) {
@@ -365,10 +373,14 @@ class WorkoutRepository {
       );
     }
 
-    final out = buckets.values
-        .map((b) => (weekStart: b.start, volumeKg: b.volume, sessions: b.count))
-        .toList()
-      ..sort((a, b) => a.weekStart.compareTo(b.weekStart));
+    final out =
+        buckets.values
+            .map(
+              (b) =>
+                  (weekStart: b.start, volumeKg: b.volume, sessions: b.count),
+            )
+            .toList()
+          ..sort((a, b) => a.weekStart.compareTo(b.weekStart));
     return out;
   }
 

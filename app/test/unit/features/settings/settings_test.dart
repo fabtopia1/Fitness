@@ -57,8 +57,7 @@ void main() {
 
     test('a saved change is read back and queued for replication', () async {
       final outbox = Outbox(env.store);
-      final repository =
-          SettingsRepository(store: env.store, outbox: outbox);
+      final repository = SettingsRepository(store: env.store, outbox: outbox);
 
       await repository.save(
         repository.read().copyWith(theme: ThemePreference.light),
@@ -107,29 +106,31 @@ void main() {
       expect(env.notifications.remindersEnabled, isFalse);
     });
 
-    test('turning reminders back on rebuilds the schedule from the records',
-        () async {
-      final container = env.container();
-      addTearDown(container.dispose);
+    test(
+      'turning reminders back on rebuilds the schedule from the records',
+      () async {
+        final container = env.container();
+        addTearDown(container.dispose);
 
-      final supplements = container.read(supplementRepositoryProvider);
-      await supplements.save(
-        supplements.create(
-          name: 'Creatine',
-          dose: 5,
-          unit: 'g',
-          frequency: SupplementFrequency.daily,
-        ),
-      );
+        final supplements = container.read(supplementRepositoryProvider);
+        await supplements.save(
+          supplements.create(
+            name: 'Creatine',
+            dose: 5,
+            unit: 'g',
+            frequency: SupplementFrequency.daily,
+          ),
+        );
 
-      await container.read(settingsControllerProvider.future);
-      final controller = container.read(settingsControllerProvider.notifier);
-      await controller.setRemindersEnabled(false);
-      await controller.setRemindersEnabled(true);
+        await container.read(settingsControllerProvider.future);
+        final controller = container.read(settingsControllerProvider.notifier);
+        await controller.setRemindersEnabled(false);
+        await controller.setRemindersEnabled(true);
 
-      expect(env.notifications.scheduledDaily, hasLength(1));
-      expect(env.notifications.remindersEnabled, isTrue);
-    });
+        expect(env.notifications.scheduledDaily, hasLength(1));
+        expect(env.notifications.remindersEnabled, isTrue);
+      },
+    );
 
     test('the stored reminder switch is restored on a cold start', () async {
       // The gate lives in memory, so a user who turned reminders off must not

@@ -49,7 +49,10 @@ abstract final class LoadEngine {
   ///
   /// Session-RPE × duration is the best-validated field measure of internal
   /// load, and it costs the user exactly one tap at the end of a session.
-  static double sessionLoad({required int sessionRpe, required int durationMinutes}) {
+  static double sessionLoad({
+    required int sessionRpe,
+    required int durationMinutes,
+  }) {
     if (sessionRpe <= 0 || durationMinutes <= 0) return 0;
     return sessionRpe.toDouble() * durationMinutes;
   }
@@ -86,17 +89,13 @@ abstract final class LoadEngine {
     final acute = _ewma(days, acuteHalfLifeDays);
     final chronic = _ewma(days, chronicHalfLifeDays);
 
-    final window28 = days.length <= 28
-        ? days
-        : days.sublist(days.length - 28);
+    final window28 = days.length <= 28 ? days : days.sublist(days.length - 28);
     final mean28 = window28.isEmpty
         ? 0.0
         : window28.fold<double>(0, (s, d) => s + d.load) / window28.length;
 
     final sufficient = days.length >= minDaysForChronic;
-    final acwr = (chronic > 0 && sufficient)
-        ? _round3(acute / chronic)
-        : null;
+    final acwr = (chronic > 0 && sufficient) ? _round3(acute / chronic) : null;
 
     return LoadSummary(
       acute: _round1(acute),
@@ -152,7 +151,8 @@ abstract final class LoadEngine {
 /// MEV = minimum effective volume, MRV = maximum recoverable volume. Weekly
 /// working sets outside this band raise an insight, never a score change.
 abstract final class VolumeLandmarks {
-  static const Map<String, ({int mev, int mavLow, int mavHigh, int mrv})> table = {
+  static const Map<String, ({int mev, int mavLow, int mavHigh, int mrv})>
+  table = {
     'chest': (mev: 8, mavLow: 12, mavHigh: 20, mrv: 22),
     'back': (mev: 10, mavLow: 14, mavHigh: 22, mrv: 25),
     'quads': (mev: 8, mavLow: 12, mavHigh: 18, mrv: 20),

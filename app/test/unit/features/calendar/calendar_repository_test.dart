@@ -76,32 +76,32 @@ void main() {
       expect(result.failureOrNull, isA<ValidationFailure>());
     });
 
-    test('open tasks sort overdue first, then by due date, then by priority',
-        () async {
-      await repository.saveTask(
-        repository.createTask(
-          title: 'Someday',
-          priority: TaskPriority.p1,
-        ),
-      );
-      await repository.saveTask(
-        repository.createTask(
-          title: 'Tomorrow',
-          dueAt: now.add(const Duration(days: 1)),
-        ),
-      );
-      await repository.saveTask(
-        repository.createTask(
-          title: 'Overdue',
-          dueAt: now.subtract(const Duration(days: 1)),
-        ),
-      );
+    test(
+      'open tasks sort overdue first, then by due date, then by priority',
+      () async {
+        await repository.saveTask(
+          repository.createTask(title: 'Someday', priority: TaskPriority.p1),
+        );
+        await repository.saveTask(
+          repository.createTask(
+            title: 'Tomorrow',
+            dueAt: now.add(const Duration(days: 1)),
+          ),
+        );
+        await repository.saveTask(
+          repository.createTask(
+            title: 'Overdue',
+            dueAt: now.subtract(const Duration(days: 1)),
+          ),
+        );
 
-      expect(
-        repository.openTasks().map((t) => t.title),
-        ['Overdue', 'Tomorrow', 'Someday'],
-      );
-    });
+        expect(repository.openTasks().map((t) => t.title), [
+          'Overdue',
+          'Tomorrow',
+          'Someday',
+        ]);
+      },
+    );
 
     test('a task with no due date sorts last even at P1', () async {
       // A someday item is not today's problem, whatever its priority.
@@ -207,29 +207,31 @@ void main() {
       expect(env.notifications.scheduledOnce, isEmpty);
     });
 
-    test('rescheduleAllReminders rebuilds the schedule after a reboot',
-        () async {
-      await repository.saveTask(
-        repository.createTask(
-          title: 'Submit coursework',
-          dueAt: now.add(const Duration(hours: 5)),
-          reminderMinutesBefore: 30,
-        ),
-      );
-      await env.notifications.cancelAll();
+    test(
+      'rescheduleAllReminders rebuilds the schedule after a reboot',
+      () async {
+        await repository.saveTask(
+          repository.createTask(
+            title: 'Submit coursework',
+            dueAt: now.add(const Duration(hours: 5)),
+            reminderMinutesBefore: 30,
+          ),
+        );
+        await env.notifications.cancelAll();
 
-      await repository.rescheduleAllReminders();
+        await repository.rescheduleAllReminders();
 
-      expect(env.notifications.scheduledOnce, hasLength(1));
-    });
+        expect(env.notifications.scheduledOnce, hasLength(1));
+      },
+    );
   });
 
   group('events', () {
     CalendarEvent lunch() => repository.createEvent(
-          title: 'Lunch',
-          startAt: DateTime(2026, 3, 14, 12),
-          endAt: DateTime(2026, 3, 14, 13),
-        );
+      title: 'Lunch',
+      startAt: DateTime(2026, 3, 14, 12),
+      endAt: DateTime(2026, 3, 14, 13),
+    );
 
     test('an event needs a title and must end after it starts', () async {
       expect(
@@ -244,10 +246,12 @@ void main() {
             startAt: DateTime(2026, 3, 14, 13),
             endAt: DateTime(2026, 3, 14, 12),
           ),
-        ))
-            .failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'end_before_start'),
+        )).failureOrNull,
+        isA<ValidationFailure>().having(
+          (f) => f.code,
+          'code',
+          'end_before_start',
+        ),
       );
     });
 
@@ -261,10 +265,10 @@ void main() {
         ),
       );
 
-      expect(
-        repository.eventsOn(DateTime(2026, 3, 14)).map((e) => e.title),
-        ['Standup', 'Lunch'],
-      );
+      expect(repository.eventsOn(DateTime(2026, 3, 14)).map((e) => e.title), [
+        'Standup',
+        'Lunch',
+      ]);
       expect(repository.eventsOn(DateTime(2026, 3, 15)), isEmpty);
     });
 
@@ -288,8 +292,11 @@ void main() {
       expect(mirrored.isReadOnly, isTrue);
       expect(
         (await repository.saveEvent(mirrored)).failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'event_read_only'),
+        isA<ValidationFailure>().having(
+          (f) => f.code,
+          'code',
+          'event_read_only',
+        ),
       );
       expect(
         (await repository.deleteEvent('g1')).failureOrNull,
@@ -318,15 +325,17 @@ void main() {
       expect(repository.lastGoogleSync, isNotNull);
     });
 
-    test('a failed sync leaves the mirror and the timestamp untouched',
-        () async {
-      google.failure = const NetworkFailure();
+    test(
+      'a failed sync leaves the mirror and the timestamp untouched',
+      () async {
+        google.failure = const NetworkFailure();
 
-      final result = await repository.syncGoogle();
+        final result = await repository.syncGoogle();
 
-      expect(result.failureOrNull, isA<NetworkFailure>());
-      expect(repository.lastGoogleSync, isNull);
-    });
+        expect(result.failureOrNull, isA<NetworkFailure>());
+        expect(repository.lastGoogleSync, isNull);
+      },
+    );
 
     test('disconnecting removes the mirrored events', () async {
       // Keeping a copy of someone's meetings after they revoked access would
@@ -359,16 +368,18 @@ void main() {
       expect(await repository.isGoogleConnected, isFalse);
     });
 
-    test('an unconfigured build reports so rather than offering a dead button',
-        () async {
-      final unconfigured = CalendarRepository(
-        store: env.store,
-        outbox: Outbox(env.store),
-        notifications: env.notifications,
-        google: _FakeGoogleCalendar(configured: false),
-        clock: () => now,
-      );
-      expect(unconfigured.isGoogleConfigured, isFalse);
-    });
+    test(
+      'an unconfigured build reports so rather than offering a dead button',
+      () async {
+        final unconfigured = CalendarRepository(
+          store: env.store,
+          outbox: Outbox(env.store),
+          notifications: env.notifications,
+          google: _FakeGoogleCalendar(configured: false),
+          clock: () => now,
+        );
+        expect(unconfigured.isGoogleConfigured, isFalse);
+      },
+    );
   });
 }

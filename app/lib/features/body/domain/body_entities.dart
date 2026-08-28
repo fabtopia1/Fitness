@@ -68,17 +68,17 @@ class BodyMeasurement implements SyncedEntity {
 
   /// Named metrics present on this record, for chart selection.
   Map<BodyMetric, double> get values => {
-        if (weightKg != null) BodyMetric.weight: weightKg!,
-        if (bodyFatPct != null) BodyMetric.bodyFat: bodyFatPct!,
-        if (waistCm != null) BodyMetric.waist: waistCm!,
-        if (chestCm != null) BodyMetric.chest: chestCm!,
-        if (leftArmCm != null) BodyMetric.leftArm: leftArmCm!,
-        if (rightArmCm != null) BodyMetric.rightArm: rightArmCm!,
-        if (leftLegCm != null) BodyMetric.leftLeg: leftLegCm!,
-        if (rightLegCm != null) BodyMetric.rightLeg: rightLegCm!,
-        if (neckCm != null) BodyMetric.neck: neckCm!,
-        if (hipsCm != null) BodyMetric.hips: hipsCm!,
-      };
+    if (weightKg != null) BodyMetric.weight: weightKg!,
+    if (bodyFatPct != null) BodyMetric.bodyFat: bodyFatPct!,
+    if (waistCm != null) BodyMetric.waist: waistCm!,
+    if (chestCm != null) BodyMetric.chest: chestCm!,
+    if (leftArmCm != null) BodyMetric.leftArm: leftArmCm!,
+    if (rightArmCm != null) BodyMetric.rightArm: rightArmCm!,
+    if (leftLegCm != null) BodyMetric.leftLeg: leftLegCm!,
+    if (rightLegCm != null) BodyMetric.rightLeg: rightLegCm!,
+    if (neckCm != null) BodyMetric.neck: neckCm!,
+    if (hipsCm != null) BodyMetric.hips: hipsCm!,
+  };
 
   BodyMeasurement copyWith({
     double? weightKg,
@@ -95,47 +95,46 @@ class BodyMeasurement implements SyncedEntity {
     String? notes,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      BodyMeasurement(
-        id: id,
-        measuredAt: measuredAt,
-        localDate: localDate,
-        weightKg: weightKg ?? this.weightKg,
-        bodyFatPct: bodyFatPct ?? this.bodyFatPct,
-        waistCm: waistCm ?? this.waistCm,
-        chestCm: chestCm ?? this.chestCm,
-        leftArmCm: leftArmCm ?? this.leftArmCm,
-        rightArmCm: rightArmCm ?? this.rightArmCm,
-        leftLegCm: leftLegCm ?? this.leftLegCm,
-        rightLegCm: rightLegCm ?? this.rightLegCm,
-        neckCm: neckCm ?? this.neckCm,
-        hipsCm: hipsCm ?? this.hipsCm,
-        photoPath: photoPath ?? this.photoPath,
-        notes: notes ?? this.notes,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => BodyMeasurement(
+    id: id,
+    measuredAt: measuredAt,
+    localDate: localDate,
+    weightKg: weightKg ?? this.weightKg,
+    bodyFatPct: bodyFatPct ?? this.bodyFatPct,
+    waistCm: waistCm ?? this.waistCm,
+    chestCm: chestCm ?? this.chestCm,
+    leftArmCm: leftArmCm ?? this.leftArmCm,
+    rightArmCm: rightArmCm ?? this.rightArmCm,
+    leftLegCm: leftLegCm ?? this.leftLegCm,
+    rightLegCm: rightLegCm ?? this.rightLegCm,
+    neckCm: neckCm ?? this.neckCm,
+    hipsCm: hipsCm ?? this.hipsCm,
+    photoPath: photoPath ?? this.photoPath,
+    notes: notes ?? this.notes,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'measuredAt': measuredAt.toIso8601String(),
-        'localDate': localDate,
-        'weightKg': weightKg,
-        'bodyFatPct': bodyFatPct,
-        'waistCm': waistCm,
-        'chestCm': chestCm,
-        'leftArmCm': leftArmCm,
-        'rightArmCm': rightArmCm,
-        'leftLegCm': leftLegCm,
-        'rightLegCm': rightLegCm,
-        'neckCm': neckCm,
-        'hipsCm': hipsCm,
-        'photoPath': photoPath,
-        'notes': notes,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'measuredAt': measuredAt.toIso8601String(),
+    'localDate': localDate,
+    'weightKg': weightKg,
+    'bodyFatPct': bodyFatPct,
+    'waistCm': waistCm,
+    'chestCm': chestCm,
+    'leftArmCm': leftArmCm,
+    'rightArmCm': rightArmCm,
+    'leftLegCm': leftLegCm,
+    'rightLegCm': rightLegCm,
+    'neckCm': neckCm,
+    'hipsCm': hipsCm,
+    'photoPath': photoPath,
+    'notes': notes,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory BodyMeasurement.fromJson(Map<String, dynamic> json) =>
       BodyMeasurement(
@@ -182,10 +181,7 @@ enum BodyMetric {
 
 /// A trend over a series of measurements. Derived.
 class BodyTrend {
-  const BodyTrend({
-    required this.metric,
-    required this.points,
-  });
+  const BodyTrend({required this.metric, required this.points});
 
   final BodyMetric metric;
 

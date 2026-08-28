@@ -14,8 +14,10 @@ enum GoalMode {
   /// Fractional adjustment applied to TDEE.
   final double kcalDelta;
 
-  static GoalMode fromWire(String value) =>
-      values.firstWhere((m) => m.wire == value, orElse: () => GoalMode.maintain);
+  static GoalMode fromWire(String value) => values.firstWhere(
+    (m) => m.wire == value,
+    orElse: () => GoalMode.maintain,
+  );
 }
 
 enum Sex {
@@ -43,9 +45,9 @@ enum ActivityLevel {
   final String description;
 
   static ActivityLevel fromWire(String value) => values.firstWhere(
-        (a) => a.wire == value,
-        orElse: () => ActivityLevel.moderate,
-      );
+    (a) => a.wire == value,
+    orElse: () => ActivityLevel.moderate,
+  );
 }
 
 enum DayType {
@@ -105,9 +107,9 @@ enum MuscleGroup {
   final String label;
 
   static MuscleGroup fromWire(String value) => values.firstWhere(
-        (m) => m.wire == value,
-        orElse: () => MuscleGroup.fullBody,
-      );
+    (m) => m.wire == value,
+    orElse: () => MuscleGroup.fullBody,
+  );
 }
 
 enum Equipment {

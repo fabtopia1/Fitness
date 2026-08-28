@@ -67,27 +67,30 @@ void main() {
       expect(telemetry.crashReportingEnabled, isFalse);
     });
 
-    test('opting out disables analytics without throwing on later calls',
-        () async {
-      final telemetry = TelemetryService(available: false);
-      await telemetry.applyConsent(
-        analyticsConsent: false,
-        crashReportsConsent: false,
-      );
+    test(
+      'opting out disables analytics without throwing on later calls',
+      () async {
+        final telemetry = TelemetryService(available: false);
+        await telemetry.applyConsent(
+          analyticsConsent: false,
+          crashReportsConsent: false,
+        );
 
-      expect(telemetry.enabled, isFalse);
-      // Every call must remain safe after opting out — a no-op, not a crash.
-      await telemetry.logEvent('screen_view', parameters: {'screen': 'home'});
-      await telemetry.setScreen('home');
-      await telemetry.setUser('u1');
-      await telemetry.recordFailure(const NetworkFailure());
-    });
+        expect(telemetry.enabled, isFalse);
+        // Every call must remain safe after opting out — a no-op, not a crash.
+        await telemetry.logEvent('screen_view', parameters: {'screen': 'home'});
+        await telemetry.setScreen('home');
+        await telemetry.setUser('u1');
+        await telemetry.recordFailure(const NetworkFailure());
+      },
+    );
 
     test('validation still runs when telemetry is disabled', () {
       // Otherwise a leak would be invisible in dev and only appear in prod.
       expect(
-        () => TelemetryService(available: false)
-            .logEvent('log', parameters: {'food_name': 'chicken'}),
+        () =>
+            TelemetryService(available: false)
+                .logEvent('log', parameters: {'food_name': 'chicken'}),
         throwsArgumentError,
       );
     });

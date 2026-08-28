@@ -26,10 +26,10 @@ void main() {
   tearDown(() async => env.dispose());
 
   Exercise bench() => repository.createExercise(
-        name: 'Bench press',
-        muscleGroup: MuscleGroup.chest,
-        equipment: Equipment.barbell,
-      );
+    name: 'Bench press',
+    muscleGroup: MuscleGroup.chest,
+    equipment: Equipment.barbell,
+  );
 
   /// Runs one complete session: start, log the sets, finish.
   Future<WorkoutSession> completeSession(
@@ -37,7 +37,8 @@ void main() {
     required String exerciseId,
     Workout? workout,
   }) async {
-    var session = (await repository.startSession(workout: workout)).valueOrNull!;
+    var session = (await repository.startSession(workout: workout))
+        .valueOrNull!;
     for (final set in sets) {
       session = (await repository.addSet(
         session: session,
@@ -45,8 +46,7 @@ void main() {
         exerciseName: 'Bench press',
         weightKg: set.weight,
         reps: set.reps,
-      ))
-          .valueOrNull!;
+      )).valueOrNull!;
     }
     return (await repository.finishSession(session)).valueOrNull!;
   }
@@ -94,17 +94,14 @@ void main() {
       expect(
         (await repository.saveWorkout(
           Workout(id: 'a', name: '  ', exercises: [planned], updatedAt: now),
-        ))
-            .failureOrNull,
+        )).failureOrNull,
         isA<ValidationFailure>(),
       );
       expect(
         (await repository.saveWorkout(
           Workout(id: 'b', name: 'Empty', exercises: const [], updatedAt: now),
-        ))
-            .failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'no_exercises'),
+        )).failureOrNull,
+        isA<ValidationFailure>().having((f) => f.code, 'code', 'no_exercises'),
       );
       expect(repository.readWorkouts(), isEmpty);
     });
@@ -162,39 +159,44 @@ void main() {
 
       expect(
         second.failureOrNull,
-        isA<ValidationFailure>()
-            .having((f) => f.code, 'code', 'session_already_active'),
+        isA<ValidationFailure>().having(
+          (f) => f.code,
+          'code',
+          'session_already_active',
+        ),
       );
     });
 
-    test('a session started from a workout carries its plan and name',
-        () async {
-      final exercise = bench();
-      await repository.saveExercise(exercise);
-      final workout = Workout(
-        id: 'w1',
-        name: 'Push A',
-        exercises: [
-          WorkoutExercise(
-            exerciseId: exercise.id,
-            exerciseName: exercise.name,
-            targetSets: 3,
-            repMin: 6,
-            repMax: 8,
-            restSeconds: 150,
-          ),
-        ],
-        updatedAt: now,
-      );
-      await repository.saveWorkout(workout);
+    test(
+      'a session started from a workout carries its plan and name',
+      () async {
+        final exercise = bench();
+        await repository.saveExercise(exercise);
+        final workout = Workout(
+          id: 'w1',
+          name: 'Push A',
+          exercises: [
+            WorkoutExercise(
+              exerciseId: exercise.id,
+              exerciseName: exercise.name,
+              targetSets: 3,
+              repMin: 6,
+              repMax: 8,
+              restSeconds: 150,
+            ),
+          ],
+          updatedAt: now,
+        );
+        await repository.saveWorkout(workout);
 
-      final session = (await repository.startSession(workout: workout))
-          .valueOrNull!;
+        final session = (await repository.startSession(workout: workout))
+            .valueOrNull!;
 
-      expect(session.name, 'Push A');
-      expect(session.plan, hasLength(1));
-      expect(repository.activeSession()?.id, session.id);
-    });
+        expect(session.name, 'Push A');
+        expect(session.plan, hasLength(1));
+        expect(repository.activeSession()?.id, session.id);
+      },
+    );
 
     test('an out-of-range weight or rep count never reaches the log', () async {
       final session = (await repository.startSession()).valueOrNull!;
@@ -226,49 +228,49 @@ void main() {
         exerciseName: 'Bench press',
         weightKg: 100,
         reps: 5,
-      ))
-          .valueOrNull!;
+      )).valueOrNull!;
 
       session = (await repository.removeSet(
         session: session,
         setId: session.sets.single.id,
-      ))
-          .valueOrNull!;
+      )).valueOrNull!;
 
       expect(session.sets, isEmpty);
     });
 
-    test('finishing marks the session complete and counts the workout used',
-        () async {
-      final exercise = bench();
-      await repository.saveExercise(exercise);
-      final workout = Workout(
-        id: 'w1',
-        name: 'Push A',
-        exercises: [
-          WorkoutExercise(
-            exerciseId: exercise.id,
-            exerciseName: exercise.name,
-            targetSets: 3,
-            repMin: 5,
-            repMax: 8,
-            restSeconds: 150,
-          ),
-        ],
-        updatedAt: now,
-      );
-      expect((await repository.saveWorkout(workout)).isOk, isTrue);
+    test(
+      'finishing marks the session complete and counts the workout used',
+      () async {
+        final exercise = bench();
+        await repository.saveExercise(exercise);
+        final workout = Workout(
+          id: 'w1',
+          name: 'Push A',
+          exercises: [
+            WorkoutExercise(
+              exerciseId: exercise.id,
+              exerciseName: exercise.name,
+              targetSets: 3,
+              repMin: 5,
+              repMax: 8,
+              restSeconds: 150,
+            ),
+          ],
+          updatedAt: now,
+        );
+        expect((await repository.saveWorkout(workout)).isOk, isTrue);
 
-      await completeSession(
-        [(weight: 100, reps: 5)],
-        exerciseId: exercise.id,
-        workout: workout,
-      );
+        await completeSession(
+          [(weight: 100, reps: 5)],
+          exerciseId: exercise.id,
+          workout: workout,
+        );
 
-      expect(repository.activeSession(), isNull);
-      expect(repository.workoutById('w1')?.useCount, 1);
-      expect(repository.workoutById('w1')?.lastPerformedAt, isNotNull);
-    });
+        expect(repository.activeSession(), isNull);
+        expect(repository.workoutById('w1')?.useCount, 1);
+        expect(repository.workoutById('w1')?.lastPerformedAt, isNotNull);
+      },
+    );
 
     test('discarding removes the session entirely', () async {
       final session = (await repository.startSession()).valueOrNull!;
@@ -290,55 +292,53 @@ void main() {
         exerciseName: exercise.name,
         weightKg: 100,
         reps: 5,
-      ))
-          .valueOrNull!;
+      )).valueOrNull!;
 
       expect(updated.sets.single.prLabels, isNotEmpty);
     });
 
-    test('a warm-up set is never a record and never enters the bests',
-        () async {
-      final exercise = bench();
-      final session = (await repository.startSession()).valueOrNull!;
+    test(
+      'a warm-up set is never a record and never enters the bests',
+      () async {
+        final exercise = bench();
+        final session = (await repository.startSession()).valueOrNull!;
 
-      final updated = (await repository.addSet(
-        session: session,
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
-        weightKg: 200,
-        reps: 5,
-        isWarmup: true,
-      ))
-          .valueOrNull!;
+        final updated = (await repository.addSet(
+          session: session,
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          weightKg: 200,
+          reps: 5,
+          isWarmup: true,
+        )).valueOrNull!;
 
-      expect(updated.sets.single.prLabels, isEmpty);
-      expect(repository.bestsFor(exercise.id).heaviestWeightKg, isNull);
-    });
+        expect(updated.sets.single.prLabels, isEmpty);
+        expect(repository.bestsFor(exercise.id).heaviestWeightKg, isNull);
+      },
+    );
 
-    test('records are DERIVED from sessions, so they cannot disagree',
-        () async {
-      // Nothing stores a PR. Deleting the session that produced one removes
-      // the record too, which is the only self-consistent behaviour.
-      final exercise = bench();
-      await completeSession(
-        [(weight: 100, reps: 5)],
-        exerciseId: exercise.id,
-      );
+    test(
+      'records are DERIVED from sessions, so they cannot disagree',
+      () async {
+        // Nothing stores a PR. Deleting the session that produced one removes
+        // the record too, which is the only self-consistent behaviour.
+        final exercise = bench();
+        await completeSession([
+          (weight: 100, reps: 5),
+        ], exerciseId: exercise.id);
 
-      expect(repository.personalRecords(), hasLength(1));
+        expect(repository.personalRecords(), hasLength(1));
 
-      final session = repository.history().single;
-      await repository.discardSession(session);
+        final session = repository.history().single;
+        await repository.discardSession(session);
 
-      expect(repository.personalRecords(), isEmpty);
-    });
+        expect(repository.personalRecords(), isEmpty);
+      },
+    );
 
     test('the best e1RM wins, not the heaviest weight', () async {
       final exercise = bench();
-      await completeSession(
-        [(weight: 100, reps: 5)],
-        exerciseId: exercise.id,
-      );
+      await completeSession([(weight: 100, reps: 5)], exerciseId: exercise.id);
 
       now = now.add(const Duration(days: 3));
       await completeSession(
@@ -352,54 +352,52 @@ void main() {
       final record = repository.personalRecords().single;
       expect(record.weightKg, 90);
       expect(record.reps, 10);
-      expect(
-        record.value,
-        closeTo(E1rmCalculator.epley(90, 10), 0.1),
-      );
+      expect(record.value, closeTo(E1rmCalculator.epley(90, 10), 0.1));
     });
 
-    test('bests aggregate the heaviest load and the best reps at each load',
-        () async {
-      final exercise = bench();
-      await completeSession(
-        [(weight: 100, reps: 5), (weight: 100, reps: 8), (weight: 110, reps: 3)],
-        exerciseId: exercise.id,
-      );
+    test(
+      'bests aggregate the heaviest load and the best reps at each load',
+      () async {
+        final exercise = bench();
+        await completeSession([
+          (weight: 100, reps: 5),
+          (weight: 100, reps: 8),
+          (weight: 110, reps: 3),
+        ], exerciseId: exercise.id);
 
-      final bests = repository.bestsFor(exercise.id);
-      expect(bests.heaviestWeightKg, 110);
-      expect(bests.repsAtWeight[100.0], 8);
-    });
+        final bests = repository.bestsFor(exercise.id);
+        expect(bests.heaviestWeightKg, 110);
+        expect(bests.repsAtWeight[100.0], 8);
+      },
+    );
 
-    test('an in-progress session does not contribute to history or bests',
-        () async {
-      final exercise = bench();
-      final session = (await repository.startSession()).valueOrNull!;
-      await repository.addSet(
-        session: session,
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
-        weightKg: 300,
-        reps: 5,
-      );
+    test(
+      'an in-progress session does not contribute to history or bests',
+      () async {
+        final exercise = bench();
+        final session = (await repository.startSession()).valueOrNull!;
+        await repository.addSet(
+          session: session,
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          weightKg: 300,
+          reps: 5,
+        );
 
-      expect(repository.history(), isEmpty);
-      expect(repository.bestsFor(exercise.id).heaviestWeightKg, isNull);
-    });
+        expect(repository.history(), isEmpty);
+        expect(repository.bestsFor(exercise.id).heaviestWeightKg, isNull);
+      },
+    );
   });
 
   group('prefill and history', () {
     test('lastPerformance returns the most recent working set', () async {
       final exercise = bench();
-      await completeSession(
-        [(weight: 100, reps: 5)],
-        exerciseId: exercise.id,
-      );
+      await completeSession([(weight: 100, reps: 5)], exerciseId: exercise.id);
       now = now.add(const Duration(days: 3));
-      await completeSession(
-        [(weight: 102.5, reps: 5)],
-        exerciseId: exercise.id,
-      );
+      await completeSession([
+        (weight: 102.5, reps: 5),
+      ], exerciseId: exercise.id);
 
       final last = repository.lastPerformance(exercise.id);
       expect(last?.weightKg, 102.5);
@@ -411,10 +409,10 @@ void main() {
 
     test('weekly volume buckets completed sessions by ISO week', () async {
       final exercise = bench();
-      await completeSession(
-        [(weight: 100, reps: 5), (weight: 100, reps: 5)],
-        exerciseId: exercise.id,
-      );
+      await completeSession([
+        (weight: 100, reps: 5),
+        (weight: 100, reps: 5),
+      ], exerciseId: exercise.id);
 
       final weeks = repository.weeklyVolume(weeks: 4, now: now);
       expect(weeks, hasLength(4));
@@ -426,18 +424,14 @@ void main() {
       final exercise = bench();
       for (var i = 0; i < 3; i++) {
         now = now.add(const Duration(days: 1));
-        await completeSession(
-          [(weight: 100, reps: 5)],
-          exerciseId: exercise.id,
-        );
+        await completeSession([
+          (weight: 100, reps: 5),
+        ], exerciseId: exercise.id);
       }
 
       final history = repository.history(limit: 2);
       expect(history, hasLength(2));
-      expect(
-        history.first.startedAt.isAfter(history.last.startedAt),
-        isTrue,
-      );
+      expect(history.first.startedAt.isAfter(history.last.startedAt), isTrue);
     });
   });
 }

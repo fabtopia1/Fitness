@@ -6,8 +6,9 @@ final bodyMeasurementsProvider = StreamProvider<List<BodyMeasurement>>(
   (ref) => ref.watch(bodyRepositoryProvider).watchAll(),
 );
 
-final selectedBodyMetricProvider =
-    StateProvider<BodyMetric>((ref) => BodyMetric.weight);
+final selectedBodyMetricProvider = StateProvider<BodyMetric>(
+  (ref) => BodyMetric.weight,
+);
 
 final bodyTrendProvider = Provider<BodyTrend>((ref) {
   ref.watch(bodyMeasurementsProvider);

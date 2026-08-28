@@ -32,10 +32,12 @@ final personalRecordsProvider = Provider<List<PersonalRecordEntry>>((ref) {
 });
 
 final weeklyVolumeProvider =
-    Provider<List<({DateTime weekStart, double volumeKg, int sessions})>>((ref) {
-  ref.watch(sessionsProvider);
-  return ref.watch(workoutRepositoryProvider).weeklyVolume();
-});
+    Provider<List<({DateTime weekStart, double volumeKg, int sessions})>>((
+      ref,
+    ) {
+      ref.watch(sessionsProvider);
+      return ref.watch(workoutRepositoryProvider).weeklyVolume();
+    });
 
 /// Sessions completed in the current ISO week.
 final sessionsThisWeekProvider = Provider<int>((ref) {
@@ -43,9 +45,7 @@ final sessionsThisWeekProvider = Provider<int>((ref) {
   final now = ref.watch(clockProvider)();
   final day = DateTime(now.year, now.month, now.day);
   final weekStart = day.subtract(Duration(days: day.weekday - 1));
-  return history
-      .where((s) => s.startedAt.toLocal().isAfter(weekStart))
-      .length;
+  return history.where((s) => s.startedAt.toLocal().isAfter(weekStart)).length;
 });
 
 final trainedTodayProvider = Provider<bool>((ref) {

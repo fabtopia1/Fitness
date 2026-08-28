@@ -14,16 +14,16 @@ sealed class Failure {
 
   /// Whether retrying the same operation could plausibly succeed.
   bool get isRetryable => switch (this) {
-        NetworkFailure() => true,
-        TimeoutFailure() => true,
-        ServerFailure() => true,
-        StorageFailure() => true,
-        ValidationFailure() => false,
-        AuthFailure() => false,
-        PermissionFailure() => false,
-        NotFoundFailure() => false,
-        UnknownFailure() => true,
-      };
+    NetworkFailure() => true,
+    TimeoutFailure() => true,
+    ServerFailure() => true,
+    StorageFailure() => true,
+    ValidationFailure() => false,
+    AuthFailure() => false,
+    PermissionFailure() => false,
+    NotFoundFailure() => false,
+    UnknownFailure() => true,
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -42,7 +42,7 @@ sealed class Failure {
 /// Input violated a domain rule. Never retryable — the input must change.
 final class ValidationFailure extends Failure {
   const ValidationFailure(String code, {this.field, super.debugMessage})
-      : super(code: code);
+    : super(code: code);
   final String? field;
 }
 
@@ -50,29 +50,28 @@ final class ValidationFailure extends Failure {
 /// User writes still succeed locally, so this is informational.
 final class NetworkFailure extends Failure {
   const NetworkFailure({super.debugMessage, super.cause})
-      : super(code: 'network_unavailable');
+    : super(code: 'network_unavailable');
 }
 
 final class TimeoutFailure extends Failure {
-  const TimeoutFailure({super.debugMessage})
-      : super(code: 'network_timeout');
+  const TimeoutFailure({super.debugMessage}) : super(code: 'network_timeout');
 }
 
 /// Firestore or a Cloud Function returned an error.
 final class ServerFailure extends Failure {
   const ServerFailure(String code, {super.debugMessage, super.cause})
-      : super(code: code);
+    : super(code: code);
 }
 
 final class AuthFailure extends Failure {
   const AuthFailure(String code, {super.debugMessage, super.cause})
-      : super(code: code);
+    : super(code: code);
 }
 
 /// A required OS permission was denied.
 final class PermissionFailure extends Failure {
   const PermissionFailure(this.permission, {super.debugMessage})
-      : super(code: 'permission_denied');
+    : super(code: 'permission_denied');
   final String permission;
 }
 
@@ -84,10 +83,10 @@ final class NotFoundFailure extends Failure {
 /// this layer, so it is surfaced rather than swallowed.
 final class StorageFailure extends Failure {
   const StorageFailure({super.debugMessage, super.cause})
-      : super(code: 'storage_error');
+    : super(code: 'storage_error');
 }
 
 final class UnknownFailure extends Failure {
   const UnknownFailure({super.debugMessage, super.cause})
-      : super(code: 'unknown');
+    : super(code: 'unknown');
 }

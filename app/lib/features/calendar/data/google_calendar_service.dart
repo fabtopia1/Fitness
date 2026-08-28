@@ -22,14 +22,15 @@ import 'package:uuid/uuid.dart';
 /// with an opaque error.
 class GoogleCalendarService {
   GoogleCalendarService({GoogleSignIn? signIn, Uuid uuid = const Uuid()})
-      : _uuid = uuid,
-        _signIn = signIn ??
-            (Env.calendarConfigured
-                ? GoogleSignIn(
-                    scopes: const [gcal.CalendarApi.calendarReadonlyScope],
-                    clientId: Env.googleCalendarClientId,
-                  )
-                : null);
+    : _uuid = uuid,
+      _signIn =
+          signIn ??
+          (Env.calendarConfigured
+              ? GoogleSignIn(
+                  scopes: const [gcal.CalendarApi.calendarReadonlyScope],
+                  clientId: Env.googleCalendarClientId,
+                )
+              : null);
 
   final GoogleSignIn? _signIn;
   final Uuid _uuid;
@@ -125,7 +126,8 @@ class GoogleCalendarService {
 
   CalendarEvent? _map(gcal.Event event) {
     final start = event.start?.dateTime ?? _allDay(event.start?.date);
-    final end = event.end?.dateTime ??
+    final end =
+        event.end?.dateTime ??
         _allDay(event.end?.date) ??
         start?.add(const Duration(hours: 1));
     if (start == null || end == null) return null;

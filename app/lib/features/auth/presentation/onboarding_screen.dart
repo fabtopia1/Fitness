@@ -87,16 +87,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   /// The profile the user has described so far, used both for the preview and
   /// for the final save — there is only one place these values are assembled.
   UserProfile _draft(UserProfile base) => base.copyWith(
-        dateOfBirth: _dateOfBirth,
-        sex: _sex,
-        heightCm: _heightCm,
-        weightKg: _weightKg,
-        activityLevel: _activity,
-        goalMode: _goal,
-        trainingDaysPerWeek: _trainingDays,
-        targetWeightKg: _targetWeightKg,
-        weeklyRateTargetPct: _weeklyRatePct,
-      );
+    dateOfBirth: _dateOfBirth,
+    sex: _sex,
+    heightCm: _heightCm,
+    weightKg: _weightKg,
+    activityLevel: _activity,
+    goalMode: _goal,
+    trainingDaysPerWeek: _trainingDays,
+    targetWeightKg: _targetWeightKg,
+    weeklyRateTargetPct: _weeklyRatePct,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -146,45 +146,44 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildStep(UserProfile profile) => switch (_step) {
-        0 => _AboutYouStep(
-            dateOfBirth: _dateOfBirth,
-            sex: _sex,
-            onPickDate: _pickDateOfBirth,
-            onSexChanged: (value) => setState(() => _sex = value),
-            onNext: _dateOfBirth == null ? null : () => setState(() => _step = 1),
-          ),
-        1 => Form(
-            key: _bodyFormKey,
-            child: _BodyStep(
-              heightController: _heightController,
-              weightController: _weightController,
-              onNext: () {
-                if (_bodyFormKey.currentState?.validate() ?? false) {
-                  setState(() => _step = 2);
-                }
-              },
-            ),
-          ),
-        2 => _GoalStep(
-            goal: _goal,
-            activity: _activity,
-            trainingDays: _trainingDays,
-            weeklyRatePct: _weeklyRatePct,
-            targetWeightController: _targetWeightController,
-            currentWeightKg: _weightKg,
-            onGoalChanged: (value) => setState(() => _goal = value),
-            onActivityChanged: (value) => setState(() => _activity = value),
-            onTrainingDaysChanged: (value) =>
-                setState(() => _trainingDays = value),
-            onRateChanged: (value) => setState(() => _weeklyRatePct = value),
-            onNext: () => setState(() => _step = 3),
-          ),
-        _ => _ReviewStep(
-            profile: _draft(profile),
-            submitting: _submitting,
-            onFinish: () => _finish(profile),
-          ),
-      };
+    0 => _AboutYouStep(
+      dateOfBirth: _dateOfBirth,
+      sex: _sex,
+      onPickDate: _pickDateOfBirth,
+      onSexChanged: (value) => setState(() => _sex = value),
+      onNext: _dateOfBirth == null ? null : () => setState(() => _step = 1),
+    ),
+    1 => Form(
+      key: _bodyFormKey,
+      child: _BodyStep(
+        heightController: _heightController,
+        weightController: _weightController,
+        onNext: () {
+          if (_bodyFormKey.currentState?.validate() ?? false) {
+            setState(() => _step = 2);
+          }
+        },
+      ),
+    ),
+    2 => _GoalStep(
+      goal: _goal,
+      activity: _activity,
+      trainingDays: _trainingDays,
+      weeklyRatePct: _weeklyRatePct,
+      targetWeightController: _targetWeightController,
+      currentWeightKg: _weightKg,
+      onGoalChanged: (value) => setState(() => _goal = value),
+      onActivityChanged: (value) => setState(() => _activity = value),
+      onTrainingDaysChanged: (value) => setState(() => _trainingDays = value),
+      onRateChanged: (value) => setState(() => _weeklyRatePct = value),
+      onNext: () => setState(() => _step = 3),
+    ),
+    _ => _ReviewStep(
+      profile: _draft(profile),
+      submitting: _submitting,
+      onFinish: () => _finish(profile),
+    ),
+  };
 
   Future<void> _pickDateOfBirth() async {
     final now = DateTime.now();
@@ -237,7 +236,8 @@ class _AboutYouStep extends StatelessWidget {
 
     return _StepScaffold(
       title: 'About you',
-      subtitle: 'Age and sex change your energy expenditure. Both are used '
+      subtitle:
+          'Age and sex change your energy expenditure. Both are used '
           'only on this device and in your own account.',
       onNext: onNext,
       nextLabel: 'Continue',
@@ -290,8 +290,18 @@ class _AboutYouStep extends StatelessWidget {
 
   static String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -314,7 +324,8 @@ class _BodyStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return _StepScaffold(
       title: 'Your measurements',
-      subtitle: 'Metric units. You can change your weight any time from the '
+      subtitle:
+          'Metric units. You can change your weight any time from the '
           'Body tab — it does not have to be exact today.',
       onNext: onNext,
       nextLabel: 'Continue',
@@ -358,8 +369,9 @@ String? _rangeError(String? value, double min, double max, String what) {
   return null;
 }
 
-final _decimalFormatter =
-    FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}\.?\d{0,2}'));
+final _decimalFormatter = FilteringTextInputFormatter.allow(
+  RegExp(r'^\d{0,3}\.?\d{0,2}'),
+);
 
 // ------------------------------------------------------------- step three --
 
@@ -398,7 +410,8 @@ class _GoalStep extends StatelessWidget {
 
     return _StepScaffold(
       title: 'Your goal',
-      subtitle: 'This sets your daily calorie target and how fast the app '
+      subtitle:
+          'This sets your daily calorie target and how fast the app '
           'expects your weight to move.',
       onNext: onNext,
       nextLabel: 'See my targets',
@@ -575,7 +588,8 @@ class _ReviewStep extends StatelessWidget {
 
     return _StepScaffold(
       title: 'Your targets',
-      subtitle: 'Calculated from what you entered with the Mifflin-St Jeor '
+      subtitle:
+          'Calculated from what you entered with the Mifflin-St Jeor '
           'equation. You can change any of it later.',
       onNext: targets == null ? null : onFinish,
       nextLabel: 'Start using LifeDNA',
@@ -745,7 +759,10 @@ class _Line extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label, style: type.bodyM.copyWith(color: c.textSecondary)),
+            child: Text(
+              label,
+              style: type.bodyM.copyWith(color: c.textSecondary),
+            ),
           ),
           Text(value, style: type.bodyM.copyWith(color: c.textPrimary)),
         ],

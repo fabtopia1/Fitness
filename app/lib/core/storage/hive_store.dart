@@ -99,8 +99,10 @@ class HiveStore {
         }
         cipher = HiveAesCipher(base64Url.decode(encoded));
       } on Object catch (error) {
-        debugPrint('HiveStore: secure key unavailable, continuing '
-            'unencrypted ($error)');
+        debugPrint(
+          'HiveStore: secure key unavailable, continuing '
+          'unencrypted ($error)',
+        );
         cipher = null;
       }
     }
@@ -150,27 +152,20 @@ class HiveStore {
 
   Stream<Map<String, dynamic>?> watchOne(String boxName, String id) async* {
     yield read(boxName, id);
-    yield* box(boxName)
-        .watch(key: id)
-        .map((_) => read(boxName, id));
+    yield* box(boxName).watch(key: id).map((_) => read(boxName, id));
   }
 
   // ----------------------------------------------------------------- writes --
 
-  Future<void> write(
-    String boxName,
-    String id,
-    Map<String, dynamic> value,
-  ) =>
+  Future<void> write(String boxName, String id, Map<String, dynamic> value) =>
       box(boxName).put(id, jsonEncode(value));
 
   Future<void> writeAll(
     String boxName,
     Map<String, Map<String, dynamic>> values,
   ) =>
-      box(boxName).putAll(
-        values.map((key, value) => MapEntry(key, jsonEncode(value))),
-      );
+      box(boxName)
+          .putAll(values.map((key, value) => MapEntry(key, jsonEncode(value))));
 
   Future<void> delete(String boxName, String id) => box(boxName).delete(id);
 

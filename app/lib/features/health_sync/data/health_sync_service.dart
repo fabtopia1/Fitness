@@ -29,8 +29,8 @@ import 'package:lifedna/features/health_sync/domain/health_entities.dart';
 /// module reports [HealthAvailability.notEnabledInBuild] rather than crashing.
 class HealthSyncService {
   HealthSyncService({MethodChannel? channel, bool Function()? isSupported})
-      : _channel = channel ?? const MethodChannel(channelName),
-        _isSupported = isSupported ?? (() => Platform.isAndroid);
+    : _channel = channel ?? const MethodChannel(channelName),
+      _isSupported = isSupported ?? (() => Platform.isAndroid);
 
   static const String channelName = 'os.lifedna/health';
 
@@ -73,10 +73,9 @@ class HealthSyncService {
       return const Ok(HealthAvailability.unsupportedPlatform);
     }
     try {
-      final granted = await _channel.invokeMethod<bool>(
-        'requestPermissions',
-        {'metrics': requestedMetrics.map((m) => m.wire).toList()},
-      );
+      final granted = await _channel.invokeMethod<bool>('requestPermissions', {
+        'metrics': requestedMetrics.map((m) => m.wire).toList(),
+      });
       return Ok(
         (granted ?? false)
             ? HealthAvailability.ready
@@ -85,9 +84,7 @@ class HealthSyncService {
     } on MissingPluginException {
       return const Ok(HealthAvailability.notEnabledInBuild);
     } on PlatformException catch (error) {
-      return Err(
-        PermissionFailure('health', debugMessage: error.message),
-      );
+      return Err(PermissionFailure('health', debugMessage: error.message));
     }
   }
 
@@ -107,8 +104,7 @@ class HealthSyncService {
         {
           'from': from.toUtc().toIso8601String(),
           'to': to.toUtc().toIso8601String(),
-          'metrics':
-              (metrics ?? requestedMetrics).map((m) => m.wire).toList(),
+          'metrics': (metrics ?? requestedMetrics).map((m) => m.wire).toList(),
         },
       );
 
@@ -121,7 +117,9 @@ class HealthSyncService {
     } on MissingPluginException {
       return const Ok([]);
     } on PlatformException catch (error) {
-      return Err(ServerFailure('health_read_failed', debugMessage: error.message));
+      return Err(
+        ServerFailure('health_read_failed', debugMessage: error.message),
+      );
     }
   }
 
@@ -130,10 +128,7 @@ class HealthSyncService {
   /// Cumulative metrics sum; instantaneous ones average. Getting this wrong in
   /// the other direction — averaging steps, summing heart rate — is the
   /// classic health-integration bug.
-  DailyHealthSummary summarise(
-    List<HealthSample> samples,
-    String localDate,
-  ) {
+  DailyHealthSummary summarise(List<HealthSample> samples, String localDate) {
     double? steps;
     double? calories;
     double? distance;
@@ -166,7 +161,8 @@ class HealthSyncService {
       sleepMinutes: sleep?.round(),
       restingHeartRate: restingRates.isEmpty
           ? null
-          : (restingRates.reduce((a, b) => a + b) / restingRates.length).round(),
+          : (restingRates.reduce((a, b) => a + b) / restingRates.length)
+                .round(),
     );
   }
 

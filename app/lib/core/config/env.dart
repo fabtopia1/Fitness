@@ -11,10 +11,8 @@ enum Flavor {
   final String key;
   final String appName;
 
-  static Flavor fromKey(String value) => values.firstWhere(
-        (f) => f.key == value,
-        orElse: () => Flavor.dev,
-      );
+  static Flavor fromKey(String value) =>
+      values.firstWhere((f) => f.key == value, orElse: () => Flavor.dev);
 }
 
 /// Compile-time configuration.
@@ -22,8 +20,10 @@ enum Flavor {
 /// Every value here comes from `--dart-define`, so nothing secret is committed
 /// and each environment is a separate build artefact.
 abstract final class Env {
-  static const String _flavorKey =
-      String.fromEnvironment('FLAVOR', defaultValue: 'dev');
+  static const String _flavorKey = String.fromEnvironment(
+    'FLAVOR',
+    defaultValue: 'dev',
+  );
 
   static final Flavor flavor = Flavor.fromKey(_flavorKey);
 
@@ -32,16 +32,18 @@ abstract final class Env {
 
   /// Points the app at the local Firebase emulator suite.
   /// `--dart-define=USE_EMULATOR=true`
-  static const bool useEmulator =
-      bool.fromEnvironment('USE_EMULATOR');
+  static const bool useEmulator = bool.fromEnvironment('USE_EMULATOR');
 
-  static const String emulatorHost =
-      String.fromEnvironment('EMULATOR_HOST', defaultValue: '10.0.2.2');
+  static const String emulatorHost = String.fromEnvironment(
+    'EMULATOR_HOST',
+    defaultValue: '10.0.2.2',
+  );
 
   /// Google OAuth client id used for Calendar scopes on Android.
   /// Empty means the Calendar module stays locked and says so in the UI.
-  static const String googleCalendarClientId =
-      String.fromEnvironment('GOOGLE_CALENDAR_CLIENT_ID');
+  static const String googleCalendarClientId = String.fromEnvironment(
+    'GOOGLE_CALENDAR_CLIENT_ID',
+  );
 
   static bool get calendarConfigured => googleCalendarClientId.isNotEmpty;
 

@@ -30,15 +30,17 @@ void main() {
       );
     });
 
-    test('no native handler reports notEnabledInBuild, and does not crash',
-        () async {
-      // This is the shipped MVP's actual state. The app must run.
-      mockNative(null);
-      expect(
-        await service().availability(),
-        HealthAvailability.notEnabledInBuild,
-      );
-    });
+    test(
+      'no native handler reports notEnabledInBuild, and does not crash',
+      () async {
+        // This is the shipped MVP's actual state. The app must run.
+        mockNative(null);
+        expect(
+          await service().availability(),
+          HealthAvailability.notEnabledInBuild,
+        );
+      },
+    );
 
     test('each native answer maps to its own state', () async {
       for (final entry in {
@@ -60,18 +62,23 @@ void main() {
       );
     });
 
-    test('only "ready" is usable, and only "needs permission" can be asked',
-        () {
-      expect(HealthAvailability.ready.isUsable, isTrue);
-      expect(HealthAvailability.needsPermission.isUsable, isFalse);
-      expect(HealthAvailability.needsPermission.canRequestPermission, isTrue);
-      expect(HealthAvailability.notEnabledInBuild.canRequestPermission, isFalse);
+    test(
+      'only "ready" is usable, and only "needs permission" can be asked',
+      () {
+        expect(HealthAvailability.ready.isUsable, isTrue);
+        expect(HealthAvailability.needsPermission.isUsable, isFalse);
+        expect(HealthAvailability.needsPermission.canRequestPermission, isTrue);
+        expect(
+          HealthAvailability.notEnabledInBuild.canRequestPermission,
+          isFalse,
+        );
 
-      for (final state in HealthAvailability.values) {
-        expect(state.title, isNotEmpty, reason: state.name);
-        expect(state.detail, isNotEmpty, reason: state.name);
-      }
-    });
+        for (final state in HealthAvailability.values) {
+          expect(state.title, isNotEmpty, reason: state.name);
+          expect(state.detail, isNotEmpty, reason: state.name);
+        }
+      },
+    );
   });
 
   group('permissions', () {
@@ -116,35 +123,38 @@ void main() {
   });
 
   group('reading', () {
-    test('an absent native side returns NO samples, not invented ones',
-        () async {
-      // A screen showing plausible step counts that were fabricated would be
-      // worse than a screen showing nothing.
-      mockNative(null);
-      final result = await service().read(
-        from: DateTime.utc(2026, 3, 14),
-        to: DateTime.utc(2026, 3, 15),
-      );
-      expect(result.valueOrNull, isEmpty);
-    });
+    test(
+      'an absent native side returns NO samples, not invented ones',
+      () async {
+        // A screen showing plausible step counts that were fabricated would be
+        // worse than a screen showing nothing.
+        mockNative(null);
+        final result = await service().read(
+          from: DateTime.utc(2026, 3, 14),
+          to: DateTime.utc(2026, 3, 15),
+        );
+        expect(result.valueOrNull, isEmpty);
+      },
+    );
 
     test('samples are decoded and malformed rows are dropped', () async {
-      mockNative((call) async => [
-            {
-              'metric': 'steps',
-              'value': 4200,
-              'start': '2026-03-14T00:00:00.000Z',
-              'end': '2026-03-14T23:59:00.000Z',
-              'source': 'com.sec.android.app.shealth',
-            },
-            {'metric': 'nonsense', 'value': null},
-          ]);
+      mockNative(
+        (call) async => [
+          {
+            'metric': 'steps',
+            'value': 4200,
+            'start': '2026-03-14T00:00:00.000Z',
+            'end': '2026-03-14T23:59:00.000Z',
+            'source': 'com.sec.android.app.shealth',
+          },
+          {'metric': 'nonsense', 'value': null},
+        ],
+      );
 
       final samples = (await service().read(
         from: DateTime.utc(2026, 3, 14),
         to: DateTime.utc(2026, 3, 15),
-      ))
-          .valueOrNull!;
+      )).valueOrNull!;
 
       expect(samples, hasLength(1));
       expect(samples.single.metric, HealthMetric.steps);
@@ -164,27 +174,24 @@ void main() {
 
   group('summarising a day', () {
     HealthSample sample(HealthMetric metric, double value) => HealthSample(
-          metric: metric,
-          value: value,
-          start: DateTime.utc(2026, 3, 14),
-          end: DateTime.utc(2026, 3, 14, 1),
-          source: 'test',
-        );
+      metric: metric,
+      value: value,
+      start: DateTime.utc(2026, 3, 14),
+      end: DateTime.utc(2026, 3, 14, 1),
+      source: 'test',
+    );
 
     test('cumulative metrics sum and instantaneous ones average', () {
       // Averaging steps or summing heart rate is the classic health bug.
-      final summary = service().summarise(
-        [
-          sample(HealthMetric.steps, 3000),
-          sample(HealthMetric.steps, 1200),
-          sample(HealthMetric.activeCalories, 200),
-          sample(HealthMetric.activeCalories, 150),
-          sample(HealthMetric.sleepMinutes, 420),
-          sample(HealthMetric.restingHeartRate, 50),
-          sample(HealthMetric.restingHeartRate, 56),
-        ],
-        '2026-03-14',
-      );
+      final summary = service().summarise([
+        sample(HealthMetric.steps, 3000),
+        sample(HealthMetric.steps, 1200),
+        sample(HealthMetric.activeCalories, 200),
+        sample(HealthMetric.activeCalories, 150),
+        sample(HealthMetric.sleepMinutes, 420),
+        sample(HealthMetric.restingHeartRate, 50),
+        sample(HealthMetric.restingHeartRate, 56),
+      ], '2026-03-14');
 
       expect(summary.steps, 4200);
       expect(summary.activeCalories, 350);

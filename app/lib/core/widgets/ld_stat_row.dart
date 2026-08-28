@@ -47,10 +47,7 @@ class LdStatRow extends StatelessWidget {
                     style: type.labelMono.copyWith(color: c.textTertiary),
                   ),
                 ),
-                Text(
-                  value,
-                  style: type.bodyS.copyWith(color: c.textPrimary),
-                ),
+                Text(value, style: type.bodyS.copyWith(color: c.textPrimary)),
                 if (trailing != null) ...[
                   const SizedBox(width: LdSpacing.s2),
                   Text(

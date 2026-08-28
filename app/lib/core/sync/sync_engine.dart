@@ -36,14 +36,13 @@ class SyncState {
     int? parked,
     DateTime? lastSyncedAt,
     String? lastError,
-  }) =>
-      SyncState(
-        phase: phase ?? this.phase,
-        pending: pending ?? this.pending,
-        parked: parked ?? this.parked,
-        lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
-        lastError: lastError,
-      );
+  }) => SyncState(
+    phase: phase ?? this.phase,
+    pending: pending ?? this.pending,
+    parked: parked ?? this.parked,
+    lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+    lastError: lastError,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -72,11 +71,11 @@ class SyncEngine {
     FirebaseFirestore? firestore,
     String? uid,
     Duration interval = const Duration(minutes: 5),
-  })  : _outbox = outbox,
-        _connectivity = connectivity,
-        _firestore = firestore,
-        _uid = uid,
-        _interval = interval;
+  }) : _outbox = outbox,
+       _connectivity = connectivity,
+       _firestore = firestore,
+       _uid = uid,
+       _interval = interval;
 
   final Outbox _outbox;
   final ConnectivityService _connectivity;
@@ -96,11 +95,13 @@ class SyncEngine {
   bool get canSync => _firestore != null && _uid != null;
 
   void start() {
-    _emit(_state.copyWith(
-      phase: canSync ? SyncPhase.idle : SyncPhase.localOnly,
-      pending: _outbox.length,
-      parked: _outbox.parked().length,
-    ));
+    _emit(
+      _state.copyWith(
+        phase: canSync ? SyncPhase.idle : SyncPhase.localOnly,
+        pending: _outbox.length,
+        parked: _outbox.parked().length,
+      ),
+    );
     if (!canSync) return;
 
     _connectivitySub = _connectivity.onStatusChange.listen((online) {
@@ -122,11 +123,13 @@ class SyncEngine {
 
     try {
       if (!await _connectivity.isOnline) {
-        _emit(_state.copyWith(
-          phase: SyncPhase.offline,
-          pending: _outbox.length,
-          parked: _outbox.parked().length,
-        ));
+        _emit(
+          _state.copyWith(
+            phase: SyncPhase.offline,
+            pending: _outbox.length,
+            parked: _outbox.parked().length,
+          ),
+        );
         return;
       }
 
@@ -162,13 +165,17 @@ class SyncEngine {
       }
 
       final parked = _outbox.parked().length;
-      _emit(SyncState(
-        phase: lastError == null ? SyncPhase.idle : SyncPhase.error,
-        pending: _outbox.length,
-        parked: parked,
-        lastSyncedAt: lastError == null ? DateTime.now() : _state.lastSyncedAt,
-        lastError: lastError,
-      ));
+      _emit(
+        SyncState(
+          phase: lastError == null ? SyncPhase.idle : SyncPhase.error,
+          pending: _outbox.length,
+          parked: parked,
+          lastSyncedAt: lastError == null
+              ? DateTime.now()
+              : _state.lastSyncedAt,
+          lastError: lastError,
+        ),
+      );
     } finally {
       _running = false;
     }

@@ -29,17 +29,19 @@ void main() {
   NutritionRepository nutrition() =>
       NutritionRepository(store: env.store, outbox: outbox());
   CalendarRepository calendar() => CalendarRepository(
-        store: env.store,
-        outbox: outbox(),
-        notifications: env.notifications,
-        google: GoogleCalendarService(),
-      );
+    store: env.store,
+    outbox: outbox(),
+    notifications: env.notifications,
+    google: GoogleCalendarService(),
+  );
 
   Future<void> signIn() async {
     final auth = AuthRepository(store: env.store);
     final session = (await auth.continueWithoutAccount()).valueOrNull!;
     await ProfileRepository(store: env.store, outbox: outbox()).save(
-      auth.initialProfile(session).copyWith(
+      auth
+          .initialProfile(session)
+          .copyWith(
             dateOfBirth: DateTime(1998, 4, 12),
             sex: Sex.male,
             heightCm: 180,
@@ -64,8 +66,9 @@ void main() {
   }
 
   group('logging a meal end to end', () {
-    testWidgets('pick a food, choose a portion, see it on the day',
-        (tester) async {
+    testWidgets('pick a food, choose a portion, see it on the day', (
+      tester,
+    ) async {
       await signIn();
       await seedFood();
 
@@ -165,8 +168,9 @@ void main() {
       );
     });
 
-    testWidgets('water can be logged from the nutrition screen',
-        (tester) async {
+    testWidgets('water can be logged from the nutrition screen', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const NutritionScreen());
       await pumpFrames(tester);
@@ -187,8 +191,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('supplements due today appear once a stack exists',
-        (tester) async {
+    testWidgets('supplements due today appear once a stack exists', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const DashboardScreen());
       await pumpFrames(tester);
@@ -214,8 +219,9 @@ void main() {
       expect(repository.openTasks(), isEmpty);
     });
 
-    testWidgets('the calendar tab shows a day with nothing scheduled',
-        (tester) async {
+    testWidgets('the calendar tab shows a day with nothing scheduled', (
+      tester,
+    ) async {
       await signIn();
       await pumpScreen(tester, env, const PlanScreen());
       await pumpFrames(tester);
@@ -226,8 +232,9 @@ void main() {
       expect(find.text('Nothing scheduled'), findsOneWidget);
     });
 
-    testWidgets('an event created today is listed on the calendar tab',
-        (tester) async {
+    testWidgets('an event created today is listed on the calendar tab', (
+      tester,
+    ) async {
       await signIn();
       final repository = calendar();
       final now = DateTime.now();

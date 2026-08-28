@@ -32,7 +32,7 @@ enum NotificationChannelId {
 /// record, so rescheduling replaces rather than stacks.
 class NotificationService {
   NotificationService({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
   bool _ready = false;
@@ -61,9 +61,7 @@ class NotificationService {
   ///
   /// Does NOT request permission — that happens at the moment a reminder would
   /// first help, which roughly doubles grant rates versus asking at launch.
-  Future<void> initialize({
-    void Function(String? payload)? onTap,
-  }) async {
+  Future<void> initialize({void Function(String? payload)? onTap}) async {
     if (_ready) return;
     try {
       tzdata.initializeTimeZones();
@@ -71,7 +69,9 @@ class NotificationService {
       // A monochrome drawable, not the launcher icon: Android masks the
       // status-bar icon to its alpha channel, so a full-colour launcher icon
       // renders as a white square.
-      const android = AndroidInitializationSettings('@drawable/ic_notification');
+      const android = AndroidInitializationSettings(
+        '@drawable/ic_notification',
+      );
       const darwin = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -84,8 +84,10 @@ class NotificationService {
             onTap?.call(response.payload),
       );
 
-      final android_ = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android_ = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       for (final channel in NotificationChannelId.values) {
         await android_?.createNotificationChannel(
           AndroidNotificationChannel(
@@ -113,13 +115,22 @@ class NotificationService {
   Future<bool> requestPermission() async {
     if (!_ready) return false;
     try {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
 
-      final granted = await android?.requestNotificationsPermission() ??
-          await ios?.requestPermissions(alert: true, badge: true, sound: true) ??
+      final granted =
+          await android?.requestNotificationsPermission() ??
+          await ios?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
           false;
       _permissionGranted = granted;
       return granted;
@@ -244,8 +255,14 @@ class NotificationService {
 
   static tz.TZDateTime _nextInstanceOf(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     if (!scheduled.isAfter(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }

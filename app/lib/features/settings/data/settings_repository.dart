@@ -16,14 +16,14 @@ class SettingsRepository {
     FirebaseFirestore? firestore,
     String? uid,
   }) : _settings = SyncedCollection<AppSettings>(
-          store: store,
-          outbox: outbox,
-          boxName: HiveStore.boxSettings,
-          collection: 'settings',
-          fromJson: AppSettings.fromJson,
-          firestore: firestore,
-          uid: uid,
-        );
+         store: store,
+         outbox: outbox,
+         boxName: HiveStore.boxSettings,
+         collection: 'settings',
+         fromJson: AppSettings.fromJson,
+         firestore: firestore,
+         uid: uid,
+       );
 
   final SyncedCollection<AppSettings> _settings;
 
@@ -31,7 +31,8 @@ class SettingsRepository {
       .watchOne(AppSettings.docId)
       .map((value) => value ?? AppSettings.defaults());
 
-  AppSettings read() => _settings.readOne(AppSettings.docId) ?? AppSettings.defaults();
+  AppSettings read() =>
+      _settings.readOne(AppSettings.docId) ?? AppSettings.defaults();
 
   Future<Result<AppSettings>> save(AppSettings settings) =>
       _settings.put(settings.copyWith(updatedAt: DateTime.now().toUtc()));

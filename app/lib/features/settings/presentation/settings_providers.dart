@@ -126,5 +126,5 @@ class SettingsController extends AsyncNotifier<AppSettings> {
 
 final settingsControllerProvider =
     AsyncNotifierProvider<SettingsController, AppSettings>(
-  SettingsController.new,
-);
+      SettingsController.new,
+    );

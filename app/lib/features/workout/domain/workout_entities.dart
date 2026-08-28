@@ -47,50 +47,50 @@ class Exercise implements SyncedEntity {
     double? incrementKg,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      Exercise(
-        id: id,
-        name: name ?? this.name,
-        muscleGroup: muscleGroup ?? this.muscleGroup,
-        equipment: equipment ?? this.equipment,
-        isCompound: isCompound ?? this.isCompound,
-        defaultRestSeconds: defaultRestSeconds ?? this.defaultRestSeconds,
-        incrementKg: incrementKg ?? this.incrementKg,
-        isCustom: isCustom,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => Exercise(
+    id: id,
+    name: name ?? this.name,
+    muscleGroup: muscleGroup ?? this.muscleGroup,
+    equipment: equipment ?? this.equipment,
+    isCompound: isCompound ?? this.isCompound,
+    defaultRestSeconds: defaultRestSeconds ?? this.defaultRestSeconds,
+    incrementKg: incrementKg ?? this.incrementKg,
+    isCustom: isCustom,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'muscleGroup': muscleGroup.wire,
-        'equipment': equipment.wire,
-        'isCompound': isCompound,
-        'defaultRestSeconds': defaultRestSeconds,
-        'incrementKg': incrementKg,
-        'isCustom': isCustom,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'muscleGroup': muscleGroup.wire,
+    'equipment': equipment.wire,
+    'isCompound': isCompound,
+    'defaultRestSeconds': defaultRestSeconds,
+    'incrementKg': incrementKg,
+    'isCustom': isCustom,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory Exercise.fromJson(Map<String, dynamic> json) => Exercise(
-        id: Json.string(json['id']),
-        name: Json.string(json['name']),
-        muscleGroup:
-            MuscleGroup.fromWire(Json.string(json['muscleGroup'], 'full_body')),
-        equipment: Equipment.values.firstWhere(
-          (e) => e.wire == json['equipment'],
-          orElse: () => Equipment.barbell,
-        ),
-        isCompound: Json.boolean(json['isCompound'], true),
-        defaultRestSeconds: Json.integer(json['defaultRestSeconds'], 120),
-        incrementKg: Json.number(json['incrementKg'], 2.5),
-        isCustom: Json.boolean(json['isCustom']),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    name: Json.string(json['name']),
+    muscleGroup: MuscleGroup.fromWire(
+      Json.string(json['muscleGroup'], 'full_body'),
+    ),
+    equipment: Equipment.values.firstWhere(
+      (e) => e.wire == json['equipment'],
+      orElse: () => Equipment.barbell,
+    ),
+    isCompound: Json.boolean(json['isCompound'], true),
+    defaultRestSeconds: Json.integer(json['defaultRestSeconds'], 120),
+    incrementKg: Json.number(json['incrementKg'], 2.5),
+    isCustom: Json.boolean(json['isCustom']),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 /// One prescribed exercise inside a program.
@@ -114,13 +114,13 @@ class WorkoutExercise {
   String get repRange => repMin == repMax ? '$repMin' : '$repMin–$repMax';
 
   Map<String, dynamic> toJson() => {
-        'exerciseId': exerciseId,
-        'exerciseName': exerciseName,
-        'targetSets': targetSets,
-        'repMin': repMin,
-        'repMax': repMax,
-        'restSeconds': restSeconds,
-      };
+    'exerciseId': exerciseId,
+    'exerciseName': exerciseName,
+    'targetSets': targetSets,
+    'repMin': repMin,
+    'repMax': repMax,
+    'restSeconds': restSeconds,
+  };
 
   factory WorkoutExercise.fromJson(Map<String, dynamic> json) =>
       WorkoutExercise(
@@ -159,14 +159,15 @@ class Workout implements SyncedEntity {
   @override
   final DateTime? deletedAt;
 
-  int get totalSets =>
-      exercises.fold(0, (sum, e) => sum + e.targetSets);
+  int get totalSets => exercises.fold(0, (sum, e) => sum + e.targetSets);
 
   int get estimatedMinutes {
     // Working time plus rest. Deliberately rough — a precise-looking estimate
     // that is wrong is worse than an obviously approximate one.
-    final restSeconds =
-        exercises.fold(0, (sum, e) => sum + e.restSeconds * e.targetSets);
+    final restSeconds = exercises.fold(
+      0,
+      (sum, e) => sum + e.restSeconds * e.targetSets,
+    );
     return ((restSeconds + totalSets * 45) / 60).round();
   }
 
@@ -178,42 +179,41 @@ class Workout implements SyncedEntity {
     DateTime? lastPerformedAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      Workout(
-        id: id,
-        name: name ?? this.name,
-        exercises: exercises ?? this.exercises,
-        notes: notes ?? this.notes,
-        useCount: useCount ?? this.useCount,
-        lastPerformedAt: lastPerformedAt ?? this.lastPerformedAt,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => Workout(
+    id: id,
+    name: name ?? this.name,
+    exercises: exercises ?? this.exercises,
+    notes: notes ?? this.notes,
+    useCount: useCount ?? this.useCount,
+    lastPerformedAt: lastPerformedAt ?? this.lastPerformedAt,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'exercises': exercises.map((e) => e.toJson()).toList(),
-        'notes': notes,
-        'useCount': useCount,
-        'lastPerformedAt': lastPerformedAt?.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'exercises': exercises.map((e) => e.toJson()).toList(),
+    'notes': notes,
+    'useCount': useCount,
+    'lastPerformedAt': lastPerformedAt?.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory Workout.fromJson(Map<String, dynamic> json) => Workout(
-        id: Json.string(json['id']),
-        name: Json.string(json['name']),
-        exercises: (json['exercises'] as List? ?? const [])
-            .map((e) => WorkoutExercise.fromJson(Json.map(e)))
-            .toList(),
-        notes: json['notes'] as String?,
-        useCount: Json.integer(json['useCount']),
-        lastPerformedAt: Json.dateOrNull(json['lastPerformedAt']),
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    name: Json.string(json['name']),
+    exercises: (json['exercises'] as List? ?? const [])
+        .map((e) => WorkoutExercise.fromJson(Json.map(e)))
+        .toList(),
+    notes: json['notes'] as String?,
+    useCount: Json.integer(json['useCount']),
+    lastPerformedAt: Json.dateOrNull(json['lastPerformedAt']),
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 /// One performed set. Embedded in its session rather than stored separately:
@@ -251,28 +251,28 @@ class WorkoutSet {
   double get e1rm => E1rmCalculator.epley(weightKg, reps);
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'exerciseId': exerciseId,
-        'exerciseName': exerciseName,
-        'weightKg': weightKg,
-        'reps': reps,
-        'performedAt': performedAt.toIso8601String(),
-        'rpe': rpe,
-        'isWarmup': isWarmup,
-        'prLabels': prLabels,
-      };
+    'id': id,
+    'exerciseId': exerciseId,
+    'exerciseName': exerciseName,
+    'weightKg': weightKg,
+    'reps': reps,
+    'performedAt': performedAt.toIso8601String(),
+    'rpe': rpe,
+    'isWarmup': isWarmup,
+    'prLabels': prLabels,
+  };
 
   factory WorkoutSet.fromJson(Map<String, dynamic> json) => WorkoutSet(
-        id: Json.string(json['id']),
-        exerciseId: Json.string(json['exerciseId']),
-        exerciseName: Json.string(json['exerciseName']),
-        weightKg: Json.number(json['weightKg']),
-        reps: Json.integer(json['reps']),
-        performedAt: Json.date(json['performedAt'], fallback: DateTime.now()),
-        rpe: (json['rpe'] as num?)?.toInt(),
-        isWarmup: Json.boolean(json['isWarmup']),
-        prLabels: Json.stringList(json['prLabels']),
-      );
+    id: Json.string(json['id']),
+    exerciseId: Json.string(json['exerciseId']),
+    exerciseName: Json.string(json['exerciseName']),
+    weightKg: Json.number(json['weightKg']),
+    reps: Json.integer(json['reps']),
+    performedAt: Json.date(json['performedAt'], fallback: DateTime.now()),
+    rpe: (json['rpe'] as num?)?.toInt(),
+    isWarmup: Json.boolean(json['isWarmup']),
+    prLabels: Json.stringList(json['prLabels']),
+  );
 }
 
 /// A workout session. Firestore: `users/{uid}/workout_sessions/{id}`.
@@ -342,61 +342,60 @@ class WorkoutSession implements SyncedEntity {
     String? notes,
     DateTime? updatedAt,
     DateTime? deletedAt,
-  }) =>
-      WorkoutSession(
-        id: id,
-        workoutId: workoutId,
-        name: name,
-        plan: plan ?? this.plan,
-        sets: sets ?? this.sets,
-        startedAt: startedAt,
-        finishedAt: finishedAt ?? this.finishedAt,
-        status: status ?? this.status,
-        localDate: localDate,
-        notes: notes ?? this.notes,
-        updatedAt: updatedAt ?? DateTime.now().toUtc(),
-        deletedAt: deletedAt ?? this.deletedAt,
-      );
+  }) => WorkoutSession(
+    id: id,
+    workoutId: workoutId,
+    name: name,
+    plan: plan ?? this.plan,
+    sets: sets ?? this.sets,
+    startedAt: startedAt,
+    finishedAt: finishedAt ?? this.finishedAt,
+    status: status ?? this.status,
+    localDate: localDate,
+    notes: notes ?? this.notes,
+    updatedAt: updatedAt ?? DateTime.now().toUtc(),
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'workoutId': workoutId,
-        'name': name,
-        'plan': plan.map((e) => e.toJson()).toList(),
-        'sets': sets.map((s) => s.toJson()).toList(),
-        'startedAt': startedAt.toIso8601String(),
-        'finishedAt': finishedAt?.toIso8601String(),
-        'status': status.wire,
-        'localDate': localDate,
-        'notes': notes,
-        'volumeKg': volumeKg,
-        'setCount': sets.length,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
+    'id': id,
+    'workoutId': workoutId,
+    'name': name,
+    'plan': plan.map((e) => e.toJson()).toList(),
+    'sets': sets.map((s) => s.toJson()).toList(),
+    'startedAt': startedAt.toIso8601String(),
+    'finishedAt': finishedAt?.toIso8601String(),
+    'status': status.wire,
+    'localDate': localDate,
+    'notes': notes,
+    'volumeKg': volumeKg,
+    'setCount': sets.length,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deletedAt': deletedAt?.toIso8601String(),
+  };
 
   factory WorkoutSession.fromJson(Map<String, dynamic> json) => WorkoutSession(
-        id: Json.string(json['id']),
-        workoutId: json['workoutId'] as String?,
-        name: Json.string(json['name']),
-        plan: (json['plan'] as List? ?? const [])
-            .map((e) => WorkoutExercise.fromJson(Json.map(e)))
-            .toList(),
-        sets: (json['sets'] as List? ?? const [])
-            .map((e) => WorkoutSet.fromJson(Json.map(e)))
-            .toList(),
-        startedAt: Json.date(json['startedAt'], fallback: DateTime.now()),
-        finishedAt: Json.dateOrNull(json['finishedAt']),
-        status: SessionStatus.values.firstWhere(
-          (s) => s.wire == json['status'],
-          orElse: () => SessionStatus.completed,
-        ),
-        localDate: Json.string(json['localDate']),
-        notes: json['notes'] as String?,
-        updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
-        deletedAt: Json.dateOrNull(json['deletedAt']),
-      );
+    id: Json.string(json['id']),
+    workoutId: json['workoutId'] as String?,
+    name: Json.string(json['name']),
+    plan: (json['plan'] as List? ?? const [])
+        .map((e) => WorkoutExercise.fromJson(Json.map(e)))
+        .toList(),
+    sets: (json['sets'] as List? ?? const [])
+        .map((e) => WorkoutSet.fromJson(Json.map(e)))
+        .toList(),
+    startedAt: Json.date(json['startedAt'], fallback: DateTime.now()),
+    finishedAt: Json.dateOrNull(json['finishedAt']),
+    status: SessionStatus.values.firstWhere(
+      (s) => s.wire == json['status'],
+      orElse: () => SessionStatus.completed,
+    ),
+    localDate: Json.string(json['localDate']),
+    notes: json['notes'] as String?,
+    updatedAt: Json.date(json['updatedAt'], fallback: DateTime.now()),
+    deletedAt: Json.dateOrNull(json['deletedAt']),
+  );
 }
 
 /// A personal record.
@@ -426,15 +425,15 @@ class PersonalRecordEntry {
   final String sessionId;
 
   Map<String, dynamic> toJson() => {
-        'exerciseId': exerciseId,
-        'exerciseName': exerciseName,
-        'type': type.wire,
-        'value': value,
-        'weightKg': weightKg,
-        'reps': reps,
-        'achievedAt': achievedAt.toIso8601String(),
-        'sessionId': sessionId,
-      };
+    'exerciseId': exerciseId,
+    'exerciseName': exerciseName,
+    'type': type.wire,
+    'value': value,
+    'weightKg': weightKg,
+    'reps': reps,
+    'achievedAt': achievedAt.toIso8601String(),
+    'sessionId': sessionId,
+  };
 
   factory PersonalRecordEntry.fromJson(Map<String, dynamic> json) =>
       PersonalRecordEntry(

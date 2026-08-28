@@ -70,13 +70,13 @@ class _GoalsEditorSheetState extends ConsumerState<GoalsEditorSheet> {
   }
 
   UserProfile get _draft => widget.profile.copyWith(
-        weightKg: double.tryParse(_weight.text.trim()) ?? widget.profile.weightKg,
-        heightCm: double.tryParse(_height.text.trim()) ?? widget.profile.heightCm,
-        goalMode: _goal,
-        activityLevel: _activity,
-        trainingDaysPerWeek: _trainingDays,
-        weeklyRateTargetPct: _ratePct,
-      );
+    weightKg: double.tryParse(_weight.text.trim()) ?? widget.profile.weightKg,
+    heightCm: double.tryParse(_height.text.trim()) ?? widget.profile.heightCm,
+    goalMode: _goal,
+    activityLevel: _activity,
+    trainingDaysPerWeek: _trainingDays,
+    weeklyRateTargetPct: _ratePct,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +109,9 @@ class _GoalsEditorSheetState extends ConsumerState<GoalsEditorSheet> {
                 Expanded(
                   child: TextFormField(
                     controller: _weight,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(
                         RegExp(r'^\d{0,3}\.?\d{0,2}'),
@@ -121,15 +122,17 @@ class _GoalsEditorSheetState extends ConsumerState<GoalsEditorSheet> {
                       suffixText: 'kg',
                     ),
                     onChanged: (_) => setState(() {}),
-                    validator: (value) => _range(value, 30, 300, 'weight in kg'),
+                    validator: (value) =>
+                        _range(value, 30, 300, 'weight in kg'),
                   ),
                 ),
                 const SizedBox(width: LdSpacing.s3),
                 Expanded(
                   child: TextFormField(
                     controller: _height,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(
                         RegExp(r'^\d{0,3}\.?\d{0,2}'),
@@ -140,7 +143,8 @@ class _GoalsEditorSheetState extends ConsumerState<GoalsEditorSheet> {
                       suffixText: 'cm',
                     ),
                     onChanged: (_) => setState(() {}),
-                    validator: (value) => _range(value, 90, 250, 'height in cm'),
+                    validator: (value) =>
+                        _range(value, 90, 250, 'height in cm'),
                   ),
                 ),
               ],

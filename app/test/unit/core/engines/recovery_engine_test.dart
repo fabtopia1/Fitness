@@ -35,13 +35,21 @@ void main() {
     test('sleep score composes its four sub-components', () {
       // duration 88.6 · consistency 97.6 · efficiency 100 · stages 99.25
       // → 0.40(88.6) + 0.25(97.6) + 0.20(100) + 0.15(99.25) = 94.7
-      final r = RecoveryEngine.compute(sleep: sleep, training: training, activity: activity);
+      final r = RecoveryEngine.compute(
+        sleep: sleep,
+        training: training,
+        activity: activity,
+      );
       expect(r.sleepScore, 95);
     });
 
     test('training component penalizes a heavy previous session', () {
       // ACWR 1.073 → base 100. Yesterday 584 > 1.5 × 334 = 501 → −15 → 85.
-      final r = RecoveryEngine.compute(sleep: sleep, training: training, activity: activity);
+      final r = RecoveryEngine.compute(
+        sleep: sleep,
+        training: training,
+        activity: activity,
+      );
       final t = r.components.firstWhere((c) => c.name == 'training');
       expect(t.score, 85);
     });
@@ -49,14 +57,22 @@ void main() {
     test('activity component blends steps and active minutes', () {
       // steps 0.703 → 70.3 ; activeMinutes 62/45 → clamped 100
       // 0.6(70.3) + 0.4(100) = 82.2
-      final r = RecoveryEngine.compute(sleep: sleep, training: training, activity: activity);
+      final r = RecoveryEngine.compute(
+        sleep: sleep,
+        training: training,
+        activity: activity,
+      );
       final a = r.components.firstWhere((c) => c.name == 'activity');
       expect(a.score, 82);
     });
 
     test('composite recovery is the weighted sum', () {
       // 0.40(95) + 0.40(85) + 0.20(82) = 38 + 34 + 16.4 = 88.4 → 88
-      final r = RecoveryEngine.compute(sleep: sleep, training: training, activity: activity);
+      final r = RecoveryEngine.compute(
+        sleep: sleep,
+        training: training,
+        activity: activity,
+      );
       expect(r.recoveryScore, 88);
       expect(r.band, RecoveryBand.high);
     });
@@ -172,13 +188,13 @@ void main() {
 
   group('RecoveryEngine — sleep duration asymmetry', () {
     int scoreFor(int minutes) => RecoveryEngine.compute(
-          sleep: SleepInput(totalMinutes: minutes, timeInBedMinutes: minutes + 30),
-          training: const TrainingInput(
-            acwr: 1.0,
-            yesterdayLoad: 300,
-            meanDailyLoad28d: 320,
-          ),
-        ).sleepScore!;
+      sleep: SleepInput(totalMinutes: minutes, timeInBedMinutes: minutes + 30),
+      training: const TrainingInput(
+        acwr: 1.0,
+        yesterdayLoad: 300,
+        meanDailyLoad28d: 320,
+      ),
+    ).sleepScore!;
 
     test('the ideal band scores at the top', () {
       expect(scoreFor(480), greaterThanOrEqualTo(95));
@@ -205,13 +221,13 @@ void main() {
 
   group('RecoveryEngine — ACWR bands', () {
     int trainingScore(double? acwr) => RecoveryEngine.compute(
-          sleep: const SleepInput(totalMinutes: 450, timeInBedMinutes: 480),
-          training: TrainingInput(
-            acwr: acwr,
-            yesterdayLoad: 100,
-            meanDailyLoad28d: 300,
-          ),
-        ).components.firstWhere((c) => c.name == 'training').score;
+      sleep: const SleepInput(totalMinutes: 450, timeInBedMinutes: 480),
+      training: TrainingInput(
+        acwr: acwr,
+        yesterdayLoad: 100,
+        meanDailyLoad28d: 300,
+      ),
+    ).components.firstWhere((c) => c.name == 'training').score;
 
     test('the productive band scores 100', () {
       expect(trainingScore(0.85), 100);
@@ -230,25 +246,23 @@ void main() {
       required int sleepMinutes,
       required double acwr,
       required int plannedRpe,
-    }) =>
-        RecoveryEngine.compute(
-          sleep: SleepInput(
-            totalMinutes: sleepMinutes,
-            timeInBedMinutes: sleepMinutes + 40,
-          ),
-          training: TrainingInput(
-            acwr: acwr,
-            yesterdayLoad: 200,
-            meanDailyLoad28d: 400,
-          ),
-          activity: const ActivityInput(
-            steps: 10000,
-            stepGoal: 10000,
-            activeMinutes: 45,
-          ),
-          plannedSession:
-              PlannedSession(rpe: plannedRpe, durationMinutes: 60),
-        );
+    }) => RecoveryEngine.compute(
+      sleep: SleepInput(
+        totalMinutes: sleepMinutes,
+        timeInBedMinutes: sleepMinutes + 40,
+      ),
+      training: TrainingInput(
+        acwr: acwr,
+        yesterdayLoad: 200,
+        meanDailyLoad28d: 400,
+      ),
+      activity: const ActivityInput(
+        steps: 10000,
+        stepGoal: 10000,
+        activeMinutes: 45,
+      ),
+      plannedSession: PlannedSession(rpe: plannedRpe, durationMinutes: 60),
+    );
 
     test('a rested athlete on a balanced load gets a green light', () {
       final r = run(sleepMinutes: 490, acwr: 1.0, plannedRpe: 6);
@@ -263,10 +277,7 @@ void main() {
 
     test('severe sleep loss reduces the session', () {
       final r = run(sleepMinutes: 240, acwr: 1.4, plannedRpe: 9);
-      expect(
-        r.action,
-        anyOf(TrainingAction.reduce, TrainingAction.rest),
-      );
+      expect(r.action, anyOf(TrainingAction.reduce, TrainingAction.rest));
     });
   });
 
@@ -279,10 +290,10 @@ void main() {
     );
 
     int scoreWith(PhysiologyInput p) => RecoveryEngine.compute(
-          sleep: sleep,
-          training: training,
-          physiology: p,
-        ).recoveryScore!;
+      sleep: sleep,
+      training: training,
+      physiology: p,
+    ).recoveryScore!;
 
     test('an elevated resting heart rate lowers the score', () {
       final baseline = RecoveryEngine.compute(

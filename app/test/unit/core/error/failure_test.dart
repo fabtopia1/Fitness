@@ -59,7 +59,10 @@ void main() {
       FirebaseException fs(String code) =>
           FirebaseException(plugin: 'cloud_firestore', code: code);
 
-      expect(FailureMapper.from(fs('deadline-exceeded')), isA<TimeoutFailure>());
+      expect(
+        FailureMapper.from(fs('deadline-exceeded')),
+        isA<TimeoutFailure>(),
+      );
       expect(FailureMapper.from(fs('not-found')), isA<NotFoundFailure>());
       expect(
         FailureMapper.from(fs('permission-denied')),

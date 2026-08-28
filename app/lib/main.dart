@@ -17,58 +17,60 @@ import 'package:lifedna/core/theme/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  unawaited(runZonedGuarded(
-    () async {
-      final AppBootstrap bootstrap;
-      try {
-        bootstrap = await AppBootstrap.initialize();
-      } on Object catch (error, stackTrace) {
-        debugPrint('Bootstrap failed — $error');
+  unawaited(
+    runZonedGuarded(
+      () async {
+        final AppBootstrap bootstrap;
+        try {
+          bootstrap = await AppBootstrap.initialize();
+        } on Object catch (error, stackTrace) {
+          debugPrint('Bootstrap failed — $error');
+          debugPrintStack(stackTrace: stackTrace);
+          runApp(_BootstrapFailureApp(error: error));
+          return;
+        }
+
+        // Framework errors are reported through the same path as caught ones, so
+        // Crashlytics sees a widget build failure as well as a repository throw.
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (details) {
+          originalOnError?.call(details);
+          unawaited(
+            bootstrap.telemetry.recordError(
+              details.exception,
+              details.stack,
+              context: details.context?.toString(),
+              fatal: true,
+            ),
+          );
+        };
+
+        PlatformDispatcher.instance.onError = (error, stackTrace) {
+          unawaited(
+            bootstrap.telemetry.recordError(
+              error,
+              stackTrace,
+              context: 'platform_dispatcher',
+              fatal: true,
+            ),
+          );
+          return true;
+        };
+
+        runApp(
+          ProviderScope(
+            overrides: [bootstrapProvider.overrideWithValue(bootstrap)],
+            child: const LifeDnaApp(),
+          ),
+        );
+      },
+      (error, stackTrace) {
+        // Nothing else can report this: the zone handler is the last resort.
+        debugPrint('Uncaught zone error — $error');
         debugPrintStack(stackTrace: stackTrace);
-        runApp(_BootstrapFailureApp(error: error));
-        return;
-      }
-
-      // Framework errors are reported through the same path as caught ones, so
-      // Crashlytics sees a widget build failure as well as a repository throw.
-      final originalOnError = FlutterError.onError;
-      FlutterError.onError = (details) {
-        originalOnError?.call(details);
-        unawaited(
-          bootstrap.telemetry.recordError(
-            details.exception,
-            details.stack,
-            context: details.context?.toString(),
-            fatal: true,
-          ),
-        );
-      };
-
-      PlatformDispatcher.instance.onError = (error, stackTrace) {
-        unawaited(
-          bootstrap.telemetry.recordError(
-            error,
-            stackTrace,
-            context: 'platform_dispatcher',
-            fatal: true,
-          ),
-        );
-        return true;
-      };
-
-      runApp(
-        ProviderScope(
-          overrides: [bootstrapProvider.overrideWithValue(bootstrap)],
-          child: const LifeDnaApp(),
-        ),
-      );
-    },
-    (error, stackTrace) {
-      // Nothing else can report this: the zone handler is the last resort.
-      debugPrint('Uncaught zone error — $error');
-      debugPrintStack(stackTrace: stackTrace);
-    },
-  ));
+      },
+    ),
+  );
 }
 
 /// Shown when the app cannot start at all.
@@ -105,15 +107,9 @@ class _BootstrapFailureApp extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 if (kDebugMode)
-                  Text(
-                    '$error',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text('$error', style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 24),
-                const FilledButton(
-                  onPressed: main,
-                  child: Text('Try again'),
-                ),
+                const FilledButton(onPressed: main, child: Text('Try again')),
               ],
             ),
           ),

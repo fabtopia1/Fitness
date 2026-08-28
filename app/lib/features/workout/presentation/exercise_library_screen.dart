@@ -17,8 +17,7 @@ class ExerciseLibraryScreen extends ConsumerStatefulWidget {
       _ExerciseLibraryScreenState();
 }
 
-class _ExerciseLibraryScreenState
-    extends ConsumerState<ExerciseLibraryScreen> {
+class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
   MuscleGroup? _muscle;
 
   @override
@@ -53,8 +52,7 @@ class _ExerciseLibraryScreenState
                 height: 52,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: LdSpacing.s4),
+                  padding: const EdgeInsets.symmetric(horizontal: LdSpacing.s4),
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -84,11 +82,8 @@ class _ExerciseLibraryScreenState
                     bottom: LdSpacing.scrollBottom,
                   ),
                   itemCount: filtered.length,
-                  separatorBuilder: (_, __) => Divider(
-                    color: c.border,
-                    height: 1,
-                    indent: LdSpacing.s4,
-                  ),
+                  separatorBuilder: (_, __) =>
+                      Divider(color: c.border, height: 1, indent: LdSpacing.s4),
                   itemBuilder: (context, index) {
                     final exercise = filtered[index];
                     final best = ref
@@ -103,12 +98,15 @@ class _ExerciseLibraryScreenState
                         best.bestE1rm == null
                             ? exercise.subtitle
                             : '${exercise.subtitle} · best est. 1RM '
-                                '${best.bestE1rm!.toStringAsFixed(1)} kg',
+                                  '${best.bestE1rm!.toStringAsFixed(1)} kg',
                         style: type.bodyS.copyWith(color: c.textTertiary),
                       ),
                       trailing: exercise.isCustom
-                          ? Icon(Icons.person_rounded,
-                              size: 16, color: c.textTertiary)
+                          ? Icon(
+                              Icons.person_rounded,
+                              size: 16,
+                              color: c.textTertiary,
+                            )
                           : null,
                     );
                   },

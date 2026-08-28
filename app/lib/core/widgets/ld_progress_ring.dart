@@ -106,9 +106,9 @@ class LdProgressRing extends StatelessWidget {
 
   static String _fmt(double v) => v >= 1000
       ? v.round().toString().replaceAllMapped(
-            RegExp(r'(\d)(?=(\d{3})+$)'),
-            (m) => '${m[1]},',
-          )
+          RegExp(r'(\d)(?=(\d{3})+$)'),
+          (m) => '${m[1]},',
+        )
       : v.round().toString();
 }
 

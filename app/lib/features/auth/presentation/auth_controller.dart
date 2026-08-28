@@ -15,24 +15,20 @@ class AuthController extends AsyncNotifier<void> {
 
   AuthRepository get _auth => ref.read(authRepositoryProvider);
 
-  Future<Failure?> signIn({
-    required String email,
-    required String password,
-  }) =>
+  Future<Failure?> signIn({required String email, required String password}) =>
       _run(() => _auth.signInWithEmail(email: email, password: password));
 
   Future<Failure?> signUp({
     required String email,
     required String password,
     required String displayName,
-  }) =>
-      _run(
-        () => _auth.signUpWithEmail(
-          email: email,
-          password: password,
-          displayName: displayName,
-        ),
-      );
+  }) => _run(
+    () => _auth.signUpWithEmail(
+      email: email,
+      password: password,
+      displayName: displayName,
+    ),
+  );
 
   Future<Failure?> signInWithGoogle() => _run(_auth.signInWithGoogle);
 
@@ -83,13 +79,14 @@ class AuthController extends AsyncNotifier<void> {
   /// Completes onboarding with the user's body and goal details.
   Future<Failure?> completeOnboarding(UserProfile profile) async {
     state = const AsyncValue.loading();
-    final result = await ref.read(profileRepositoryProvider).save(
-          profile.copyWith(onboardingCompletedAt: DateTime.now().toUtc()),
-        );
+    final result = await ref
+        .read(profileRepositoryProvider)
+        .save(profile.copyWith(onboardingCompletedAt: DateTime.now().toUtc()));
     state = const AsyncValue.data(null);
     return result.failureOrNull;
   }
 }
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, void>(AuthController.new);
+final authControllerProvider = AsyncNotifierProvider<AuthController, void>(
+  AuthController.new,
+);

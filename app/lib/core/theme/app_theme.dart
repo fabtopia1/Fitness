@@ -150,9 +150,7 @@ abstract final class AppTheme {
         backgroundColor: c.surfaceElevated,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(LdRadius.l),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(LdRadius.l)),
         ),
         showDragHandle: true,
         dragHandleColor: c.borderStrong,
