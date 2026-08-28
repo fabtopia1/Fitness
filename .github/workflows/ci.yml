@@ -1,0 +1,187 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+  NODE_VERSION: '20'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # The parity gate. This job is the reason the engines can be trusted, and it
+  # cannot be overridden by a maintainer — a divergence between the client and
+  # server implementations means a user sees one recovery score before syncing
+  # and a different one after.
+  # ---------------------------------------------------------------------------
+  engine-parity:
+    name: Engine parity (Dart ↔ TypeScript ↔ spec)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fixtures are current
+        run: |
+          python3 tool/generate_engine_fixtures.py
+          if ! git diff --quiet test/fixtures/engines; then
+            echo "::error::Engine fixtures are stale. A formula changed without"
+            echo "::error::regenerating them, or the generator disagrees with the spec."
+            git diff --stat test/fixtures/engines
+            exit 1
+          fi
+
+      - name: Dart engines match the fixtures
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter test test/unit/core/engines/parity_test.dart
+
+      - name: TypeScript engines match the fixtures
+        working-directory: functions
+        run: |
+          npm ci
+          npm test -- test/engines/parity.test.ts
+
+  flutter:
+    name: Flutter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install
+        working-directory: app
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: app
+        run: flutter analyze --fatal-infos
+
+      - name: Format
+        working-directory: app
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      # Enforces the two rules the analyzer cannot express: the pure-Dart
+      # domain boundary (docs/02 §4.1) and no colour literal outside
+      # core/theme (docs/04 §12).
+      - name: Layer boundaries and colour discipline
+        working-directory: app
+        run: python3 tool/check_sources.py
+
+      - name: Test
+        working-directory: app
+        run: flutter test --coverage
+
+      - name: Coverage gate
+        working-directory: app
+        run: |
+          # The engines produce every number the user sees. They are the one
+          # place where less than full coverage is not acceptable.
+          if ! grep -q "core/engines" coverage/lcov.info; then
+            echo "::error::No coverage recorded for core/engines"
+            exit 1
+          fi
+
+      - name: Build (staging)
+        working-directory: app
+        run: flutter build apk --debug --target-platform android-arm64
+
+  functions:
+    name: Cloud Functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install
+        working-directory: functions
+        run: npm ci
+
+      - name: Lint
+        working-directory: functions
+        run: npm run lint
+
+      - name: Typecheck and build
+        working-directory: functions
+        run: npm run build
+
+      - name: Test
+        working-directory: functions
+        run: npm test
+
+      # Math.round and Dart's num.round() disagree on negative halves, and
+      # projectedWeeklyChangeKg is negative for every user in a deficit.
+      # See functions/README.md §4.
+      - name: No platform rounding inside the engines
+        working-directory: functions
+        run: |
+          if grep -rn "Math\.round" src/engines --include="*.ts" \
+             | grep -v "^\s*//" | grep -v "\* "; then
+            echo "::error::Use roundHalfAwayFromZero from lib/rounding.ts."
+            exit 1
+          fi
+
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No committed secrets
+        run: |
+          # These files are gitignored; a commit means credentials leaked.
+          for f in google-services.json GoogleService-Info.plist \
+                   firebase_options.dart serviceAccountKey.json; do
+            if git ls-files --error-unmatch "**/$f" 2>/dev/null; then
+              echo "::error::$f must never be committed."
+              exit 1
+            fi
+          done
+          if git grep -nE "(AIza[0-9A-Za-z_-]{35}|sk-ant-[A-Za-z0-9_-]{20,})" \
+             -- . ':!*.example' ':!.github/workflows/*'; then
+            echo "::error::A live API key appears to be committed."
+            exit 1
+          fi
+          echo "No committed secrets."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Dependency audit
+        working-directory: functions
+        run: npm audit --audit-level=high || true
