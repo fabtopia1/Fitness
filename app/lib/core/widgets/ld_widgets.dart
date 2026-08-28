@@ -4,6 +4,7 @@
 /// component surface is a deliberate, reviewable list.
 library;
 
+export 'ld_async_view.dart';
 export 'ld_card.dart';
 export 'ld_empty_state.dart';
 export 'ld_metric_tile.dart';

@@ -18,6 +18,7 @@ class LdEmptyState extends StatelessWidget {
     this.secondaryActionLabel,
     this.onSecondaryAction,
     this.progress,
+    this.iconColor,
   });
 
   final IconData icon;
@@ -28,9 +29,12 @@ class LdEmptyState extends StatelessWidget {
   final String? secondaryActionLabel;
   final VoidCallback? onSecondaryAction;
 
-  /// When an empty state is a matter of time rather than of action — insights
-  /// need seven days of data — show progress instead of a button.
+  /// When an empty state is a matter of time rather than of action, show
+  /// progress instead of a button.
   final ({int current, int total, String label})? progress;
+
+  /// Overrides the icon tint, so an error state can read as an error.
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +50,7 @@ class LdEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: c.textTertiary),
+            Icon(icon, size: 48, color: iconColor ?? c.textTertiary),
             const SizedBox(height: LdSpacing.s4),
             Text(
               headline,
