@@ -2,4 +2,7 @@
 <resources>
     <!-- LdColors.primary. Tints the notification accent. -->
     <color name="notification_accent">#0066FF</color>
+    <!-- LdColors.dark.bg and LdColors.light.bg. The launch window paints these
+         so a cold start does not flash a colour the app never uses. -->
+    <color name="launch_background">#F5F7FB</color>
 </resources>

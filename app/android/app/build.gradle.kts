@@ -7,6 +7,31 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase's Gradle plugins are applied ONLY when this build has credentials
+// for at least one flavour.
+//
+// google-services generates the resources that google_sign_in reads to obtain
+// an ID token, and it is the prerequisite for the Crashlytics plugin that
+// uploads the R8 mapping file — without which every release crash report
+// arrives obfuscated. Applying them unconditionally would break a fresh clone,
+// which must still build and run in local mode.
+val hasFirebaseCredentials =
+    listOf("google-services.json", "src/dev", "src/staging", "src/prod")
+        .map { if (it.endsWith(".json")) file(it) else file("$it/google-services.json") }
+        .any { it.exists() }
+
+if (hasFirebaseCredentials) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+} else {
+    logger.lifecycle(
+        "LifeDNA: no google-services.json found — building WITHOUT Firebase " +
+            "Gradle plugins. Google Sign-In will not return an ID token and " +
+            "Crashlytics will not upload a mapping file. See " +
+            "docs/mvp/18-google-auth-verification.md.",
+    )
+}
+
 // Release signing comes from android/key.properties, which is never committed.
 // Without it the release build falls back to the debug key so that
 // `flutter build apk --release` still works on a fresh clone; CI supplies the
@@ -39,9 +64,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Firebase + Google Play services push the method count past 64k on
-        // the minSdk end of the range.
-        multiDexEnabled = true
+        // No multiDexEnabled: native multidex has existed since API 21 and
+        // minSdk here is 24, so the flag and the support library are both
+        // no-ops that only mislead the next reader.
     }
 
     signingConfigs {
@@ -103,8 +128,8 @@ android {
 }
 
 dependencies {
+    // Required by flutter_local_notifications, which uses java.time.
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    implementation("androidx.multidex:multidex:2.0.1")
 }
 
 kotlin {

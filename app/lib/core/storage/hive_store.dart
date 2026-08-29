@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:lifedna/core/storage/storage_mode.dart';
 
 /// Encrypted local persistence.
 ///
@@ -44,6 +45,14 @@ class HiveStore {
   static const boxOutbox = 'outbox';
   static const boxMeta = 'meta';
 
+  /// Records which encryption mode the boxes were written in.
+  ///
+  /// Deliberately UNENCRYPTED and deliberately outside [allBoxes]: it has to be
+  /// readable before the key is known, and `clearAll()` on sign-out must not
+  /// erase the one fact that tells the next launch how to open the files.
+  static const boxStorageState = '__storage_state__';
+  static const _encryptedMarkerKey = 'encrypted';
+
   static const List<String> allBoxes = [
     boxProfile,
     boxSettings,
@@ -65,14 +74,19 @@ class HiveStore {
     boxMeta,
   ];
 
-  /// Opens every box with AES encryption.
+  /// Opens every box in the mode the previous launch recorded.
   ///
   /// The key lives in the platform keystore (Android Keystore / iOS Keychain),
-  /// never in the box itself and never in shared preferences. On a device
-  /// where secure storage is unavailable the app still runs, unencrypted, and
-  /// says so in Settings rather than failing to start — a user locked out of
-  /// their own training log is a worse outcome than an unencrypted cache on a
-  /// device that already cannot keep a secret.
+  /// never in a box and never in shared preferences. On a device where secure
+  /// storage is unavailable at FIRST run the app still starts, unencrypted,
+  /// and says so in Settings — being locked out of your own training log is
+  /// the worse outcome.
+  ///
+  /// What it will NOT do is switch modes. Once boxes exist, this either opens
+  /// them the way they were written or throws [StorageUnavailable] so the app
+  /// can offer a recovery. Handing Hive a cipher for plaintext files — or
+  /// plaintext handling for encrypted ones — is unrecoverable, and the failure
+  /// surfaces as an error deep inside Hive that names nothing.
   ///
   /// [inMemory] opens Hive's memory backend instead of files. Tests use it so
   /// that no write touches the disk: a `testWidgets` body runs inside a fake
@@ -88,34 +102,83 @@ class HiveStore {
       await Hive.initFlutter('lifedna');
     }
 
-    HiveAesCipher? cipher;
-    if (!inMemory) {
-      try {
-        var encoded = await secureStorage.read(key: _secureKeyName);
-        if (encoded == null) {
-          final key = Hive.generateSecureKey();
-          encoded = base64UrlEncode(key);
-          await secureStorage.write(key: _secureKeyName, value: encoded);
-        }
-        cipher = HiveAesCipher(base64Url.decode(encoded));
-      } on Object catch (error) {
-        debugPrint(
-          'HiveStore: secure key unavailable, continuing '
-          'unencrypted ($error)',
-        );
-        cipher = null;
-      }
+    if (inMemory) {
+      // No files, so no mode to preserve and no key to lose.
+      final store = HiveStore._(null);
+      await store._openBoxes(null, inMemory: true);
+      return store;
     }
 
+    final state = await Hive.openBox<bool>(boxStorageState);
+    final mode = await StorageModeResolver.resolve(
+      recordedEncrypted: state.get(_encryptedMarkerKey),
+      readKey: () => secureStorage.read(key: _secureKeyName),
+      writeKey: (key) => secureStorage.write(key: _secureKeyName, value: key),
+      generateKey: () => base64UrlEncode(Hive.generateSecureKey()),
+    );
+
+    final cipher = mode.encrypted
+        ? HiveAesCipher(base64Url.decode(mode.keyMaterial!))
+        : null;
+
     final store = HiveStore._(cipher);
+    try {
+      await store._openBoxes(cipher, inMemory: false);
+    } on Object catch (error) {
+      // The marker and the files disagree, or the files are damaged. Either
+      // way the app must offer a way out rather than a stack trace.
+      throw StorageUnavailable(
+        state.get(_encryptedMarkerKey) == null
+            ? StorageFailureReason.corrupt
+            : StorageFailureReason.encryptionMismatch,
+        cause: error,
+      );
+    }
+
+    // Written only after every box opened cleanly, so a half-failed first run
+    // cannot record a mode the data does not actually use.
+    await state.put(_encryptedMarkerKey, mode.encrypted);
+    return store;
+  }
+
+  Future<void> _openBoxes(
+    HiveAesCipher? cipher, {
+    required bool inMemory,
+  }) async {
     for (final name in allBoxes) {
-      store._boxes[name] = await Hive.openBox<String>(
+      _boxes[name] = await Hive.openBox<String>(
         name,
         encryptionCipher: cipher,
         bytes: inMemory ? Uint8List(0) : null,
       );
     }
-    return store;
+  }
+
+  /// Deletes every box and the encryption key, so the next launch starts as a
+  /// first run.
+  ///
+  /// This is the recovery action behind [StorageUnavailable]. It is
+  /// destructive by necessity: data encrypted with a key that no longer exists
+  /// cannot be read by anything, so the only alternative to deleting it is
+  /// leaving the user permanently unable to open the app.
+  static Future<void> resetLocalData({
+    FlutterSecureStorage secureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    ),
+  }) async {
+    await Hive.close();
+    for (final name in [...allBoxes, boxStorageState]) {
+      try {
+        await Hive.deleteBoxFromDisk(name);
+      } on Object catch (error) {
+        debugPrint('HiveStore: could not delete "$name" — $error');
+      }
+    }
+    try {
+      await secureStorage.delete(key: _secureKeyName);
+    } on Object catch (error) {
+      debugPrint('HiveStore: could not clear the key — $error');
+    }
   }
 
   bool get isEncrypted => _encryptionKey != null;

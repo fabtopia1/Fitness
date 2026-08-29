@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifedna/app.dart';
 import 'package:lifedna/core/config/app_bootstrap.dart';
 import 'package:lifedna/core/providers/providers.dart';
+import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/core/storage/storage_mode.dart';
+import 'package:lifedna/core/storage/storage_recovery_screen.dart';
 import 'package:lifedna/core/theme/app_theme.dart';
 
 /// Entry point.
@@ -23,6 +26,24 @@ Future<void> main() async {
         final AppBootstrap bootstrap;
         try {
           bootstrap = await AppBootstrap.initialize();
+        } on StorageUnavailable catch (failure, stackTrace) {
+          // The one failure with a real recovery. Data encrypted with a key
+          // this device no longer holds cannot be read by anything, so the app
+          // offers to reset rather than looping on a retry that cannot
+          // succeed — which is how a device transfer used to brick the install.
+          debugPrint('Storage unavailable — $failure');
+          debugPrintStack(stackTrace: stackTrace);
+          runApp(
+            StorageRecoveryApp(
+              failure: failure,
+              onRetry: main,
+              onReset: () async {
+                await HiveStore.resetLocalData();
+                await main();
+              },
+            ),
+          );
+          return;
         } on Object catch (error, stackTrace) {
           debugPrint('Bootstrap failed — $error');
           debugPrintStack(stackTrace: stackTrace);

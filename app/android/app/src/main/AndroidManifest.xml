@@ -29,7 +29,20 @@
         android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules">
+        <!--
+            allowBackup is FALSE deliberately, and the two rules files exclude
+            everything for the versions that read them instead.
+
+            Hive boxes are AES-encrypted with a key held in the Android
+            Keystore. Keystore keys are device-bound and non-exportable, so a
+            box restored onto a new device arrives without the key that opens
+            it — an unrecoverable state. The app re-downloads from the user's
+            account instead, which is both correct and faster.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -50,23 +63,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Reschedules pending local notifications after a reboot. -->
-        <receiver
-            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
-            android:exported="false" />
-        <receiver
-            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
-            android:exported="false" />
+        <!--
+            The flutter_local_notifications receivers (boot, scheduled,
+            action) are declared by the plugin's own manifest and merged in.
+            Re-declaring them here duplicated every attribute and would fail
+            the manifest merger the moment the plugin changed one.
+        -->
 
         <!-- Notification appearance. A monochrome small icon is required:
              Android tints it and a coloured one renders as a white blob. -->
