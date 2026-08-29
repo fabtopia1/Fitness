@@ -13,8 +13,12 @@ import 'package:firebase_core/firebase_core.dart';
 /// When the required values are absent, [currentPlatform] returns null and the
 /// app runs in local mode — see `FirebaseService`.
 ///
-/// Android additionally needs `android/app/google-services.json` for Cloud
-/// Messaging. That file is gitignored; see `docs/mvp/BUILD_CHECKLIST.md`.
+/// Android additionally needs `google-services.json`, placed per flavour at
+/// `android/app/src/{dev,staging,prod}/google-services.json`. It is required
+/// for Cloud Messaging AND for Google Sign-In: the Gradle plugin it feeds
+/// generates the client id that makes the sign-in plugin request an ID token.
+/// The file is gitignored; see `docs/mvp/18-google-auth-verification.md` and
+/// `docs/mvp/11-build-checklist.md`.
 abstract final class FirebaseConfig {
   static const String apiKey = String.fromEnvironment('FIREBASE_API_KEY');
   static const String appId = String.fromEnvironment('FIREBASE_APP_ID');
@@ -49,5 +53,6 @@ abstract final class FirebaseConfig {
       'flutter build apk --dart-define=FIREBASE_API_KEY=... '
       '--dart-define=FIREBASE_APP_ID=... '
       '--dart-define=FIREBASE_SENDER_ID=... '
-      '--dart-define=FIREBASE_PROJECT_ID=...';
+      '--dart-define=FIREBASE_PROJECT_ID=... '
+      '--dart-define=GOOGLE_SERVER_CLIENT_ID=...';
 }

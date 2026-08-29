@@ -22,6 +22,12 @@ class FirebaseService {
 
   bool get isAvailable => status == FirebaseStatus.ready;
 
+  /// Ceiling for Firestore's own offline cache, in bytes.
+  ///
+  /// Named rather than inline so the number is testable and so the next reader
+  /// finds the reasoning attached to it rather than a bare literal.
+  static const int firestoreCacheBytes = 40 * 1024 * 1024;
+
   static Future<FirebaseService> initialize({FirebaseOptions? options}) async {
     if (options == null) {
       debugPrint(
@@ -40,12 +46,18 @@ class FirebaseService {
       }
 
       // Offline persistence is what lets Firestore reads serve from cache
-      // while the device is offline. Unlimited cache: this is a personal
-      // dataset measured in megabytes, and eviction mid-workout would be
-      // exactly the wrong trade.
+      // while the device is offline.
+      //
+      // The cache is BOUNDED, unlike the template default. Hive is this app's
+      // read path — no screen reads from Firestore — so this cache holds a
+      // second copy of data nothing displays. Left unlimited it grows for the
+      // life of the install on a device whose owner cannot see why the app is
+      // taking hundreds of megabytes. 40 MB holds years of a personal dataset
+      // with room to spare, and eviction costs nothing because what it evicts
+      // is never read.
       FirebaseFirestore.instance.settings = const Settings(
         persistenceEnabled: true,
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+        cacheSizeBytes: firestoreCacheBytes,
       );
 
       return FirebaseService._(FirebaseStatus.ready, app);

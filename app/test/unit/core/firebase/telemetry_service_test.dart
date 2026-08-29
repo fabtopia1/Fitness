@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/firebase/firebase_service.dart';
@@ -150,6 +151,29 @@ void main() {
             TelemetryService(available: false)
                 .logEvent('log', parameters: {'food_name': 'chicken'}),
         throwsArgumentError,
+      );
+    });
+  });
+
+  group('Firestore cache ceiling (M-2)', () {
+    test('is bounded, not unlimited', () {
+      // Hive is this app's read path; nothing on screen reads from Firestore.
+      // An unlimited cache is therefore a second copy of data nothing displays,
+      // growing for the life of the install on a device whose owner cannot see
+      // why the app is taking hundreds of megabytes.
+      expect(FirebaseService.firestoreCacheBytes, isPositive);
+      expect(
+        FirebaseService.firestoreCacheBytes,
+        isNot(Settings.CACHE_SIZE_UNLIMITED),
+      );
+    });
+
+    test('is large enough to be irrelevant to a real user', () {
+      // Years of a personal dataset, with room to spare. Small enough to
+      // matter is as wrong as unbounded.
+      expect(
+        FirebaseService.firestoreCacheBytes,
+        greaterThanOrEqualTo(20 * 1024 * 1024),
       );
     });
   });
