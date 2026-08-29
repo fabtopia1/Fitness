@@ -25,6 +25,7 @@ Where the two disagree, this folder is authoritative for the MVP.
 | 14 | [Technical debt log](14-technical-debt.md) | Everything knowingly left undone |
 | 15 | [Production readiness](15-production-readiness.md) | Ship / do-not-ship, with evidence |
 | 16 | [Architecture audit](16-architecture-audit.md) | Every issue found that could stop the app building, deploying, syncing, or scaling to 10 000 users |
+| 17 | [Launch readiness audit](17-launch-readiness-audit.md) | Android build, Gradle, Firebase, Play, security, performance, memory, sync — plus the beta release checklist |
 
 ## The MVP in one paragraph
 
