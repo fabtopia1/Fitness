@@ -35,27 +35,33 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
   int? _reps;
   int? _rpe;
 
-  int _restRemaining = 0;
+  /// Seconds left in the rest period, 0 when not resting.
+  ///
+  /// A notifier rather than state, so the countdown repaints the overlay
+  /// alone. `setState` here would rebuild the header, the exercise panel and
+  /// the action bar once a second for the length of the rest — see the note on
+  /// [_ElapsedClock].
+  final _restRemaining = ValueNotifier<int>(0);
   int _restTotal = 0;
   Timer? _restTimer;
-  Timer? _tick;
 
-  @override
-  void initState() {
-    super.initState();
-    // Drives the elapsed clock. One second is plenty; anything faster burns
-    // battery for no visible benefit.
-    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
-  }
+  /// `lastPerformance` scans and deserialises every completed session, and the
+  /// answer cannot change while this screen is open except when this screen
+  /// adds a set. Caching it turns three full history scans per rebuild into
+  /// one per exercise per workout.
+  final _lastPerformance = <String, LastPerformance?>{};
 
   @override
   void dispose() {
     _restTimer?.cancel();
-    _tick?.cancel();
+    _restRemaining.dispose();
     super.dispose();
   }
+
+  LastPerformance? _lastFor(String exerciseId) => _lastPerformance.putIfAbsent(
+    exerciseId,
+    () => ref.read(workoutRepositoryProvider).lastPerformance(exerciseId),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +117,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                           : _ExercisePanel(
                               session: session,
                               exercise: current,
+                              last: _lastFor(current.exerciseId),
                               weightKg: _resolvedWeight(current),
                               reps: _resolvedReps(current),
                               rpe: _rpe,
@@ -137,17 +144,18 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                   ),
                 ],
               ),
-              if (_restRemaining > 0)
-                _RestOverlay(
-                  remaining: _restRemaining,
-                  total: _restTotal,
-                  onAdjust: (delta) => setState(
-                    () => _restRemaining = (_restRemaining + delta)
-                        .clamp(0, 900)
-                        .toInt(),
-                  ),
-                  onSkip: _stopRest,
-                ),
+              ValueListenableBuilder<int>(
+                valueListenable: _restRemaining,
+                builder: (context, remaining, _) => remaining > 0
+                    ? _RestOverlay(
+                        remaining: remaining,
+                        total: _restTotal,
+                        onAdjust: (delta) => _restRemaining.value =
+                            (remaining + delta).clamp(0, 900).toInt(),
+                        onSkip: _stopRest,
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),
@@ -155,21 +163,11 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
     );
   }
 
-  double _resolvedWeight(WorkoutExercise exercise) {
-    if (_weightKg != null) return _weightKg!;
-    final last = ref
-        .read(workoutRepositoryProvider)
-        .lastPerformance(exercise.exerciseId);
-    return last?.weightKg ?? 20;
-  }
+  double _resolvedWeight(WorkoutExercise exercise) =>
+      _weightKg ?? _lastFor(exercise.exerciseId)?.weightKg ?? 20;
 
-  int _resolvedReps(WorkoutExercise exercise) {
-    if (_reps != null) return _reps!;
-    final last = ref
-        .read(workoutRepositoryProvider)
-        .lastPerformance(exercise.exerciseId);
-    return last?.reps ?? exercise.repMin;
-  }
+  int _resolvedReps(WorkoutExercise exercise) =>
+      _reps ?? _lastFor(exercise.exerciseId)?.reps ?? exercise.repMin;
 
   Future<void> _completeSet(
     WorkoutSession session,
@@ -189,6 +187,8 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
 
     result.when(
       ok: (updated) {
+        // The only way lastPerformance can change while this screen is open.
+        _lastPerformance.remove(exercise.exerciseId);
         unawaited(HapticFeedback.mediumImpact());
         _startRest(exercise.restSeconds);
 
@@ -231,17 +231,15 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
 
   void _startRest(int seconds) {
     _restTimer?.cancel();
-    setState(() {
-      _restRemaining = seconds;
-      _restTotal = seconds;
-    });
+    _restTotal = seconds;
+    _restRemaining.value = seconds;
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      setState(() => _restRemaining -= 1);
-      if (_restRemaining <= 0) {
+      _restRemaining.value -= 1;
+      if (_restRemaining.value <= 0) {
         timer.cancel();
         unawaited(HapticFeedback.heavyImpact());
         // Fires even if the user has switched apps mid-rest, which is what
@@ -262,7 +260,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
 
   void _stopRest() {
     _restTimer?.cancel();
-    if (mounted) setState(() => _restRemaining = 0);
+    _restRemaining.value = 0;
   }
 
   Future<void> _finish(WorkoutSession session) async {
@@ -319,11 +317,6 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.ldColors;
     final type = context.ldType;
-    final elapsed = session.durationAt(DateTime.now());
-    final clock =
-        '${elapsed.inHours > 0 ? '${elapsed.inHours}:' : ''}'
-        '${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')}:'
-        '${elapsed.inSeconds.remainder(60).toString().padLeft(2, '0')}';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -334,13 +327,68 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(clock, style: type.titleL.copyWith(color: c.textPrimary)),
+          _ElapsedClock(session: session),
           const SizedBox(width: LdSpacing.s4),
           Text(
             '${session.sets.length} sets · ${session.volumeKg.round()} kg',
             style: type.bodyS.copyWith(color: c.textSecondary),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The running workout clock, and the only thing on this screen that repaints
+/// once a second.
+///
+/// The timer used to live on the screen state and call `setState(() {})`,
+/// which rebuilt the header, the exercise panel and the action bar every
+/// second for the length of a workout — 45 to 90 minutes. Each of those
+/// rebuilds ran `lastPerformance` three times, and each of those deserialised
+/// every completed session out of Hive. Owning the timer here means one Text
+/// repaints instead.
+class _ElapsedClock extends ConsumerStatefulWidget {
+  const _ElapsedClock({required this.session});
+  final WorkoutSession session;
+
+  @override
+  ConsumerState<_ElapsedClock> createState() => _ElapsedClockState();
+}
+
+class _ElapsedClockState extends ConsumerState<_ElapsedClock> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    // One second is plenty; anything faster burns battery for no visible
+    // benefit, because the display has one-second resolution.
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Through the clock provider, like every other time-dependent thing in
+    // the app, so this is deterministic under test.
+    final elapsed = widget.session.durationAt(ref.watch(clockProvider)());
+    final clock =
+        '${elapsed.inHours > 0 ? '${elapsed.inHours}:' : ''}'
+        '${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')}:'
+        '${elapsed.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+
+    return Text(
+      clock,
+      style: context.ldType.titleL.copyWith(
+        color: context.ldColors.textPrimary,
       ),
     );
   }
@@ -367,6 +415,7 @@ class _ExercisePanel extends ConsumerWidget {
   const _ExercisePanel({
     required this.session,
     required this.exercise,
+    required this.last,
     required this.weightKg,
     required this.reps,
     required this.rpe,
@@ -377,6 +426,10 @@ class _ExercisePanel extends ConsumerWidget {
 
   final WorkoutSession session;
   final WorkoutExercise exercise;
+
+  /// Resolved by the screen, which caches it. Reading it here made the panel
+  /// scan and deserialise the entire workout history on every rebuild.
+  final LastPerformance? last;
   final double weightKg;
   final int reps;
   final int? rpe;
@@ -389,9 +442,8 @@ class _ExercisePanel extends ConsumerWidget {
     final c = context.ldColors;
     final type = context.ldType;
     final done = session.setsDoneFor(exercise.exerciseId);
-    final last = ref
-        .read(workoutRepositoryProvider)
-        .lastPerformance(exercise.exerciseId);
+    // A local so the null check promotes: a public final field does not.
+    final last = this.last;
     final increment =
         ref
             .read(workoutRepositoryProvider)

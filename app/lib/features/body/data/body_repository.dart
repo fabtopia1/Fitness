@@ -5,6 +5,7 @@ import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
 import 'package:lifedna/core/sync/outbox.dart';
+import 'package:lifedna/features/body/data/photo_store.dart';
 import 'package:lifedna/features/body/domain/body_entities.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,12 +13,14 @@ class BodyRepository {
   BodyRepository({
     required HiveStore store,
     required Outbox outbox,
+    PhotoStore? photos,
     FirebaseFirestore? firestore,
     String? uid,
     Uuid uuid = const Uuid(),
     DateTime Function()? clock,
   }) : _uuid = uuid,
        _clock = clock ?? DateTime.now,
+       _photos = photos,
        measurements = SyncedCollection<BodyMeasurement>(
          store: store,
          outbox: outbox,
@@ -30,6 +33,7 @@ class BodyRepository {
 
   final Uuid _uuid;
   final DateTime Function() _clock;
+  final PhotoStore? _photos;
   final SyncedCollection<BodyMeasurement> measurements;
 
   Stream<List<BodyMeasurement>> watchAll() => measurements.watchAll();
@@ -124,10 +128,22 @@ class BodyRepository {
     return measurements.put(measurement);
   }
 
-  Future<Result<void>> delete(String id) => measurements.remove(
-    id,
-    tombstone: (m) => m.copyWith(deletedAt: _clock().toUtc()),
-  );
+  Future<Result<void>> delete(String id) async {
+    // Read the photo reference before the tombstone hides the measurement,
+    // otherwise the file is orphaned in the documents directory for the life
+    // of the install — photos are the largest thing this app writes.
+    final photo = measurements.readOne(id)?.photoPath;
+
+    final result = await measurements.remove(
+      id,
+      tombstone: (m) => m.copyWith(deletedAt: _clock().toUtc()),
+    );
+
+    if (result.isOk && photo != null) {
+      await _photos?.delete(photo);
+    }
+    return result;
+  }
 
   /// Series for one metric, oldest first.
   BodyTrend trendFor(BodyMetric metric, {int days = 90, DateTime? now}) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/theme/app_theme.dart';
 import 'package:lifedna/core/theme/ld_spacing.dart';
 import 'package:lifedna/core/widgets/ld_widgets.dart';
+import 'package:lifedna/features/body/data/photo_store.dart';
 
 /// Records a body measurement. Every field is optional except that at least
 /// one value must be present.
@@ -31,9 +33,22 @@ class _BodyEditorSheetState extends ConsumerState<BodyEditorSheet> {
   String? _photoPath;
   bool _saving = false;
   bool _showAll = false;
+  bool _saved = false;
+
+  /// Captured when a photo is adopted so `dispose` can clean up without
+  /// touching `ref` after the widget has left the tree.
+  PhotoStore? _photos;
 
   @override
   void dispose() {
+    // Dismissing the sheet abandons the draft. The photo was already copied
+    // into durable storage, so without this it stays there forever, attached
+    // to no measurement.
+    final abandoned = _photoPath;
+    if (!_saved && abandoned != null) {
+      unawaited(_photos?.delete(abandoned) ?? Future<void>.value());
+    }
+
     for (final controller in [
       _weight,
       _bodyFat,
@@ -175,7 +190,11 @@ class _BodyEditorSheetState extends ConsumerState<BodyEditorSheet> {
                   if (_photoPath != null)
                     IconButton(
                       icon: const Icon(Icons.close_rounded),
-                      onPressed: () => setState(() => _photoPath = null),
+                      onPressed: () {
+                        final discarded = _photoPath;
+                        setState(() => _photoPath = null);
+                        if (discarded != null) unawaited(_discard(discarded));
+                      },
                     ),
                 ],
               ),
@@ -205,14 +224,36 @@ class _BodyEditorSheetState extends ConsumerState<BodyEditorSheet> {
         maxWidth: 1600,
         imageQuality: 85,
       );
-      if (picked != null && mounted) {
-        setState(() => _photoPath = picked.path);
-      }
+      if (picked == null) return;
+
+      // Adopt immediately, not on save. ImagePicker's file is in the cache
+      // directory, and the gap between here and the save button is however
+      // long the user spends typing measurements — time enough for Android to
+      // reclaim it under storage pressure.
+      final stored = await _photoStore.adopt(File(picked.path));
+      if (!mounted) return;
+
+      final previous = _photoPath;
+      setState(() => _photoPath = stored);
+      if (previous != null) unawaited(_discard(previous));
     } on Object {
       if (mounted) {
         showSuccessSnack(context, 'Camera unavailable on this device.');
       }
     }
+  }
+
+  /// Deletes a photo that will not be saved. Called when one is replaced, when
+  /// the user clears it, and when the sheet is dismissed without saving —
+  /// otherwise every abandoned draft leaves a file behind forever.
+  Future<void> _discard(String reference) => _photoStore.delete(reference);
+
+  PhotoStore get _photoStore {
+    final existing = _photos;
+    if (existing != null) return existing;
+    final resolved = ref.read(photoStoreProvider);
+    _photos = resolved;
+    return resolved;
   }
 
   Future<void> _save() async {
@@ -236,6 +277,8 @@ class _BodyEditorSheetState extends ConsumerState<BodyEditorSheet> {
 
     result.when(
       ok: (_) {
+        // The measurement owns the photo from here; dispose must not delete it.
+        _saved = true;
         // Keeping the profile weight current matters: macro targets are
         // derived from it, so a stale value quietly skews every goal.
         final weight = _parse(_weight);

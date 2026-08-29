@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifedna/app.dart';
 import 'package:lifedna/core/config/app_bootstrap.dart';
+import 'package:lifedna/core/firebase/telemetry_service.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
 import 'package:lifedna/core/storage/storage_mode.dart';
@@ -19,6 +20,10 @@ import 'package:lifedna/core/theme/app_theme.dart';
 /// nothing. [_BootstrapFailureApp] says what happened and offers a retry.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Held outside the zone body so the zone's error handler — which runs after
+  // the body has returned — can still report through it.
+  TelemetryService? telemetry;
 
   unawaited(
     runZonedGuarded(
@@ -50,6 +55,8 @@ Future<void> main() async {
           runApp(_BootstrapFailureApp(error: error));
           return;
         }
+
+        telemetry = bootstrap.telemetry;
 
         // Framework errors are reported through the same path as caught ones, so
         // Crashlytics sees a widget build failure as well as a repository throw.
@@ -86,9 +93,21 @@ Future<void> main() async {
         );
       },
       (error, stackTrace) {
-        // Nothing else can report this: the zone handler is the last resort.
+        // The last resort, and it used to only print. An uncaught async error
+        // that reaches here is by definition one nothing else caught, which
+        // makes it the most valuable crash report the app can produce and the
+        // one it was silently discarding.
         debugPrint('Uncaught zone error — $error');
         debugPrintStack(stackTrace: stackTrace);
+        unawaited(
+          telemetry?.recordError(
+                error,
+                stackTrace,
+                context: 'uncaught_zone_error',
+                fatal: true,
+              ) ??
+              Future<void>.value(),
+        );
       },
     ),
   );

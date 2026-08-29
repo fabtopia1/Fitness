@@ -12,8 +12,17 @@ import 'package:lifedna/core/error/failure.dart';
 /// throws rather than silently shipping a privacy leak, and is covered by a
 /// unit test.
 class TelemetryService {
-  TelemetryService({this.analytics, this.crashlytics, bool available = true})
-    : _available = available;
+  TelemetryService({
+    this.analytics,
+    this.crashlytics,
+    bool available = true,
+    bool? analyticsAllowedByFlavor,
+    bool? crashReportsAllowedByFlavor,
+  }) : _available = available,
+       _analyticsAllowedByFlavor =
+           analyticsAllowedByFlavor ?? Env.analyticsEnabled,
+       _crashAllowedByFlavor =
+           crashReportsAllowedByFlavor ?? Env.crashlyticsEnabled;
 
   final FirebaseAnalytics? analytics;
   final FirebaseCrashlytics? crashlytics;
@@ -22,15 +31,22 @@ class TelemetryService {
   /// where there is no Firebase project to send anything to.
   final bool _available;
 
+  /// The flavour gates, injectable so the gating is testable at all: a test
+  /// build is always the dev flavour, which switches both off, so nothing
+  /// downstream of them could otherwise be exercised.
+  final bool _analyticsAllowedByFlavor;
+  final bool _crashAllowedByFlavor;
+
   bool _analyticsConsent = true;
   bool _crashConsent = true;
 
   /// Three gates, all of which must be open: the build has Firebase, the
   /// flavour permits collection, and the user has not opted out.
-  bool get enabled => _available && Env.analyticsEnabled && _analyticsConsent;
+  bool get enabled =>
+      _available && _analyticsAllowedByFlavor && _analyticsConsent;
 
   bool get crashReportingEnabled =>
-      _available && Env.crashlyticsEnabled && _crashConsent;
+      _available && _crashAllowedByFlavor && _crashConsent;
 
   /// Applies the user's privacy choices to the SDKs themselves.
   ///
@@ -96,11 +112,19 @@ class TelemetryService {
 
   /// Associates events with a user without sending anything that maps back to
   /// a person outside our own systems.
+  ///
+  /// The two consents are checked SEPARATELY. Gating both on the analytics
+  /// consent meant a user who allowed crash reports but declined analytics —
+  /// a completely ordinary combination — produced anonymous crashes, and an
+  /// anonymous crash cannot answer the only question that matters during a
+  /// closed beta: is this one tester hitting it forty times, or forty testers
+  /// hitting it once.
   Future<void> setUser(String? uid) async {
-    if (!enabled) return;
     try {
-      await analytics?.setUserId(id: uid);
-      await crashlytics?.setUserIdentifier(uid ?? '');
+      if (enabled) await analytics?.setUserId(id: uid);
+      if (crashReportingEnabled) {
+        await crashlytics?.setUserIdentifier(uid ?? '');
+      }
     } on Object catch (error) {
       debugPrint('Telemetry: setUser dropped — $error');
     }

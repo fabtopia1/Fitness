@@ -11,6 +11,7 @@ import 'package:lifedna/core/network/connectivity_service.dart';
 import 'package:lifedna/core/notifications/notification_service.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/features/body/data/photo_store.dart';
 
 /// A [NotificationService] that records what it was asked to do instead of
 /// talking to the platform.
@@ -149,12 +150,19 @@ class TestEnvironment {
     required this.bootstrap,
     required this.notifications,
     required this.connectivity,
+    required this.photos,
     required this.directory,
   });
 
   final AppBootstrap bootstrap;
   final FakeNotificationService notifications;
   final FakeConnectivityService connectivity;
+
+  /// Real on-disk photo storage under [directory]. PhotoStore exists to make
+  /// files survive, so its tests use the filesystem — but note that only plain
+  /// `test()` bodies may await it: `testWidgets` runs in a fake async zone
+  /// where real file I/O never completes.
+  final PhotoStore photos;
   final Directory directory;
 
   HiveStore get store => bootstrap.store;
@@ -180,6 +188,11 @@ class TestEnvironment {
 
     final notifications = FakeNotificationService(clock: clock);
     final connectivity = FakeConnectivityService(online: online);
+    // A real directory under the test's temp root: PhotoStore does real file
+    // I/O, and a fake would prove nothing about the durability it exists for.
+    final photos = PhotoStore(
+      directory: Directory('${root.path}/photos')..createSync(recursive: true),
+    );
 
     return TestEnvironment._(
       bootstrap: AppBootstrap(
@@ -192,9 +205,11 @@ class TestEnvironment {
         telemetry: TelemetryService(available: false),
         notifications: notifications,
         connectivity: connectivity,
+        photos: photos,
       ),
       notifications: notifications,
       connectivity: connectivity,
+      photos: photos,
       directory: root,
     );
   }

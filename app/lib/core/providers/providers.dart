@@ -14,6 +14,7 @@ import 'package:lifedna/features/auth/data/auth_repository.dart';
 import 'package:lifedna/features/auth/data/profile_repository.dart';
 import 'package:lifedna/features/auth/domain/user_profile.dart';
 import 'package:lifedna/features/body/data/body_repository.dart';
+import 'package:lifedna/features/body/data/photo_store.dart';
 import 'package:lifedna/features/calendar/data/calendar_repository.dart';
 import 'package:lifedna/features/calendar/data/google_calendar_service.dart';
 import 'package:lifedna/features/health_sync/data/health_sync_service.dart';
@@ -164,11 +165,18 @@ final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
   );
 });
 
+/// Progress-photo storage. Resolved during bootstrap because a widget needs
+/// the directory synchronously to build an `Image.file`.
+final photoStoreProvider = Provider<PhotoStore>(
+  (ref) => ref.watch(bootstrapProvider).photos,
+);
+
 final bodyRepositoryProvider = Provider<BodyRepository>((ref) {
   final bootstrap = ref.watch(bootstrapProvider);
   return BodyRepository(
     store: bootstrap.store,
     outbox: ref.watch(outboxProvider),
+    photos: bootstrap.photos,
     firestore: bootstrap.firestore,
     uid: ref.watch(currentUidProvider),
     clock: ref.watch(clockProvider),

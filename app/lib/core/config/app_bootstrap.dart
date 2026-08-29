@@ -12,6 +12,7 @@ import 'package:lifedna/core/network/connectivity_service.dart';
 import 'package:lifedna/core/notifications/notification_service.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
 import 'package:lifedna/features/auth/data/google_identity.dart';
+import 'package:lifedna/features/body/data/photo_store.dart';
 
 /// Everything that must exist before the first frame.
 ///
@@ -25,6 +26,7 @@ class AppBootstrap {
     required this.telemetry,
     required this.notifications,
     required this.connectivity,
+    required this.photos,
     this.firestore,
     this.auth,
     this.google,
@@ -37,6 +39,10 @@ class AppBootstrap {
   final NotificationService notifications;
   final ConnectivityService connectivity;
 
+  /// Progress-photo storage. Resolved once, because widgets need the directory
+  /// synchronously to build an `Image.file`.
+  final PhotoStore photos;
+
   final FirebaseFirestore? firestore;
   final FirebaseAuth? auth;
   final GoogleIdentitySource? google;
@@ -46,6 +52,7 @@ class AppBootstrap {
 
   static Future<AppBootstrap> initialize() async {
     final store = await HiveStore.open();
+    final photos = await PhotoStore.open();
 
     final firebase = await FirebaseService.initialize(
       options: FirebaseConfig.currentPlatform,
@@ -101,6 +108,7 @@ class AppBootstrap {
       ),
       notifications: notifications,
       connectivity: ConnectivityService(),
+      photos: photos,
       firestore: firestore,
       auth: auth,
       google: google,

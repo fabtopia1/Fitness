@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/theme/app_theme.dart';
 import 'package:lifedna/core/theme/ld_spacing.dart';
 import 'package:lifedna/core/widgets/ld_widgets.dart';
@@ -40,6 +41,7 @@ class BodyScreen extends ConsumerWidget {
           final metrics = ref.watch(availableBodyMetricsProvider);
           final selected = ref.watch(selectedBodyMetricProvider);
           final trend = ref.watch(bodyTrendProvider);
+          final photoStore = ref.watch(photoStoreProvider);
           final photos = measurements
               .where((m) => m.photoPath != null)
               .toList();
@@ -99,7 +101,12 @@ class BodyScreen extends ConsumerWidget {
                                 // Photos are device-local; a missing file is
                                 // normal after a restore, so it degrades to a
                                 // placeholder instead of throwing.
-                                File(photo.photoPath!),
+                                //
+                                // resolve() turns the stored file name into a
+                                // path under the documents directory, and
+                                // passes through the absolute paths written
+                                // before photos were adopted.
+                                File(photoStore.resolve(photo.photoPath!)),
                                 width: 104,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(

@@ -85,6 +85,64 @@ void main() {
       },
     );
 
+    test('the two consents are independent (H-5)', () async {
+      // Allowing crash reports while declining analytics is an ordinary
+      // combination, and the two gates must not be wired together.
+      final telemetry = TelemetryService(
+        analyticsAllowedByFlavor: true,
+        crashReportsAllowedByFlavor: true,
+      );
+
+      await telemetry.applyConsent(
+        analyticsConsent: false,
+        crashReportsConsent: true,
+      );
+      expect(telemetry.enabled, isFalse);
+      expect(
+        telemetry.crashReportingEnabled,
+        isTrue,
+        reason: 'declining analytics must not silence crash reporting',
+      );
+
+      await telemetry.applyConsent(
+        analyticsConsent: true,
+        crashReportsConsent: false,
+      );
+      expect(telemetry.enabled, isTrue);
+      expect(telemetry.crashReportingEnabled, isFalse);
+    });
+
+    test('setUser follows each consent separately (H-5)', () async {
+      // The bug: setUser returned early on `!enabled`, so a user who declined
+      // analytics produced ANONYMOUS crash reports. An anonymous crash cannot
+      // answer the only question a closed beta needs — is this one tester
+      // hitting it forty times, or forty testers hitting it once.
+      final telemetry = TelemetryService(
+        analyticsAllowedByFlavor: false,
+        crashReportsAllowedByFlavor: true,
+      );
+      await telemetry.applyConsent(
+        analyticsConsent: false,
+        crashReportsConsent: true,
+      );
+
+      expect(telemetry.enabled, isFalse);
+      expect(telemetry.crashReportingEnabled, isTrue);
+      // Reaches the crash path with no SDK behind it, which must be a no-op
+      // rather than a throw.
+      await expectLater(telemetry.setUser('u1'), completes);
+    });
+
+    test('the flavour gate alone can switch collection off', () {
+      // Dev builds keep local stack traces local.
+      final dev = TelemetryService(
+        analyticsAllowedByFlavor: false,
+        crashReportsAllowedByFlavor: false,
+      );
+      expect(dev.enabled, isFalse);
+      expect(dev.crashReportingEnabled, isFalse);
+    });
+
     test('validation still runs when telemetry is disabled', () {
       // Otherwise a leak would be invisible in dev and only appear in prod.
       expect(
