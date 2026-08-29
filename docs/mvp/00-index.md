@@ -26,6 +26,10 @@ Where the two disagree, this folder is authoritative for the MVP.
 | 15 | [Production readiness](15-production-readiness.md) | Ship / do-not-ship, with evidence |
 | 16 | [Architecture audit](16-architecture-audit.md) | Every issue found that could stop the app building, deploying, syncing, or scaling to 10 000 users |
 | 17 | [Launch readiness audit](17-launch-readiness-audit.md) | Android build, Gradle, Firebase, Play, security, performance, memory, sync — plus the beta release checklist |
+| 18 | [Google auth verification](18-google-auth-verification.md) | Why sign-in returned no ID token, per-flavour OAuth setup, and the device checklist that proves it works |
+| 19 | [Build validation report](19-build-validation-report.md) | Toolchain compatibility, Gradle, signing, R8 and manifest — what is settled statically, by CI, and only on hardware |
+| 20 | [Device validation scripts](20-device-validation-scripts.md) | Twelve scripts a tester runs on a physical Samsung device before the beta opens |
+| 21 | [Closed beta certification](21-closed-beta-certification.md) | The remediation's verdict, scores, and the conditions of release |
 
 ## The MVP in one paragraph
 
