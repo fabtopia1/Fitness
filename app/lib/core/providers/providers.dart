@@ -80,7 +80,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     store: bootstrap.store,
     firebaseAuth: bootstrap.auth,
-    googleSignIn: bootstrap.googleSignIn,
+    google: bootstrap.google,
   );
 });
 

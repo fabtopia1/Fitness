@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lifedna/core/config/env.dart';
 import 'package:lifedna/core/config/firebase_config.dart';
 import 'package:lifedna/core/firebase/firebase_service.dart';
@@ -12,6 +11,7 @@ import 'package:lifedna/core/firebase/telemetry_service.dart';
 import 'package:lifedna/core/network/connectivity_service.dart';
 import 'package:lifedna/core/notifications/notification_service.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/features/auth/data/google_identity.dart';
 
 /// Everything that must exist before the first frame.
 ///
@@ -27,7 +27,7 @@ class AppBootstrap {
     required this.connectivity,
     this.firestore,
     this.auth,
-    this.googleSignIn,
+    this.google,
     this.messaging,
   });
 
@@ -39,7 +39,7 @@ class AppBootstrap {
 
   final FirebaseFirestore? firestore;
   final FirebaseAuth? auth;
-  final GoogleSignIn? googleSignIn;
+  final GoogleIdentitySource? google;
   final FirebaseMessaging? messaging;
 
   bool get isCloudBacked => firestore != null && auth != null;
@@ -53,7 +53,7 @@ class AppBootstrap {
 
     FirebaseFirestore? firestore;
     FirebaseAuth? auth;
-    GoogleSignIn? googleSignIn;
+    GoogleIdentitySource? google;
     FirebaseMessaging? messaging;
     FirebaseAnalytics? analytics;
     FirebaseCrashlytics? crashlytics;
@@ -61,7 +61,7 @@ class AppBootstrap {
     if (firebase.isAvailable) {
       firestore = FirebaseFirestore.instance;
       auth = FirebaseAuth.instance;
-      googleSignIn = GoogleSignIn();
+      google = PluginGoogleIdentitySource();
       analytics = FirebaseAnalytics.instance;
 
       try {
@@ -103,7 +103,7 @@ class AppBootstrap {
       connectivity: ConnectivityService(),
       firestore: firestore,
       auth: auth,
-      googleSignIn: googleSignIn,
+      google: google,
       messaging: messaging,
     );
   }

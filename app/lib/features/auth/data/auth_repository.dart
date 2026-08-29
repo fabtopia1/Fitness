@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lifedna/core/config/env.dart';
 import 'package:lifedna/core/data/synced_entity.dart';
 import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/error/failure_mapper.dart';
 import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/features/auth/data/google_identity.dart';
 import 'package:lifedna/features/auth/domain/user_profile.dart';
 import 'package:uuid/uuid.dart';
 
@@ -45,16 +45,16 @@ class AuthRepository {
   AuthRepository({
     required HiveStore store,
     fb.FirebaseAuth? firebaseAuth,
-    GoogleSignIn? googleSignIn,
+    GoogleIdentitySource? google,
     Uuid uuid = const Uuid(),
   }) : _store = store,
        _auth = firebaseAuth,
-       _googleSignIn = googleSignIn,
+       _google = google,
        _uuid = uuid;
 
   final HiveStore _store;
   final fb.FirebaseAuth? _auth;
-  final GoogleSignIn? _googleSignIn;
+  final GoogleIdentitySource? _google;
   final Uuid _uuid;
 
   static const _localSessionKey = 'local_session';
@@ -178,23 +178,33 @@ class AuthRepository {
 
   Future<Result<AuthSession>> signInWithGoogle() async {
     final auth = _auth;
-    final google = _googleSignIn;
+    final google = _google;
     if (auth == null || google == null) {
       return const Err(ServerFailure('firebase_unavailable'));
     }
 
     try {
-      final account = await google.signIn();
-      if (account == null) {
+      final identity = await google.authenticate();
+      if (identity == null) {
         // The user backed out. Not an error — but the caller needs to know
         // nothing happened, so it is still a failure result.
         return const Err(AuthFailure('sign_in_canceled'));
       }
 
-      final tokens = await account.authentication;
+      if (!identity.hasIdToken) {
+        // C-2. Google consented, so from the user's side the flow "worked",
+        // but the plugin was never asked for an id token and Firebase has
+        // nothing to verify. Handing the null to signInWithCredential turns a
+        // precise build misconfiguration into a generic retry loop, so name it
+        // here instead — and drop the half-established Google session, or the
+        // next attempt silently reuses it and fails the same way.
+        await google.signOut();
+        return const Err(AuthFailure('google_id_token_missing'));
+      }
+
       final credential = fb.GoogleAuthProvider.credential(
-        accessToken: tokens.accessToken,
-        idToken: tokens.idToken,
+        accessToken: identity.accessToken,
+        idToken: identity.idToken,
       );
 
       final result = await auth
@@ -217,7 +227,7 @@ class AuthRepository {
   /// privacy failure.
   Future<Result<void>> signOut() async {
     try {
-      await _googleSignIn?.signOut();
+      await _google?.signOut();
       await _auth?.signOut();
       await _store.delete(HiveStore.boxMeta, _localSessionKey);
       await _store.clearAll();

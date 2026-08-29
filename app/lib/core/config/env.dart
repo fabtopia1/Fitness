@@ -39,13 +39,13 @@ abstract final class Env {
     defaultValue: '10.0.2.2',
   );
 
-  /// Google OAuth client id used for Calendar scopes on Android.
-  /// Empty means the Calendar module stays locked and says so in the UI.
+  /// Optional Calendar-specific OAuth **web** client id. Usually unset: the
+  /// Calendar module falls back to the sign-in client, which is the same
+  /// OAuth client in every real project. Read through
+  /// `GoogleAuthConfig.calendarServerClientId`, never directly.
   static const String googleCalendarClientId = String.fromEnvironment(
     'GOOGLE_CALENDAR_CLIENT_ID',
   );
-
-  static bool get calendarConfigured => googleCalendarClientId.isNotEmpty;
 
   /// Crashlytics is off in dev so local stack traces stay local.
   static bool get crashlyticsEnabled => !isDev;

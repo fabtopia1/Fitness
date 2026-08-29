@@ -154,6 +154,13 @@ abstract final class FailureMapper {
       actionLabel: 'Retry',
       severity: FailureSeverity.info,
     ),
+    'google_id_token_missing' => const FailureMessage(
+      title: "Google sign-in isn't set up on this build",
+      body:
+          'Google accepted the sign-in but this build cannot verify it. '
+          'Use email and password, or an official release build.',
+      severity: FailureSeverity.warning,
+    ),
     'sign_in_canceled' => const FailureMessage(
       title: 'Sign-in cancelled',
       body: 'No changes were made.',

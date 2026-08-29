@@ -3,6 +3,7 @@ import 'package:googleapis/calendar/v3.dart' as gcal;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lifedna/core/config/env.dart';
+import 'package:lifedna/core/config/google_auth_config.dart';
 import 'package:lifedna/core/data/synced_entity.dart';
 import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/error/failure_mapper.dart';
@@ -17,25 +18,29 @@ import 'package:uuid/uuid.dart';
 /// that deletes a work meeting is unrecoverable. LifeDNA's own events live in
 /// its own store and are shown alongside; they are never pushed into Google.
 ///
-/// Requires an OAuth client id supplied at build time. Without one the module
-/// stays locked and the UI says exactly what is missing rather than failing
-/// with an opaque error.
+/// Requires an OAuth **web** client id supplied at build time, either
+/// `GOOGLE_CALENDAR_CLIENT_ID` or the shared `GOOGLE_SERVER_CLIENT_ID*` used
+/// by sign-in. Without one the module stays locked and the UI says exactly
+/// what is missing rather than failing with an opaque error.
 class GoogleCalendarService {
   GoogleCalendarService({GoogleSignIn? signIn, Uuid uuid = const Uuid()})
     : _uuid = uuid,
       _signIn =
           signIn ??
-          (Env.calendarConfigured
-              ? GoogleSignIn(
+          (GoogleAuthConfig.calendarServerClientId == null
+              ? null
+              : GoogleSignIn(
                   scopes: const [gcal.CalendarApi.calendarReadonlyScope],
-                  clientId: Env.googleCalendarClientId,
-                )
-              : null);
+                  // NOT `clientId`: on Android the plugin ignores it, logs a
+                  // warning, and the module then fails with no id token and no
+                  // explanation. `serverClientId` is the supported parameter.
+                  serverClientId: GoogleAuthConfig.calendarServerClientId,
+                ));
 
   final GoogleSignIn? _signIn;
   final Uuid _uuid;
 
-  bool get isConfigured => Env.calendarConfigured && _signIn != null;
+  bool get isConfigured => _signIn != null;
 
   Future<bool> get isConnected async {
     final signIn = _signIn;
