@@ -17,7 +17,10 @@ app/android/.gradle/
 app/android/local.properties
 app/android/key.properties
 app/android/app/upload-keystore.jks
-app/android/app/google-services.json
+# Every location Gradle's google-services plugin looks in, not just the root
+# one: the per-flavour paths are where a three-environment project actually
+# puts these, and they carry the same OAuth client details.
+**/google-services.json
 app/android/.cxx/
 
 # ---------- iOS ----------

@@ -77,13 +77,16 @@ jobs:
           retention-days: 14
 
   # ---------------------------------------------------------------------------
-  # Proof that each flavour compiles and links. A green test suite says nothing
-  # about whether the Android toolchain can produce an installable artefact.
+  # Proof that each flavour compiles, links, minifies and packages. A green
+  # test suite says nothing about whether the Android toolchain can produce an
+  # installable artefact — and this is the ONLY place that can say so, because
+  # it is the only environment with an Android SDK. See
+  # docs/mvp/19-build-validation-report.md.
   # ---------------------------------------------------------------------------
   build:
     name: Build ${{ matrix.flavor }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     needs: flutter
     strategy:
       fail-fast: false
@@ -92,10 +95,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 21, matching the toolchain the project is developed against. AGP 9 and
+      # Gradle 9.3 both run on it, and `compileOptions`/`jvmTarget` pin the
+      # emitted bytecode to 17 regardless of the JDK running Gradle.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - uses: subosito/flutter-action@v2
         with:
@@ -106,6 +112,50 @@ jobs:
       - name: Install
         working-directory: app
         run: flutter pub get
+
+      # google-services.json is what makes the Google Services Gradle plugin
+      # generate `default_web_client_id`, and it is the prerequisite for the
+      # Crashlytics plugin uploading an R8 mapping file. Without it the build
+      # still succeeds — local mode is supported — but it is not a beta
+      # artefact. See docs/mvp/18-google-auth-verification.md.
+      - name: Firebase credentials
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::warning::No GOOGLE_SERVICES_JSON_BASE64 secret. Building"
+            echo "::warning::without the Firebase Gradle plugins: Google Sign-In"
+            echo "::warning::will not return an ID token in this artefact."
+          else
+            mkdir -p "app/android/app/src/${{ matrix.flavor }}"
+            echo "$GOOGLE_SERVICES_JSON" | base64 -d \
+              > "app/android/app/src/${{ matrix.flavor }}/google-services.json"
+          fi
+
+      # Release signing. An unsigned-for-release artefact is installable but
+      # Play rejects it, and Google Sign-In fails on it unless the debug SHA-1
+      # happens to be registered — so the absence is surfaced, not swallowed.
+      - name: Release keystore
+        if: matrix.flavor != 'dev'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret. The release"
+            echo "::warning::artefact will be DEBUG-SIGNED and is not"
+            echo "::warning::distributable. See docs/mvp/19-build-validation-report.md."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > app/android/app/upload-keystore.jks
+          cat > app/android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
 
       # Firebase configuration arrives as --dart-define, never as a committed
       # file. A pull request from a fork has no secrets, so it builds the
@@ -119,6 +169,7 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           GOOGLE_CALENDAR_CLIENT_ID: ${{ secrets.GOOGLE_CALENDAR_CLIENT_ID }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
         run: |
           flutter build apk \
             --flavor ${{ matrix.flavor }} \
@@ -129,7 +180,48 @@ jobs:
             --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID" \
             --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
             --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
-            --dart-define=GOOGLE_CALENDAR_CLIENT_ID="$GOOGLE_CALENDAR_CLIENT_ID"
+            --dart-define=GOOGLE_CALENDAR_CLIENT_ID="$GOOGLE_CALENDAR_CLIENT_ID" \
+            --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+
+      # The AAB is a different packaging path from the APK — a different
+      # manifest merge, and per-ABI splitting that only happens here. "The APK
+      # built" is not evidence that Play's upload artefact does.
+      - name: Build AAB
+        if: matrix.flavor != 'dev'
+        working-directory: app
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          GOOGLE_CALENDAR_CLIENT_ID: ${{ secrets.GOOGLE_CALENDAR_CLIENT_ID }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+        run: |
+          flutter build appbundle \
+            --flavor ${{ matrix.flavor }} \
+            --release \
+            --dart-define=FLAVOR=${{ matrix.flavor }} \
+            --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" \
+            --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" \
+            --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID" \
+            --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
+            --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
+            --dart-define=GOOGLE_CALENDAR_CLIENT_ID="$GOOGLE_CALENDAR_CLIENT_ID" \
+            --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+
+      # R8 renames every class in a release build. Without the mapping file,
+      # every Crashlytics report from the beta is an unreadable stack of
+      # a.b.c() — and the file is regenerated on each build, so an artefact
+      # kept without its mapping can never be symbolicated again.
+      - name: Upload R8 mapping
+        if: matrix.flavor != 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifedna-${{ matrix.flavor }}-mapping
+          path: app/build/app/outputs/mapping/${{ matrix.flavor }}Release/mapping.txt
+          retention-days: 90
+          if-no-files-found: error
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -137,6 +229,24 @@ jobs:
           name: lifedna-${{ matrix.flavor }}-apk
           path: app/build/app/outputs/flutter-apk/*.apk
           retention-days: 14
+
+      - name: Upload AAB
+        if: matrix.flavor != 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifedna-${{ matrix.flavor }}-aab
+          path: app/build/app/outputs/bundle/${{ matrix.flavor }}Release/*.aab
+          retention-days: 14
+          if-no-files-found: error
+
+      # Secrets on disk outlive the step that wrote them. The runner is
+      # ephemeral, but a workflow change that adds a later step should not be
+      # the thing that discovers this.
+      - name: Remove credentials
+        if: always()
+        run: |
+          rm -f app/android/key.properties app/android/app/upload-keystore.jks
+          rm -f app/android/app/src/*/google-services.json
 
   # ---------------------------------------------------------------------------
   # The journeys, on a real emulator. Slower and flakier than the headless run,

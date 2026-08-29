@@ -36,11 +36,46 @@ if (hasFirebaseCredentials) {
 // Without it the release build falls back to the debug key so that
 // `flutter build apk --release` still works on a fresh clone; CI supplies the
 // real file from a secret.
+//
+// A PARTIALLY configured keystore fails the build instead of falling back.
+// Silently debug-signing an artefact that was asked for as a release build is
+// the worst outcome available: Play rejects the upload late, and a sideloaded
+// beta APK gets ApiException: 10 from Google Sign-In because the debug
+// certificate's SHA-1 was never registered. Both failures point away from the
+// cause.
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 val hasReleaseKeystore = keystorePropertiesFile.exists()
 if (hasReleaseKeystore) {
     keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+
+    val missing = listOf("keyAlias", "keyPassword", "storeFile", "storePassword")
+        .filter { keystoreProperties.getProperty(it).isNullOrBlank() }
+    if (missing.isNotEmpty()) {
+        throw GradleException(
+            "android/key.properties is missing: ${missing.joinToString(", ")}. " +
+                "Remove the file to build with the debug key, or complete it. " +
+                "See docs/mvp/19-build-validation-report.md.",
+        )
+    }
+
+    val storeFile = file(keystoreProperties.getProperty("storeFile"))
+    if (!storeFile.exists()) {
+        throw GradleException(
+            "android/key.properties points storeFile at ${storeFile.absolutePath}, " +
+                "which does not exist. See docs/mvp/19-build-validation-report.md.",
+        )
+    }
+} else {
+    // Not an error: a fresh clone must still be able to produce an installable
+    // artefact. It is worth saying out loud, because the consequence is not
+    // visible in the resulting file.
+    logger.lifecycle(
+        "LifeDNA: no android/key.properties — release builds will be signed " +
+            "with the DEBUG key. They are installable, but Play will reject " +
+            "them and Google Sign-In fails unless the debug SHA-1 is " +
+            "registered. See docs/mvp/18-google-auth-verification.md.",
+    )
 }
 
 android {
@@ -74,7 +109,7 @@ android {
             create("release") {
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
-                storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
                 storePassword = keystoreProperties.getProperty("storePassword")
             }
         }
