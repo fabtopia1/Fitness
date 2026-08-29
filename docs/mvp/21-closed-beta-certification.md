@@ -24,8 +24,8 @@ APK reaches a tester.
 | Critical blockers | 4 | 0 in code · 1 pending CI execution |
 | High priority | 6 | 0 |
 | Medium priority | 8 | 3 accepted, documented |
-| Tests | 547 | **586** |
-| Coverage | 80.1 % | **82.27 %** (gate 80 %) |
+| Tests | 547 | **590** |
+| Coverage | 80.1 % | **82.26 %** (gate 80 %) |
 | `flutter analyze --fatal-infos` | clean | clean |
 | Layer + colour rules | pass | pass (144 files) |
 
@@ -171,7 +171,7 @@ both an APK and an AAB and uploading the R8 mapping.
 | --- | --- | --- |
 | **H-1** | `-Xmx8G` exceeds a standard runner's total RAM; the daemon is OOM-killed and Gradle reports "daemon disappeared unexpectedly" | `-Xmx4G -XX:MaxMetaspaceSize=1G -XX:+HeapDumpOnOutOfMemoryError`; parallel and caching on |
 | **H-2** | ProGuard lacked `-keepattributes Signature`. `flutter_local_notifications` stores schedules as Gson JSON and resolves them via `TypeToken`; without the attribute the generic erases and the boot receiver throws. **Every reminder disappeared after a reboot, release builds only** | `Signature`, `*Annotation*`, `InnerClasses`, `EnclosingMethod`, plugin model fields, `renamesourcefileattribute`. Duplicate `com.dexterous.*` receivers removed from our manifest (M-7) |
-| **H-3** | Progress photos stored at the `ImagePicker` **cache** path, which Android reclaims and cleaners empty; the absolute device path was replicated to Firestore | `PhotoStore` copies into the documents directory *at capture*, stores a bare file name, resolves legacy paths, and deletes a photo with its measurement or when a draft is abandoned. 15 tests |
+| **H-3** | Progress photos stored at the `ImagePicker` **cache** path, which Android reclaims and cleaners empty; the absolute device path was replicated to Firestore | `PhotoStore` copies into the documents directory *at capture*, stores a bare file name, resolves legacy paths, and deletes a photo with its measurement, when a draft is abandoned, and on sign-out and storage reset — photos live outside Hive, so wiping the boxes alone left the previous account's on disk. 19 tests |
 | **H-4** | A 1-second `Timer.periodic` rebuilt the whole Live Gym screen; each rebuild ran `lastPerformance` three times, each deserialising every completed session out of Hive | The clock owns its timer and repaints one `Text`; the rest countdown drives a `ValueNotifier`; `lastPerformance` is cached and invalidated by the one event that changes it. 4 tests assert the tick performs **zero** history reads |
 | **H-5** | No Crashlytics Gradle plugin, so no mapping upload — every release crash unreadable. Additionally: `setUser` gated the Crashlytics identifier on the *analytics* consent, so declining analytics produced anonymous crashes; and `runZonedGuarded`'s handler, which its own comment called the last resort, only printed | Plugin applied conditionally; mapping uploaded with 90-day retention and `if-no-files-found: error`; the two consents separated; the zone handler reports through telemetry. 5 tests |
 | **H-6** | `launch_background.xml` hardcoded white while the app defaults dark — a full-screen white flash on every cold start | Themed `launch_background` colour with a `values-night` variant |
@@ -220,8 +220,8 @@ reference and understated `google-services.json` requirement corrected).
 flutter analyze --fatal-infos        clean
 dart format --set-exit-if-changed    clean
 python3 tool/check_sources.py        144 files, all checks passed
-flutter test                         586 passed, 0 failed
-dart tool/coverage_gate.dart --min 80  82.27 % of 8115 lines — PASS
+flutter test                         590 passed, 0 failed
+dart tool/coverage_gate.dart --min 80  82.26 % of 8128 lines — PASS
 ```
 
 Tests added by this remediation:
@@ -233,7 +233,7 @@ Tests added by this remediation:
 | `unit/core/sync/outbox_race_test.dart` | 12 | C-3 |
 | `unit/core/config/google_auth_config_test.dart` | 7 | C-2 |
 | `unit/features/auth/google_sign_in_test.dart` | 8 | C-2 |
-| `unit/features/body/photo_store_test.dart` | 15 | H-3 |
+| `unit/core/storage/photo_store_test.dart` | 19 | H-3 |
 | `widget/features/live_workout_performance_test.dart` | 4 | H-4 |
 | `unit/core/firebase/telemetry_service_test.dart` (added) | 5 | H-5, M-2 |
 
@@ -280,7 +280,7 @@ Ordered. Each is a gate, not a suggestion.
 Three critical blockers are closed in code, each with tests written against the
 specific failure rather than the happy path. Six high-priority defects are
 closed. Four medium defects are closed and four are accepted with stated
-reasoning. 586 tests pass at 82.27 % coverage.
+reasoning. 590 tests pass at 82.26 % coverage.
 
 The one thing this report cannot certify is that a release binary builds,
 because this environment cannot run an Android build at all — a limitation of

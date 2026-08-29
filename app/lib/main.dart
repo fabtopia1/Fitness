@@ -8,6 +8,7 @@ import 'package:lifedna/core/config/app_bootstrap.dart';
 import 'package:lifedna/core/firebase/telemetry_service.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 import 'package:lifedna/core/storage/storage_mode.dart';
 import 'package:lifedna/core/storage/storage_recovery_screen.dart';
 import 'package:lifedna/core/theme/app_theme.dart';
@@ -44,6 +45,10 @@ Future<void> main() async {
               onRetry: main,
               onReset: () async {
                 await HiveStore.resetLocalData();
+                // Photos live outside Hive, so wiping the boxes alone would
+                // leave the previous data's progress photos on disk after a
+                // reset whose copy says everything is deleted permanently.
+                await PhotoStore.clearAll();
                 await main();
               },
             ),

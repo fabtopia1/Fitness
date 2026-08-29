@@ -11,7 +11,7 @@ import 'package:lifedna/core/network/connectivity_service.dart';
 import 'package:lifedna/core/notifications/notification_service.dart';
 import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
-import 'package:lifedna/features/body/data/photo_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 
 /// A [NotificationService] that records what it was asked to do instead of
 /// talking to the platform.

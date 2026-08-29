@@ -14,7 +14,7 @@ import 'package:lifedna/features/auth/data/auth_repository.dart';
 import 'package:lifedna/features/auth/data/profile_repository.dart';
 import 'package:lifedna/features/auth/domain/user_profile.dart';
 import 'package:lifedna/features/body/data/body_repository.dart';
-import 'package:lifedna/features/body/data/photo_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 import 'package:lifedna/features/calendar/data/calendar_repository.dart';
 import 'package:lifedna/features/calendar/data/google_calendar_service.dart';
 import 'package:lifedna/features/health_sync/data/health_sync_service.dart';
@@ -82,6 +82,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     store: bootstrap.store,
     firebaseAuth: bootstrap.auth,
     google: bootstrap.google,
+    photos: bootstrap.photos,
   );
 });
 

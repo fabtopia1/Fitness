@@ -9,7 +9,7 @@ import 'package:lifedna/core/providers/providers.dart';
 import 'package:lifedna/core/theme/app_theme.dart';
 import 'package:lifedna/core/theme/ld_spacing.dart';
 import 'package:lifedna/core/widgets/ld_widgets.dart';
-import 'package:lifedna/features/body/data/photo_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 
 /// Records a body measurement. Every field is optional except that at least
 /// one value must be present.
@@ -218,29 +218,46 @@ class _BodyEditorSheetState extends ConsumerState<BodyEditorSheet> {
   }
 
   Future<void> _pickPhoto() async {
+    final XFile? picked;
     try {
-      final picked = await ImagePicker().pickImage(
+      picked = await ImagePicker().pickImage(
         source: ImageSource.camera,
         maxWidth: 1600,
         imageQuality: 85,
       );
-      if (picked == null) return;
-
-      // Adopt immediately, not on save. ImagePicker's file is in the cache
-      // directory, and the gap between here and the save button is however
-      // long the user spends typing measurements — time enough for Android to
-      // reclaim it under storage pressure.
-      final stored = await _photoStore.adopt(File(picked.path));
-      if (!mounted) return;
-
-      final previous = _photoPath;
-      setState(() => _photoPath = stored);
-      if (previous != null) unawaited(_discard(previous));
     } on Object {
       if (mounted) {
         showSuccessSnack(context, 'Camera unavailable on this device.');
       }
+      return;
     }
+    if (picked == null) return;
+
+    // Adopt immediately, not on save. ImagePicker's file is in the cache
+    // directory, and the gap between here and the save button is however long
+    // the user spends typing measurements — time enough for Android to reclaim
+    // it under storage pressure.
+    //
+    // Its own try: a copy that fails is a full disk, not a missing camera, and
+    // telling someone holding a photo they just took that their camera does
+    // not work sends them looking in the wrong place.
+    final String stored;
+    try {
+      stored = await _photoStore.adopt(File(picked.path));
+    } on Object {
+      if (mounted) {
+        showSuccessSnack(
+          context,
+          "Couldn't save the photo — the phone may be out of storage.",
+        );
+      }
+      return;
+    }
+    if (!mounted) return;
+
+    final previous = _photoPath;
+    setState(() => _photoPath = stored);
+    if (previous != null) unawaited(_discard(previous));
   }
 
   /// Deletes a photo that will not be saved. Called when one is replaced, when

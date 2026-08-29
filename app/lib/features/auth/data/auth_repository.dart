@@ -7,6 +7,7 @@ import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/error/failure_mapper.dart';
 import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 import 'package:lifedna/features/auth/data/google_identity.dart';
 import 'package:lifedna/features/auth/domain/user_profile.dart';
 import 'package:uuid/uuid.dart';
@@ -46,15 +47,21 @@ class AuthRepository {
     required HiveStore store,
     fb.FirebaseAuth? firebaseAuth,
     GoogleIdentitySource? google,
+    PhotoStore? photos,
     Uuid uuid = const Uuid(),
   }) : _store = store,
        _auth = firebaseAuth,
        _google = google,
+       _photos = photos,
        _uuid = uuid;
 
   final HiveStore _store;
   final fb.FirebaseAuth? _auth;
   final GoogleIdentitySource? _google;
+
+  /// Progress photos live outside Hive, so clearing the boxes does not clear
+  /// them. See [signOut].
+  final PhotoStore? _photos;
   final Uuid _uuid;
 
   static const _localSessionKey = 'local_session';
@@ -224,13 +231,16 @@ class AuthRepository {
   ///
   /// Wiping is not optional: on a shared device, leaving one account's
   /// training log in Hive for the next person to read would be a serious
-  /// privacy failure.
+  /// privacy failure. Progress photos are part of that — they are the most
+  /// sensitive thing this app stores, and they live on the filesystem rather
+  /// than in Hive, so clearing the boxes alone would leave them behind.
   Future<Result<void>> signOut() async {
     try {
       await _google?.signOut();
       await _auth?.signOut();
       await _store.delete(HiveStore.boxMeta, _localSessionKey);
       await _store.clearAll();
+      await _photos?.clear();
       return const Ok(null);
     } on Object catch (error, stackTrace) {
       return Err(FailureMapper.from(error, stackTrace));
@@ -251,6 +261,7 @@ class AuthRepository {
       }
       await _store.delete(HiveStore.boxMeta, _localSessionKey);
       await _store.clearAll();
+      await _photos?.clear();
       return const Ok(null);
     } on Object catch (error, stackTrace) {
       return Err(FailureMapper.from(error, stackTrace));

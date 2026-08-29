@@ -5,7 +5,7 @@ import 'package:lifedna/core/error/failure.dart';
 import 'package:lifedna/core/result/result.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
 import 'package:lifedna/core/sync/outbox.dart';
-import 'package:lifedna/features/body/data/photo_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 import 'package:lifedna/features/body/domain/body_entities.dart';
 import 'package:uuid/uuid.dart';
 

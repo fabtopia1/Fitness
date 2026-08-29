@@ -12,7 +12,7 @@ import 'package:lifedna/core/network/connectivity_service.dart';
 import 'package:lifedna/core/notifications/notification_service.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
 import 'package:lifedna/features/auth/data/google_identity.dart';
-import 'package:lifedna/features/body/data/photo_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 
 /// Everything that must exist before the first frame.
 ///

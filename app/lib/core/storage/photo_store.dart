@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -79,6 +81,32 @@ class PhotoStore {
     } on Object {
       // Storage that refuses a delete will refuse it again next time; there is
       // nothing here worth surfacing to the user.
+    }
+  }
+
+  /// Deletes every stored photo.
+  ///
+  /// Called from the two places that promise a clean device: signing out, and
+  /// the C-1 storage reset. Both wipe Hive, and photos living outside Hive
+  /// would otherwise survive a "deletes every meal, workout, measurement and
+  /// note on this phone permanently" — on a shared device, the previous
+  /// account's progress photos would still be on the filesystem.
+  Future<void> clear() async {
+    try {
+      if (directory.existsSync()) await directory.delete(recursive: true);
+      await directory.create(recursive: true);
+    } on Object catch (error) {
+      debugPrint('PhotoStore: could not clear photos — $error');
+    }
+  }
+
+  /// Wipes the photo directory without an open store, for the reset path that
+  /// runs before anything has been constructed.
+  static Future<void> clearAll() async {
+    try {
+      await (await open()).clear();
+    } on Object catch (error) {
+      debugPrint('PhotoStore: could not resolve the photo directory — $error');
     }
   }
 

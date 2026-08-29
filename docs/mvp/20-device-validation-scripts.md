@@ -226,7 +226,8 @@ on Samsung hardware.
 | 3 | Confirm | Returns to Welcome |
 | 4 | Sign in as a **different** account | — |
 | 5 | Check every tab | **Empty.** No trace of the first account's data |
-| 6 | Sign back in as the first account | Data returns after sync |
+| 6 | Body tab → photo strip | **Empty.** Progress photos live on the filesystem, not in Hive, so this is a separate wipe from the database one |
+| 7 | Sign back in as the first account | Measurements return after sync. Photos do **not** — they were never uploaded, and the app says so rather than showing broken thumbnails |
 
 Step 5 is a privacy assertion, not a convenience one: on a shared device,
 leaving one account's training log for the next person to read would be a
@@ -262,6 +263,7 @@ Only if a spare device is available; it destroys local data.
 | 5 | Tap **Cancel** | Returns to the first screen; nothing deleted |
 | 6 | Tap reset, then **Reset and continue** | App restarts into Welcome and is usable |
 | 7 | Sign in | Data downloads from the account |
+| 8 | Body tab → photo strip | **Empty.** The reset copy promises everything on this phone is deleted permanently; photos are on the filesystem and must go with the boxes |
 
 **Fail if:** step 2 shows a crash or a retry-only screen. That is the original
 C-1 lockout, whose only escape was uninstalling — which destroyed the data.

@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifedna/core/result/result.dart';
+import 'package:lifedna/features/auth/data/auth_repository.dart';
 import 'package:lifedna/core/sync/outbox.dart';
 import 'package:lifedna/features/body/data/body_repository.dart';
-import 'package:lifedna/features/body/data/photo_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 
 import '../../../support/test_harness.dart';
 
@@ -181,6 +182,50 @@ void main() {
       await repository.delete(measurement.id);
 
       expect(outside.existsSync(), isTrue);
+    });
+  });
+
+  group('wiping — what "delete everything" has to mean', () {
+    test('clear removes every photo and leaves the directory usable', () async {
+      await photos.adopt(pickerFile('a.jpg'));
+      final second = await photos.adopt(pickerFile('b.jpg'));
+
+      await photos.clear();
+
+      expect(photos.exists(second), isFalse);
+      expect(photos.directory.listSync(), isEmpty);
+      // Usable immediately after, without a restart.
+      final fresh = await photos.adopt(pickerFile('c.jpg'));
+      expect(photos.exists(fresh), isTrue);
+    });
+
+    test('signing out takes the photos with it', () async {
+      // On a shared device this is the whole point: progress photos are the
+      // most sensitive thing this app stores, and they live on the filesystem
+      // rather than in Hive — so clearing the boxes alone would leave the
+      // previous account's photos on disk for the next person.
+      final reference = await photos.adopt(pickerFile('mine.jpg'));
+      final auth = AuthRepository(store: env.store, photos: photos);
+      await auth.continueWithoutAccount();
+
+      await auth.signOut();
+
+      expect(photos.exists(reference), isFalse);
+    });
+
+    test('deleting the account takes them too', () async {
+      final reference = await photos.adopt(pickerFile('mine.jpg'));
+      final auth = AuthRepository(store: env.store, photos: photos);
+      await auth.continueWithoutAccount();
+
+      await auth.deleteAccount();
+
+      expect(photos.exists(reference), isFalse);
+    });
+
+    test('clearing an already-empty store is harmless', () async {
+      await photos.clear();
+      expect(photos.clear(), completes);
     });
   });
 }
