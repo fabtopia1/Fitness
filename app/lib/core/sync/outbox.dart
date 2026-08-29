@@ -114,7 +114,10 @@ class Outbox {
   final HiveStore _store;
   final Uuid uuid;
 
-  Future<void> enqueue({
+  /// Queues a write and returns the entry, so the caller can complete exactly
+  /// the entry it queued rather than whatever happens to be under the key
+  /// later. See [complete].
+  Future<OutboxEntry> enqueue({
     required OutboxOp op,
     required String collection,
     required String docId,
@@ -133,6 +136,7 @@ class Outbox {
       createdAt: now ?? DateTime.now(),
     );
     await _store.write(HiveStore.boxOutbox, key, entry.toJson());
+    return entry;
   }
 
   List<OutboxEntry> pending() =>
@@ -146,22 +150,64 @@ class Outbox {
 
   int get length => _store.box(HiveStore.boxOutbox).length;
 
-  Future<void> complete(OutboxEntry entry) =>
-      _store.delete(HiveStore.boxOutbox, '${entry.collection}/${entry.docId}');
+  String _keyFor(OutboxEntry entry) => '${entry.collection}/${entry.docId}';
 
-  Future<void> recordFailure(OutboxEntry entry, String error, DateTime now) =>
-      _store.write(
-        HiveStore.boxOutbox,
-        '${entry.collection}/${entry.docId}',
-        entry.withFailure(error, now).toJson(),
-      );
+  /// The entry currently queued for the same document, if any.
+  OutboxEntry? current(OutboxEntry entry) {
+    final json = _store.read(HiveStore.boxOutbox, _keyFor(entry));
+    return json == null ? null : OutboxEntry.fromJson(json);
+  }
+
+  /// Removes [entry] — but ONLY if it is still the entry that is queued.
+  ///
+  /// Entries are keyed by document so that rapid edits collapse, which means a
+  /// second write can replace the queued payload while the first is still in
+  /// flight. An unconditional delete here would then remove the NEWER payload
+  /// on the older push's success: Firestore would keep v1 forever while Hive
+  /// held v2, and because last-write-wins hides that locally, the divergence
+  /// only surfaces on the user's second device.
+  ///
+  /// [OutboxEntry.id] is a fresh UUID per enqueue, so comparing it is exactly
+  /// the guard needed. Returns whether anything was removed.
+  Future<bool> complete(OutboxEntry entry) async {
+    final queued = current(entry);
+    if (queued == null) return false;
+    if (queued.id != entry.id) {
+      // A newer write replaced this one while it was uploading. Leave it
+      // queued; the sync engine will send it on the next drain.
+      return false;
+    }
+    await _store.delete(HiveStore.boxOutbox, _keyFor(entry));
+    return true;
+  }
+
+  /// Records a failed attempt against [entry] — but ONLY if it is still the
+  /// entry that is queued.
+  ///
+  /// The unguarded version had the same defect as [complete] in the other
+  /// direction: it wrote the STALE entry's payload back over the newer one, so
+  /// a failed push could revert a queued write.
+  Future<bool> recordFailure(
+    OutboxEntry entry,
+    String error,
+    DateTime now,
+  ) async {
+    final queued = current(entry);
+    if (queued == null || queued.id != entry.id) return false;
+    await _store.write(
+      HiveStore.boxOutbox,
+      _keyFor(entry),
+      entry.withFailure(error, now).toJson(),
+    );
+    return true;
+  }
 
   /// Clears the backoff on parked entries so the user can retry by hand.
   Future<void> retryParked() async {
     for (final entry in parked()) {
       await _store.write(
         HiveStore.boxOutbox,
-        '${entry.collection}/${entry.docId}',
+        _keyFor(entry),
         OutboxEntry(
           id: entry.id,
           op: entry.op,

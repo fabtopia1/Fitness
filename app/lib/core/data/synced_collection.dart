@@ -108,14 +108,14 @@ class SyncedCollection<T extends SyncedEntity> {
       return Err(StorageFailure(debugMessage: error.toString(), cause: error));
     }
 
-    await outbox.enqueue(
+    final queued = await outbox.enqueue(
       op: OutboxOp.upsert,
       collection: collection,
       docId: entity.id,
       payload: json,
     );
 
-    unawaited(_pushOne(entity.id, json));
+    unawaited(_pushOne(queued));
     return Ok(entity);
   }
 
@@ -135,34 +135,32 @@ class SyncedCollection<T extends SyncedEntity> {
       return Err(StorageFailure(debugMessage: error.toString(), cause: error));
     }
 
-    await outbox.enqueue(
+    final queued = await outbox.enqueue(
       op: OutboxOp.upsert,
       collection: collection,
       docId: id,
       payload: marked,
     );
-    unawaited(_pushOne(id, marked));
+    unawaited(_pushOne(queued));
     return const Ok(null);
   }
 
-  Future<void> _pushOne(String id, Map<String, dynamic> json) async {
+  /// Best-effort immediate replication of a queued entry.
+  ///
+  /// Takes the entry rather than a payload so that completion can be
+  /// conditional: a second write to the same document while this one is in
+  /// flight replaces the queued entry, and [Outbox.complete] must then leave
+  /// the newer one alone. Fabricating an entry here — which the first version
+  /// did — made that check impossible and silently dropped the newer write.
+  Future<void> _pushOne(OutboxEntry entry) async {
     final remote = _remote;
     if (remote == null) return;
     try {
       await remote
-          .doc(id)
-          .set(json, SetOptions(merge: true))
+          .doc(entry.docId)
+          .set(entry.payload, SetOptions(merge: true))
           .timeout(Env.networkTimeout);
-      await outbox.complete(
-        OutboxEntry(
-          id: id,
-          op: OutboxOp.upsert,
-          collection: collection,
-          docId: id,
-          payload: json,
-          createdAt: DateTime.now(),
-        ),
-      );
+      await outbox.complete(entry);
     } on Object {
       // Left in the outbox on purpose. The sync engine owns retry and backoff;
       // duplicating that logic here is how writes get lost twice.

@@ -46,7 +46,7 @@ class ProfileRepository {
       return Err(StorageFailure(debugMessage: error.toString(), cause: error));
     }
 
-    await _outbox.enqueue(
+    final queued = await _outbox.enqueue(
       op: OutboxOp.upsert,
       collection: Outbox.profileCollection,
       docId: profile.id,
@@ -62,16 +62,10 @@ class ProfileRepository {
             .doc(uid)
             .set(json, SetOptions(merge: true))
             .timeout(Env.networkTimeout);
-        await _outbox.complete(
-          OutboxEntry(
-            id: profile.id,
-            op: OutboxOp.upsert,
-            collection: Outbox.profileCollection,
-            docId: profile.id,
-            payload: json,
-            createdAt: DateTime.now(),
-          ),
-        );
+        // The entry that was queued, not a reconstruction of it: a second
+        // save while this one is uploading replaces the queued entry, and
+        // completing by key alone would delete the newer payload.
+        await _outbox.complete(queued);
       } on Object {
         // Stays queued; the sync engine owns retry.
       }
