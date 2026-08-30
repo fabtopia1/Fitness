@@ -39,6 +39,7 @@ Where the two disagree, this folder is authoritative for the MVP.
 | 28 | [Release sign-off](28-release-signoff.md) | C-1 re-verification, every remaining blocker, and the go/no-go |
 | 29 | [Personal APK guide](29-personal-apk-guide.md) | Build, sign, install and update the app on your own phone — no Firebase, no Play Store |
 | 30 | [Personal device checklist](30-personal-device-checklist.md) | One afternoon of testing on one phone, local mode only |
+| 31 | [Personal release certification](31-personal-release-certification.md) | Final audit, scores, and the recommendation to install |
 
 ## The MVP in one paragraph
 
