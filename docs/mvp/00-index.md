@@ -40,6 +40,9 @@ Where the two disagree, this folder is authoritative for the MVP.
 | 29 | [Personal APK guide](29-personal-apk-guide.md) | Build, sign, install and update the app on your own phone — no Firebase, no Play Store |
 | 30 | [Personal device checklist](30-personal-device-checklist.md) | One afternoon of testing on one phone, local mode only |
 | 31 | [Personal release certification](31-personal-release-certification.md) | Final audit, scores, and the recommendation to install |
+| 32 | [Build commands](32-build-commands.md) | Every command, its expected output, and what each failure means |
+| 33 | [Final release audit](33-final-release-audit.md) | The Android-file audit: two critical blockers found and fixed |
+| 34 | [Personal release certification](34-personal-release-certification-v2.md) | The current verdict, scores and the final APK checklist — supersedes 31 |
 
 ## The MVP in one paragraph
 
