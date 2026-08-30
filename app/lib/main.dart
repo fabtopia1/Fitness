@@ -55,9 +55,22 @@ Future<void> main() async {
           );
           return;
         } on Object catch (error, stackTrace) {
+          // Anything else that stops startup. This screen used to offer only a
+          // retry, which made every non-storage bootstrap failure the same
+          // permanent lockout C-1 exists to remove — reached through a
+          // different door. It now offers the same reset.
           debugPrint('Bootstrap failed — $error');
           debugPrintStack(stackTrace: stackTrace);
-          runApp(_BootstrapFailureApp(error: error));
+          runApp(
+            _BootstrapFailureApp(
+              error: error,
+              onReset: () async {
+                await HiveStore.resetLocalData();
+                await PhotoStore.clearAll();
+                await main();
+              },
+            ),
+          );
           return;
         }
 
@@ -120,9 +133,12 @@ Future<void> main() async {
 
 /// Shown when the app cannot start at all.
 class _BootstrapFailureApp extends StatelessWidget {
-  const _BootstrapFailureApp({required this.error});
+  const _BootstrapFailureApp({required this.error, required this.onReset});
 
   final Object error;
+
+  /// Clears local data and restarts. Destructive, and behind a confirmation.
+  final Future<void> Function() onReset;
 
   @override
   Widget build(BuildContext context) {
@@ -155,11 +171,62 @@ class _BootstrapFailureApp extends StatelessWidget {
                   Text('$error', style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 24),
                 const FilledButton(onPressed: main, child: Text('Try again')),
+                const SizedBox(height: 8),
+                _ResetButton(onReset: onReset),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A reset that takes two taps, matching the storage recovery screen.
+///
+/// One tap must never destroy local data, on either failure screen.
+class _ResetButton extends StatefulWidget {
+  const _ResetButton({required this.onReset});
+
+  final Future<void> Function() onReset;
+
+  @override
+  State<_ResetButton> createState() => _ResetButtonState();
+}
+
+class _ResetButtonState extends State<_ResetButton> {
+  bool _confirming = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_confirming) {
+      return TextButton(
+        onPressed: () => setState(() => _confirming = true),
+        child: const Text('Reset this phone’s data'),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          StorageUnavailable.resetWarningSignedIn,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            FilledButton(
+              onPressed: widget.onReset,
+              child: const Text('Reset and continue'),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => setState(() => _confirming = false),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
