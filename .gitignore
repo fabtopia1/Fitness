@@ -16,6 +16,7 @@ app/coverage/
 app/android/.gradle/
 app/android/local.properties
 app/android/key.properties
+!app/android/key.properties.example
 app/android/app/upload-keystore.jks
 # Every location Gradle's google-services plugin looks in, not just the root
 # one: the per-flavour paths are where a three-environment project actually
@@ -53,6 +54,8 @@ functions/.env.*
 # ---------- Secrets ----------
 .env
 .env.local
+app/.env.release
+!app/.env.release.example
 *.pem
 *.p12
 secrets/

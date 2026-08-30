@@ -30,6 +30,13 @@ Where the two disagree, this folder is authoritative for the MVP.
 | 19 | [Build validation report](19-build-validation-report.md) | Toolchain compatibility, Gradle, signing, R8 and manifest — what is settled statically, by CI, and only on hardware |
 | 20 | [Device validation scripts](20-device-validation-scripts.md) | Twelve scripts a tester runs on a physical Samsung device before the beta opens |
 | 21 | [Closed beta certification](21-closed-beta-certification.md) | The remediation's verdict, scores, and the conditions of release |
+| 22 | [Encrypted data migration](22-encrypted-data-migration.md) | How installs predating the encryption marker are migrated without losing data |
+| 23 | [Android test protocol](23-android-test-protocol.md) | How device testing is run, recorded, and escalated |
+| 24 | [Release verification matrix](24-release-verification-matrix.md) | Every claim, its evidence, and whether that evidence exists today |
+| 25 | [Play internal testing](25-play-internal-testing.md) | The 48-hour critical path to 50 testers |
+| 26 | [Samsung device checklist](26-samsung-device-checklist.md) | One UI behaviour that breaks exactly what this app depends on |
+| 27 | [Firebase production deployment](27-firebase-production-deployment.md) | Everything that must exist in the console before a build |
+| 28 | [Release sign-off](28-release-signoff.md) | C-1 re-verification, every remaining blocker, and the go/no-go |
 
 ## The MVP in one paragraph
 
