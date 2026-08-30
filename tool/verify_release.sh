@@ -11,6 +11,10 @@
 set -uo pipefail
 
 FLAVOR="${1:-prod}"
+# PERSONAL mode: no Firebase, no sign-in, everything on the phone. The right
+# setup for one person on one device, and a first-class configuration — so
+# missing cloud credentials are reported as "not used", not as blockers.
+MODE="${2:-auto}"   # auto | personal | cloud
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/app"
 ANDROID="$APP/android"
@@ -29,7 +33,15 @@ case "$FLAVOR" in
   *) echo "Unknown flavor '$FLAVOR' (expected dev, staging or prod)"; exit 2 ;;
 esac
 
-printf '\033[1mLifeDNA OS — release preflight (%s)\033[0m\n' "$FLAVOR"
+if [ "$MODE" = "auto" ]; then
+  if [ -n "${FIREBASE_PROJECT_ID:-}" ]; then MODE="cloud"; else MODE="personal"; fi
+fi
+case "$MODE" in
+  personal|cloud) ;;
+  *) echo "Unknown mode '$MODE' (expected personal or cloud)"; exit 2 ;;
+esac
+
+printf '\033[1mLifeDNA OS — release preflight (%s, %s mode)\033[0m\n' "$FLAVOR" "$MODE"
 
 # ---------------------------------------------------------------- toolchain --
 section "Toolchain"
@@ -60,6 +72,8 @@ section "Release signing"
 KEY_PROPS="$ANDROID/key.properties"
 if [ "$FLAVOR" = "dev" ]; then
   pass "dev builds debug — no release keystore needed"
+elif [ ! -f "$KEY_PROPS" ] && [ "$MODE" = "personal" ]; then
+  warn "no android/key.properties — the release build will be DEBUG-SIGNED. That INSTALLS AND RUNS fine for personal sideloading; it only matters for Play. Note the debug key expires after 365 days and a rebuild with a different key needs an uninstall, which erases local data — back up first."
 elif [ ! -f "$KEY_PROPS" ]; then
   fail "no android/key.properties — the release build would be DEBUG-SIGNED. Play rejects it and Google Sign-In fails against an unregistered SHA-1."
 else
@@ -94,11 +108,18 @@ fi
 
 # ------------------------------------------------------------------ firebase --
 section "Firebase"
+if [ "$MODE" = "personal" ]; then
+  pass "not used — personal build, everything stays on the phone"
+  pass "no cloud sync, no sign-in, no Google OAuth to configure"
+  printf '        Back up from Settings -> Data and sync -> Back up now.\n'
+fi
 GS=""
 for candidate in "$ANDROID/app/src/$FLAVOR/google-services.json" "$ANDROID/app/google-services.json"; do
   [ -f "$candidate" ] && GS="$candidate" && break
 done
-if [ -z "$GS" ]; then
+if [ "$MODE" = "personal" ]; then
+  :
+elif [ -z "$GS" ]; then
   fail "no google-services.json for '$FLAVOR' — the Gradle plugins will not be applied, so Google Sign-In returns no ID token and Crashlytics uploads no mapping"
 else
   pass "google-services.json at ${GS#"$ROOT/"}"
@@ -123,9 +144,14 @@ fi
 
 # ------------------------------------------------------------- dart-defines --
 section "Build-time configuration"
+if [ "$MODE" = "personal" ]; then
+  pass "no --dart-define needed — the app runs local-only by default"
+fi
 VAR="GOOGLE_SERVER_CLIENT_ID_$(printf '%s' "$FLAVOR" | tr '[:lower:]' '[:upper:]')"
 CLIENT_ID="${!VAR:-${GOOGLE_SERVER_CLIENT_ID:-}}"
-if [ -z "$CLIENT_ID" ]; then
+if [ "$MODE" = "personal" ]; then
+  :
+elif [ -z "$CLIENT_ID" ]; then
   if [ -n "$GS" ] && grep -q '"client_type": 3' "$GS"; then
     warn "$VAR unset — falling back to the generated default_web_client_id"
   else
@@ -137,13 +163,15 @@ else
     *) fail "$VAR is not an OAuth client id: $CLIENT_ID" ;;
   esac
 fi
-for v in FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_SENDER_ID FIREBASE_PROJECT_ID; do
-  if [ -z "${!v:-}" ]; then
-    fail "$v is unset — the build would run in local mode with no cloud sync"
-  else
-    pass "$v set"
-  fi
-done
+if [ "$MODE" = "cloud" ]; then
+  for v in FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_SENDER_ID FIREBASE_PROJECT_ID; do
+    if [ -z "${!v:-}" ]; then
+      fail "$v is unset — a partial cloud config builds fine and fails silently on the phone"
+    else
+      pass "$v set"
+    fi
+  done
+fi
 
 # ------------------------------------------------------------------- source --
 section "Source gates"

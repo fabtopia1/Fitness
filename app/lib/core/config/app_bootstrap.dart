@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:lifedna/core/backup/backup_service.dart';
 import 'package:lifedna/core/config/env.dart';
 import 'package:lifedna/core/config/firebase_config.dart';
 import 'package:lifedna/core/firebase/firebase_service.dart';
@@ -27,6 +30,7 @@ class AppBootstrap {
     required this.notifications,
     required this.connectivity,
     required this.photos,
+    this.backups,
     this.firestore,
     this.auth,
     this.google,
@@ -43,6 +47,10 @@ class AppBootstrap {
   /// synchronously to build an `Image.file`.
   final PhotoStore photos;
 
+  /// Whole-database backup. Null only where the platform gives no external
+  /// directory — the app still runs, it just cannot write a backup file.
+  final BackupService? backups;
+
   final FirebaseFirestore? firestore;
   final FirebaseAuth? auth;
   final GoogleIdentitySource? google;
@@ -53,6 +61,12 @@ class AppBootstrap {
   static Future<AppBootstrap> initialize() async {
     final store = await HiveStore.open();
     final photos = await PhotoStore.open();
+    final backups = await BackupService.open(store: store);
+
+    // Before anything else touches the data. A snapshot is the difference
+    // between "something went wrong" and "everything is gone" on a phone with
+    // no cloud behind it, and it must not depend on the user remembering.
+    unawaited(backups?.autoSnapshot() ?? Future<void>.value());
 
     final firebase = await FirebaseService.initialize(
       options: FirebaseConfig.currentPlatform,
@@ -109,6 +123,7 @@ class AppBootstrap {
       notifications: notifications,
       connectivity: ConnectivityService(),
       photos: photos,
+      backups: backups,
       firestore: firestore,
       auth: auth,
       google: google,

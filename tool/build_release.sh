@@ -29,40 +29,62 @@ UPPER="$(printf '%s' "$FLAVOR" | tr '[:lower:]' '[:upper:]')"
 VAR="GOOGLE_SERVER_CLIENT_ID_$UPPER"
 CLIENT_ID="${!VAR:-${GOOGLE_SERVER_CLIENT_ID:-}}"
 
-# Fail before a twenty-minute build rather than after it.
-MISSING=""
+# Two supported modes.
+#
+# PERSONAL (no Firebase variables set): the app runs entirely on-device. Hive
+# is the only store, there is no sign-in, and backups are the safety net. This
+# is a first-class configuration, not a degraded one — it is the right setup
+# for one person on one phone, and it removes every cloud failure mode at once.
+#
+# CLOUD (Firebase variables set): adds sync and sign-in, and then all four
+# variables plus a client id are required, because a partial configuration
+# builds successfully and fails silently on the phone.
+SET_COUNT=0
 for v in FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_SENDER_ID FIREBASE_PROJECT_ID; do
-  [ -n "${!v:-}" ] || MISSING="$MISSING $v"
+  [ -n "${!v:-}" ] && SET_COUNT=$((SET_COUNT + 1))
 done
-if [ -n "$MISSING" ]; then
-  echo "Missing:$MISSING"
-  echo "  set -a && . app/.env.release && set +a"
-  exit 1
-fi
-if [ -z "$CLIENT_ID" ]; then
-  echo "Neither $VAR nor GOOGLE_SERVER_CLIENT_ID is set."
-  echo "The build would succeed and Google Sign-In would return no ID token."
-  echo "See docs/mvp/18-google-auth-verification.md."
-  exit 1
-fi
 
-DEFINES=(
-  "--dart-define=FLAVOR=$FLAVOR"
-  "--dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY"
-  "--dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID"
-  "--dart-define=FIREBASE_SENDER_ID=$FIREBASE_SENDER_ID"
-  "--dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID"
-  "--dart-define=FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-}"
-  "--dart-define=GOOGLE_SERVER_CLIENT_ID_$UPPER=$CLIENT_ID"
-  "--dart-define=GOOGLE_CALENDAR_CLIENT_ID=${GOOGLE_CALENDAR_CLIENT_ID:-}"
-)
+DEFINES=("--dart-define=FLAVOR=$FLAVOR")
+
+if [ "$SET_COUNT" -eq 0 ]; then
+  MODE="personal, local-only"
+  echo "No Firebase variables set — building in PERSONAL mode."
+  echo "  Everything stays on the phone. Back it up from Settings -> Data."
+else
+  MODE="cloud"
+  MISSING=""
+  for v in FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_SENDER_ID FIREBASE_PROJECT_ID; do
+    [ -n "${!v:-}" ] || MISSING="$MISSING $v"
+  done
+  if [ -n "$MISSING" ]; then
+    echo "Partial Firebase configuration. Missing:$MISSING"
+    echo "A partial config builds fine and then fails silently on the phone."
+    echo "Set all four, or none at all for a personal local-only build."
+    exit 1
+  fi
+  if [ -z "$CLIENT_ID" ]; then
+    echo "Neither $VAR nor GOOGLE_SERVER_CLIENT_ID is set."
+    echo "The build would succeed and Google Sign-In would return no ID token."
+    echo "See docs/mvp/18-google-auth-verification.md."
+    exit 1
+  fi
+  DEFINES+=(
+    "--dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY"
+    "--dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID"
+    "--dart-define=FIREBASE_SENDER_ID=$FIREBASE_SENDER_ID"
+    "--dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID"
+    "--dart-define=FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-}"
+    "--dart-define=GOOGLE_SERVER_CLIENT_ID_$UPPER=$CLIENT_ID"
+    "--dart-define=GOOGLE_CALENDAR_CLIENT_ID=${GOOGLE_CALENDAR_CLIENT_ID:-}"
+  )
+fi
 
 cd "$ROOT/app"
 flutter pub get
 
 build() {
   echo
-  echo "==> flutter build $1 --flavor $FLAVOR --release"
+  echo "==> flutter build $1 --flavor $FLAVOR --release   [$MODE]"
   flutter build "$1" --flavor "$FLAVOR" --release "${DEFINES[@]}"
 }
 

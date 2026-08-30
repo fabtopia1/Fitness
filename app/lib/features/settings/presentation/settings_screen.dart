@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,7 @@ import 'package:lifedna/features/reminders/presentation/reminder_providers.dart'
 import 'package:lifedna/features/settings/domain/app_settings.dart';
 import 'package:lifedna/features/settings/presentation/goals_editor_sheet.dart';
 import 'package:lifedna/features/settings/presentation/settings_providers.dart';
+import 'package:lifedna/core/backup/backup_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// Build identity, read once from the platform.
@@ -92,6 +95,7 @@ class SettingsScreen extends ConsumerWidget {
 
           const LdSectionHeader(title: 'Data and sync'),
           _SyncCard(sync: sync, cloud: cloud),
+          const _BackupCard(),
 
           const LdSectionHeader(title: 'Privacy'),
           _PrivacyCard(settings: settings, cloud: cloud),
@@ -649,5 +653,193 @@ class _NavCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ------------------------------------------------------------------ backup --
+
+/// Whole-database backup.
+///
+/// With no Firebase configured — the supported setup for one person on one
+/// phone — Hive is not the source of truth, it is the only truth. A lost
+/// phone or a factory reset is total loss, and nothing inside the app
+/// prevents either. A snapshot is taken automatically at startup; this card
+/// is how the owner takes one on demand, sees where they live, and puts one
+/// back.
+class _BackupCard extends ConsumerStatefulWidget {
+  const _BackupCard();
+
+  @override
+  ConsumerState<_BackupCard> createState() => _BackupCardState();
+}
+
+class _BackupCardState extends ConsumerState<_BackupCard> {
+  bool _busy = false;
+  String? _message;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.ldColors;
+    final type = context.ldType;
+    final backups = ref.watch(bootstrapProvider).backups;
+
+    if (backups == null) {
+      return LdCard(
+        child: Text(
+          'Backups are unavailable on this device: Android gave the app no '
+          'external storage directory to write to.',
+          style: type.bodyS.copyWith(color: c.textSecondary),
+        ),
+      );
+    }
+
+    final files = backups.available();
+    final newest = files.isEmpty ? null : files.first;
+
+    return LdCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.save_rounded, size: 18, color: c.info),
+              const SizedBox(width: LdSpacing.s2),
+              Text('Backup', style: type.titleM.copyWith(color: c.textPrimary)),
+            ],
+          ),
+          const SizedBox(height: LdSpacing.s2),
+          Text(
+            newest == null
+                ? 'No backup yet. One is taken automatically each day.'
+                : 'Last backup ${_ago(backups.takenAt(newest))} · '
+                      '${files.length} kept',
+            style: type.bodyS.copyWith(color: c.textSecondary),
+          ),
+          const SizedBox(height: LdSpacing.s2),
+          SelectableText(
+            backups.directory.path,
+            style: type.caption.copyWith(color: c.textTertiary),
+          ),
+          const SizedBox(height: LdSpacing.s1),
+          Text(
+            'Connect the phone by USB and copy this folder to keep a copy off '
+            'the device.',
+            style: type.caption.copyWith(color: c.textTertiary),
+          ),
+          if (_message != null) ...[
+            const SizedBox(height: LdSpacing.s3),
+            Text(_message!, style: type.bodyS.copyWith(color: c.textPrimary)),
+          ],
+          const SizedBox(height: LdSpacing.s4),
+          LdPrimaryButton(
+            label: 'Back up now',
+            variant: LdButtonVariant.secondary,
+            loading: _busy,
+            onPressed: _busy ? null : _backUp,
+          ),
+          if (files.isNotEmpty) ...[
+            const SizedBox(height: LdSpacing.s2),
+            LdPrimaryButton(
+              label: 'Restore from a backup',
+              variant: LdButtonVariant.ghost,
+              onPressed: _busy ? null : () => _pickRestore(files),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _backUp() async {
+    setState(() => _busy = true);
+    final backups = ref.read(bootstrapProvider).backups!;
+    try {
+      final file = await backups.export();
+      if (!mounted) return;
+      setState(() => _message = 'Saved ${file.uri.pathSegments.last}');
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() => _message = "Couldn't write the backup — $error");
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _pickRestore(List<File> files) async {
+    final backups = ref.read(bootstrapProvider).backups!;
+    final chosen = await showModalBottomSheet<File>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(LdSpacing.s4),
+              child: Text('Choose a backup to restore'),
+            ),
+            for (final file in files.take(20))
+              ListTile(
+                title: Text(file.uri.pathSegments.last),
+                subtitle: Text(
+                  '${_ago(backups.takenAt(file))} · '
+                  '${(file.lengthSync() / 1024).round()} KB',
+                ),
+                onTap: () => Navigator.of(sheetContext).pop(file),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+
+    // Restoring replaces everything. It gets the same two-step treatment as
+    // erasing, because getting it wrong costs the same.
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Restore this backup?'),
+        content: Text(
+          'Everything currently on this phone is replaced by the contents of '
+          '${chosen.uri.pathSegments.last}. A snapshot of the current data is '
+          'saved first, so this can be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final restored = await backups.restore(chosen);
+      if (!mounted) return;
+      setState(() => _message = 'Restored $restored records.');
+    } on BackupInvalid catch (invalid) {
+      if (!mounted) return;
+      setState(
+        () => _message = 'That file could not be used: ${invalid.reason}',
+      );
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() => _message = 'Restore failed — $error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  static String _ago(DateTime when) {
+    final delta = DateTime.now().difference(when);
+    if (delta.inMinutes < 2) return 'just now';
+    if (delta.inHours < 1) return '${delta.inMinutes} min ago';
+    if (delta.inHours < 24) return '${delta.inHours} h ago';
+    return '${delta.inDays} d ago';
   }
 }
