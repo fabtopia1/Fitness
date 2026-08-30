@@ -64,10 +64,37 @@
         </activity>
 
         <!--
-            The flutter_local_notifications receivers (boot, scheduled,
-            action) are declared by the plugin's own manifest and merged in.
-            Re-declaring them here duplicated every attribute and would fail
-            the manifest merger the moment the plugin changed one.
+            flutter_local_notifications receivers. These MUST be declared here.
+            The plugin's own AndroidManifest.xml (18.0.1) contains permissions
+            ONLY — no receivers — so without these three the plugin cannot show
+            a scheduled notification at all, and nothing re-arms after a
+            reboot. Every reminder in the app goes through zonedSchedule, so
+            the failure is total and silent: the schedule is stored, the alarm
+            fires, and there is no component to receive it.
+
+            Verified against the plugin's README and its own manifest, not
+            assumed. Re-check both on every plugin upgrade.
+        -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <!-- Re-arms reminders after the app is UPDATED, not just after
+                     a reboot. Sideloading a new APK over the old one would
+                     otherwise silently drop every pending reminder. -->
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+        <!--
+            No ActionBroadcastReceiver: nothing in this app creates a
+            notification with actions. Add it together with the first
+            AndroidNotificationAction, not before.
         -->
 
         <!-- Notification appearance. A monochrome small icon is required:

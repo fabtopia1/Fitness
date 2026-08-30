@@ -24,6 +24,7 @@ void main() {
     store: env.store,
     directory: directory,
     appVersion: '1.0.0+1',
+    photos: env.photos,
     clock: () => now,
   );
 
@@ -343,6 +344,110 @@ void main() {
       expect(summary.sizeBytes, greaterThan(0));
       // Nothing was restored by looking.
       expect(env.store.readAll(HiveStore.boxMeals), isEmpty);
+    });
+  });
+
+  group('progress photos travel with the boxes', () {
+    Future<String> addMeasurementWithPhoto(String id, String bytes) async {
+      final source = File('${env.directory.path}/cache-$id.jpg')
+        ..writeAsStringSync(bytes);
+      final reference = await env.photos.adopt(source);
+      await env.store.write(HiveStore.boxBodyMeasurements, id, {
+        'id': id,
+        'weightKg': 82.0,
+        'photoPath': reference,
+      });
+      return reference;
+    }
+
+    test('a restore brings the photo file back, not just the record', () async {
+      // Photos are files, not Hive records. Exporting the boxes alone gives
+      // back a measurement whose photoPath names a file that no longer
+      // exists — a broken thumbnail, and the one thing in here nobody can
+      // re-enter by hand.
+      final reference = await addMeasurementWithPhoto('b1', 'jpeg-one');
+      final file = await backups.export();
+
+      await env.store.clearAll();
+      await env.photos.clear();
+      expect(env.photos.exists(reference), isFalse);
+
+      await backups.restore(file);
+
+      expect(env.photos.exists(reference), isTrue);
+      expect(
+        File(env.photos.resolve(reference)).readAsStringSync(),
+        'jpeg-one',
+      );
+      expect(
+        env.store.read(HiveStore.boxBodyMeasurements, 'b1')?['photoPath'],
+        reference,
+      );
+    });
+
+    test('the export names the photos it carried', () async {
+      final reference = await addMeasurementWithPhoto('b1', 'jpeg-one');
+
+      final decoded = jsonDecode(
+        await (await backups.export()).readAsString(),
+      ) as Map<String, dynamic>;
+
+      expect(decoded['photos'], contains(reference));
+    });
+
+    test('seven snapshots keep one copy of each photo, not seven', () async {
+      // A shared pool, because photos are written once and never edited.
+      await addMeasurementWithPhoto('b1', 'jpeg-one');
+      for (var day = 0; day < 7; day++) {
+        now = now.add(const Duration(hours: 21));
+        await backups.autoSnapshot();
+      }
+
+      final pool = Directory('${directory.path}/${BackupService.photoFolder}');
+      expect(pool.listSync().whereType<File>(), hasLength(1));
+    });
+
+    test(
+      'a photo already on the phone is not overwritten by an older one',
+      () async {
+        final reference = await addMeasurementWithPhoto('b1', 'original');
+        final file = await backups.export();
+
+        await backups.restore(file);
+
+        expect(
+          File(env.photos.resolve(reference)).readAsStringSync(),
+          'original',
+        );
+      },
+    );
+
+    test('a legacy absolute path is skipped rather than half-copied', () async {
+      // Those point outside the photo store and may already be gone.
+      await env.store.write(HiveStore.boxBodyMeasurements, 'legacy', {
+        'id': 'legacy',
+        'photoPath': '/data/user/0/os.lifedna.lifedna/cache/old.jpg',
+      });
+
+      final decoded = jsonDecode(
+        await (await backups.export()).readAsString(),
+      ) as Map<String, dynamic>;
+
+      expect(decoded['photos'], isEmpty);
+    });
+
+    test('a missing photo file does not fail the whole backup', () async {
+      final reference = await addMeasurementWithPhoto('b1', 'jpeg-one');
+      await env.photos.delete(reference);
+
+      final file = await backups.export();
+
+      expect(file.existsSync(), isTrue);
+      expect(
+        env.store.read(HiveStore.boxBodyMeasurements, 'b1'),
+        isNotNull,
+        reason: 'the measurement is still worth backing up',
+      );
     });
   });
 }

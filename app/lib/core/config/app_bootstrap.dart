@@ -61,7 +61,7 @@ class AppBootstrap {
   static Future<AppBootstrap> initialize() async {
     final store = await HiveStore.open();
     final photos = await PhotoStore.open();
-    final backups = await BackupService.open(store: store);
+    final backups = await BackupService.open(store: store, photos: photos);
 
     // Before anything else touches the data. A snapshot is the difference
     // between "something went wrong" and "everything is gone" on a phone with

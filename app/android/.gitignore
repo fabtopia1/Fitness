@@ -1,8 +1,13 @@
-gradle-wrapper.jar
+# The Gradle wrapper IS tracked, unlike the Flutter template default.
+#
+# The template ignores gradlew, gradlew.bat and gradle-wrapper.jar. That is
+# fine when every checkout runs `flutter create .` first, and fatal otherwise:
+# a fresh clone has no wrapper, and `flutter build apk` invokes
+# android/gradlew directly, so the build dies before it starts. Tracking the
+# wrapper is also what pins Gradle 9.3.1 for everyone rather than leaving it to
+# whatever is on the machine.
 /.gradle
 /captures/
-/gradlew
-/gradlew.bat
 /local.properties
 GeneratedPluginRegistrant.java
 .cxx/

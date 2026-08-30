@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:lifedna/core/storage/hive_store.dart';
+import 'package:lifedna/core/storage/photo_store.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -50,11 +51,17 @@ class BackupService {
     required HiveStore store,
     required this.directory,
     required this.appVersion,
+    PhotoStore? photos,
     DateTime Function()? clock,
   }) : _store = store,
+       _photos = photos,
        _clock = clock ?? DateTime.now;
 
   final HiveStore _store;
+
+  /// Progress photos are files, not Hive records, so exporting the boxes alone
+  /// restores measurements whose photos are gone.
+  final PhotoStore? _photos;
   final DateTime Function() _clock;
 
   /// Where backups are written. Shown in the UI, because a backup nobody can
@@ -72,6 +79,7 @@ class BackupService {
   /// off the phone is not a backup.
   static Future<BackupService?> open({
     required HiveStore store,
+    PhotoStore? photos,
     DateTime Function()? clock,
   }) async {
     try {
@@ -92,6 +100,7 @@ class BackupService {
         store: store,
         directory: directory,
         appVersion: version,
+        photos: photos,
         clock: clock,
       );
     } on Object catch (error) {
@@ -99,6 +108,13 @@ class BackupService {
       return null;
     }
   }
+
+  /// Where copies of progress photos live, shared by every backup.
+  ///
+  /// One pool rather than a folder per snapshot: photos are written once and
+  /// never edited, so seven daily snapshots would otherwise hold seven copies
+  /// of the same image.
+  static const String photoFolder = 'photos';
 
   static const String formatTag = 'lifedna-backup';
   static const int formatVersion = 1;
@@ -145,6 +161,11 @@ class BackupService {
       'records': records,
       'boxes': boxes,
     };
+
+    // Photos travel with the boxes. Without this, restoring gives back
+    // measurements whose photoPath names a file that no longer exists — and
+    // progress photos are the one thing in here nobody can re-enter by hand.
+    payload['photos'] = await _copyPhotosOut(boxes);
 
     final file = File('${directory.path}/$prefix-${_stamp(now)}.json');
     // Written whole, then moved into place, so a backup interrupted halfway
@@ -213,7 +234,68 @@ class BackupService {
       await _store.writeAll(name, values);
       restored += values.length;
     }
+
+    await _copyPhotosBack(decoded['photos']);
     return restored;
+  }
+
+  /// Copies every referenced photo into the shared pool and returns their
+  /// names, so a restore knows what to look for.
+  Future<List<String>> _copyPhotosOut(
+    Map<String, Map<String, dynamic>> boxes,
+  ) async {
+    final photos = _photos;
+    if (photos == null) return const [];
+
+    final pool = Directory('${directory.path}/$photoFolder');
+    final names = <String>[];
+
+    for (final record in boxes.values.expand((box) => box.values)) {
+      if (record is! Map) continue;
+      final reference = record['photoPath'];
+      // Legacy absolute paths point outside the photo store and may already be
+      // gone; there is nothing dependable to copy.
+      if (reference is! String || reference.isEmpty) continue;
+      if (reference.startsWith('/')) continue;
+
+      names.add(reference);
+      final destination = File('${pool.path}/$reference');
+      if (destination.existsSync()) continue;
+
+      final source = File(photos.resolve(reference));
+      if (!source.existsSync()) continue;
+      try {
+        if (!pool.existsSync()) await pool.create(recursive: true);
+        await source.copy(destination.path);
+      } on Object catch (error) {
+        debugPrint('BackupService: could not copy photo $reference — $error');
+      }
+    }
+    return names;
+  }
+
+  Future<void> _copyPhotosBack(Object? names) async {
+    final photos = _photos;
+    if (photos == null || names is! List) return;
+
+    final pool = Directory('${directory.path}/$photoFolder');
+    if (!pool.existsSync()) return;
+
+    for (final entry in names) {
+      if (entry is! String || entry.isEmpty || entry.contains('/')) continue;
+      final source = File('${pool.path}/$entry');
+      if (!source.existsSync()) continue;
+      final destination = File(photos.resolve(entry));
+      if (destination.existsSync()) continue;
+      try {
+        if (!photos.directory.existsSync()) {
+          await photos.directory.create(recursive: true);
+        }
+        await source.copy(destination.path);
+      } on Object catch (error) {
+        debugPrint('BackupService: could not restore photo $entry — $error');
+      }
+    }
   }
 
   // ------------------------------------------------------------- maintenance
