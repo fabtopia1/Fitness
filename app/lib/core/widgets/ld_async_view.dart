@@ -202,9 +202,18 @@ class _Banner extends StatelessWidget {
     return Material(
       color: Color.lerp(c.surface, color, 0.16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: LdSpacing.s4,
-          vertical: LdSpacing.s2,
+        // The status-bar inset is added HERE rather than by wrapping the
+        // banner in a SafeArea, because the banner is usually absent: a
+        // SafeArea around a SizedBox.shrink still reserves the inset and would
+        // push every screen down by the status bar height all the time.
+        //
+        // targetSdk 36 makes edge-to-edge mandatory on Android 15+, so this
+        // banner sits at y=0 and would otherwise be drawn under the clock.
+        padding: EdgeInsets.only(
+          top: MediaQuery.paddingOf(context).top + LdSpacing.s2,
+          left: LdSpacing.s4,
+          right: LdSpacing.s4,
+          bottom: LdSpacing.s2,
         ),
         child: Row(
           children: [

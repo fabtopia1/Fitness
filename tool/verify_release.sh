@@ -91,13 +91,21 @@ else
       if command -v keytool >/dev/null 2>&1; then
         ALIAS="$(grep -E '^keyAlias=' "$KEY_PROPS" | cut -d= -f2-)"
         PW="$(grep -E '^storePassword=' "$KEY_PROPS" | cut -d= -f2-)"
-        SHA1="$(keytool -list -v -alias "$ALIAS" -keystore "$STORE_PATH" \
-                 -storepass "$PW" 2>/dev/null | grep -oE 'SHA1: [0-9A-F:]+' | head -1)"
+        FINGERPRINTS="$(keytool -list -v -alias "$ALIAS" -keystore "$STORE_PATH" \
+                 -storepass "$PW" 2>/dev/null)"
+        SHA1="$(printf '%s' "$FINGERPRINTS" | grep -oE 'SHA1: [0-9A-F:]+' | head -1)"
+        SHA256="$(printf '%s' "$FINGERPRINTS" | grep -oE 'SHA256: [0-9A-F:]+' | head -1)"
         if [ -n "$SHA1" ]; then
           pass "release $SHA1"
-          printf '        Register this in Firebase for the flavour package name.\n'
+          [ -n "$SHA256" ] && pass "release $SHA256"
+          printf '        SHA-1 is what Google Sign-In matches. SHA-256 is\n'
+          printf '        additionally required by Play App Signing and by\n'
+          printf '        App Links. Register BOTH against the package name\n'
+          printf '        for this flavour.\n'
+          EXPIRY="$(printf '%s' "$FINGERPRINTS" | grep -oE 'until: .*' | head -1)"
+          [ -n "$EXPIRY" ] && printf '        Valid %s\n' "$EXPIRY"
         else
-          warn "could not read the SHA-1 — check keyAlias and storePassword"
+          warn "could not read the fingerprints — check keyAlias and storePassword"
         fi
       fi
     else
