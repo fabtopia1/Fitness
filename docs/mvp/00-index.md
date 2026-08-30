@@ -37,6 +37,8 @@ Where the two disagree, this folder is authoritative for the MVP.
 | 26 | [Samsung device checklist](26-samsung-device-checklist.md) | One UI behaviour that breaks exactly what this app depends on |
 | 27 | [Firebase production deployment](27-firebase-production-deployment.md) | Everything that must exist in the console before a build |
 | 28 | [Release sign-off](28-release-signoff.md) | C-1 re-verification, every remaining blocker, and the go/no-go |
+| 29 | [Personal APK guide](29-personal-apk-guide.md) | Build, sign, install and update the app on your own phone — no Firebase, no Play Store |
+| 30 | [Personal device checklist](30-personal-device-checklist.md) | One afternoon of testing on one phone, local mode only |
 
 ## The MVP in one paragraph
 

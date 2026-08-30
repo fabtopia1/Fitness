@@ -273,6 +273,13 @@ class BackupService {
       }
 
       final file = await export(prefix: 'auto');
+      if (_isEmpty(file)) {
+        // Nothing logged yet. An empty snapshot would sit at the top of the
+        // list saying "last backup just now" and suppress the real one for
+        // the next twenty hours.
+        await file.delete();
+        return null;
+      }
 
       for (final stale in existing.skip(keepSnapshots - 1)) {
         try {
@@ -286,6 +293,15 @@ class BackupService {
       // A snapshot that fails must never stop the app starting.
       debugPrint('BackupService: snapshot failed — $error');
       return null;
+    }
+  }
+
+  static bool _isEmpty(File file) {
+    try {
+      final decoded = jsonDecode(file.readAsStringSync());
+      return decoded is Map && decoded['records'] == 0;
+    } on Object {
+      return false;
     }
   }
 

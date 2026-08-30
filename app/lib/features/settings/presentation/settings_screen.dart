@@ -108,7 +108,7 @@ class SettingsScreen extends ConsumerWidget {
             label: 'Sign out',
             variant: LdButtonVariant.secondary,
             size: LdButtonSize.l,
-            onPressed: () => _confirmSignOut(context, ref, sync),
+            onPressed: () => _confirmSignOut(context, ref, sync, cloud),
           ),
           const SizedBox(height: LdSpacing.s3),
           LdPrimaryButton(
@@ -125,20 +125,34 @@ class SettingsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SyncState sync,
+    bool cloud,
   ) async {
     final unsynced = sync.pending;
+
+    // Signing out wipes every local box — deliberately, so a shared device
+    // does not leave one account's training log for the next person. With an
+    // account behind it that is a resync. WITHOUT one, it is permanent
+    // deletion with nothing to sign back in to, and the copy has to say so:
+    // this dialog used to promise "your data stays on this device and in your
+    // account", which in a local-only build was the opposite of what happens.
+    final body = !cloud
+        ? 'This build has no account. Signing out ERASES every meal, workout, '
+              'measurement and photo on this phone, and there is nothing to '
+              'sign back in to.\n\n'
+              'The only way back is a backup: Data and sync → Back up now, '
+              'then Restore after signing out.'
+        : unsynced > 0
+        ? '$unsynced change${unsynced == 1 ? '' : 's'} has not reached '
+              'the cloud yet. Signing out now keeps it on this device but '
+              'it will not appear on your other devices until you sign '
+              'back in here.'
+        : 'Your data stays on this device and in your account.';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: Text(
-          unsynced > 0
-              ? '$unsynced change${unsynced == 1 ? '' : 's'} has not reached '
-                    'the cloud yet. Signing out now keeps it on this device but '
-                    'it will not appear on your other devices until you sign '
-                    'back in here.'
-              : 'Your data stays on this device and in your account.',
-        ),
+        title: Text(cloud ? 'Sign out?' : 'Sign out and erase?'),
+        content: Text(body),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -146,7 +160,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Sign out'),
+            child: Text(cloud ? 'Sign out' : 'Erase and sign out'),
           ),
         ],
       ),

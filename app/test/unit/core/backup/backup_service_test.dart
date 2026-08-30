@@ -260,6 +260,13 @@ void main() {
   });
 
   group('automatic snapshots', () {
+    test('an empty database is not snapshotted', () async {
+      // Otherwise the very first launch parks a zero-record file at the top of
+      // the list and suppresses the real snapshot for twenty hours.
+      expect(await backups.autoSnapshot(), isNull);
+      expect(backups.available(), isEmpty);
+    });
+
     test('the first launch takes one', () async {
       await seed();
 

@@ -417,9 +417,13 @@ void main() {
       expect(env.store.readAll(HiveStore.boxWorkouts), hasLength(1));
     });
 
-    testWidgets('signing out warns about work that has not synced', (
+    testWidgets('signing out without an account says it erases everything', (
       tester,
     ) async {
+      // This build has no Firebase, so signOut() clears every box and there is
+      // nothing to sign back in to. The dialog used to say "your data stays on
+      // this device and in your account" — the opposite of what happens, on a
+      // one-tap path to total loss.
       await signIn();
       await pumpScreen(tester, env, const SettingsScreen());
       await pumpFrames(tester);
@@ -428,9 +432,21 @@ void main() {
       await tester.tap(find.text('Sign out'));
       await pumpFrames(tester);
 
-      expect(find.text('Sign out?'), findsOneWidget);
+      expect(find.text('Sign out and erase?'), findsOneWidget);
+      expect(find.textContaining('ERASES'), findsOneWidget);
+      expect(
+        find.textContaining('Back up now'),
+        findsOneWidget,
+        reason: 'the only way back has to be named before the destructive tap',
+      );
+      expect(
+        find.textContaining('stays on this device and in your account'),
+        findsNothing,
+      );
+
       await tester.tap(find.text('Cancel'));
       await pumpFrames(tester);
+      expect(find.text('Sign out and erase?'), findsNothing);
     });
   });
 
